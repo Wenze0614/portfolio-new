@@ -76,13 +76,37 @@ export default function Page() {
     const sun3 = useRef<THREE.DirectionalLight>(null)
     const sun4 = useRef<THREE.DirectionalLight>(null)
     const [suns, setSuns] = useState<THREE.DirectionalLight[]>([]);
-    // const [suns, setSuns] = useState<THREE.DirectionalLight[]>([])
+
     const addSun = (sun: THREE.DirectionalLight) => {
         setSuns(suns => [sun, ...suns])
     }
 
+    const planets = [
+        { name: "Mercury", speed: 0.2, spinRate:0.027, },
+        { name: "Venus", speed: 0.15, spinRate: -0.007 }, // retrograde
+        { name: "Earth", speed: 0.1, spinRate: 1.6 * 0.5 },
+        { name: "Mars", speed: 0.08, spinRate: 1.5 * 0.5 },
+        { name: "Jupiter", speed: 0.05, spinRate: 3.86 * 0.25 },
+        { name: "Saturn", speed: 0.04, spinRate: 3.6 * 0.25 },
+        { name: "Uranus", speed: 0.03, spinRate: -2.2 * 0.5}, // retrograde
+        { name: "Neptune", speed: 0.02, spinRate: 2.4 * 0.5},
+    ];
+    const sunRoom5WorldPosition = new THREE.Vector3();
+
+    const orbitGroups: { planet: THREE.Object3D, radius: number, speed: number, spinRate: number }[] = [];
+
+
     useEffect(() => {
         if (!canvasRef.current) return;
+
+        const camera = new THREE.PerspectiveCamera(
+            30,
+            canvasRef.current.clientWidth / canvasRef.current.clientHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(0, 1.2, 0);
+        scene.add(camera);
 
         gltfLoader.load('/models/portfolio-cave.glb', (gltf) => {
             console.log(gltf);
@@ -130,8 +154,8 @@ export default function Page() {
 
             const caveBodyMaterial = new THREE.ShaderMaterial({
                 uniforms: {
-                  baseMap: { value: bakedTexture },      // your stone texture
-                  lightMap: { value: caveBodyLightMap }, // your baked light/shadow texture
+                    baseMap: { value: bakedTexture },      // your stone texture
+                    lightMap: { value: caveBodyLightMap }, // your baked light/shadow texture
                 },
                 vertexShader: `
                   attribute vec2 uv1;
@@ -161,7 +185,7 @@ export default function Page() {
                     gl_FragColor = vec4(lightColor, 1.0);
                   }
                 `,
-              });
+            });
 
             if (rightWall && rightWall instanceof THREE.Mesh) {
                 console.log('Right wall found:', rightWall);
@@ -200,12 +224,35 @@ export default function Page() {
             //     console.error('Room 5 not found or is not a Mesh');
             // }
 
-            // if(sunRoom5 && sunRoom5 instanceof THREE.Mesh) {
-            //     const light = new THREE.PointLight('#fa9b6b', 2.5, 6.0, 2.0);
-            //     sunRoom5.add(light);
-            // } else {
-            //     console.error('Sun Room 5 not found or is not a Mesh');
-            // }
+            if (sunRoom5 && sunRoom5 instanceof THREE.Mesh) {
+                sunRoom5.getWorldPosition(sunRoom5WorldPosition);
+                camera.position.set(sunRoom5WorldPosition.x, 1.2, sunRoom5WorldPosition.z);
+                sunRoom5.position.copy(sunRoom5WorldPosition);
+                scene.add(sunRoom5);
+                orbitGroups.push({ planet: sunRoom5, radius: 0, speed: 0, spinRate: 0.1 });
+                console.log("sun world position: ", sunRoom5.getWorldPosition(new THREE.Vector3()));
+                console.log("sun local position: ", sunRoom5.position);
+                planets.forEach(p => {
+                    const planet = model.getObjectByName(p.name);
+                    if (!planet) {
+                        console.warn(`${p.name} not found`);
+                        return;
+                    }
+                    planet.position.copy(planet.getWorldPosition(new THREE.Vector3()));
+                    scene.add(planet);
+                    const planetWorldPosition = planet.getWorldPosition(new THREE.Vector3());
+                    const radius = planetWorldPosition.distanceTo(sunRoom5WorldPosition);
+                    console.log(`${p.name} radius:`, radius);
+                    // if (orbitGroups.length > 0 ) {
+                    //     console.log("planet position: ",planet.position);
+                    //     console.log("planet world position: ",planet.getWorldPosition(new THREE.Vector3()));
+                    // }
+
+                    orbitGroups.push({ planet, radius, speed: p.speed, spinRate: p.spinRate });
+                });
+            } else {
+                console.error('Sun Room 5 not found or is not a Mesh');
+            }
 
             if (caveEntry && caveEntry instanceof THREE.Mesh) {
                 console.log('Cave Entry found:', caveEntry);
@@ -396,14 +443,7 @@ export default function Page() {
         // treeMesh.position.set(-5, 0, 0);
         // scene.add(treeMesh);
 
-        const camera = new THREE.PerspectiveCamera(
-            30,
-            canvasRef.current.clientWidth / canvasRef.current.clientHeight,
-            0.1,
-            1000
-        );
-        camera.position.set(0, 1.2, 0);
-        scene.add(camera);
+
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.shadowMap.enabled = true;
@@ -473,7 +513,6 @@ export default function Page() {
 
         const timer = new Timer();
 
-
         const animate = () => {
             requestAnimationFrame(animate);
             timer.update();
@@ -511,6 +550,18 @@ export default function Page() {
                 const yOffset = isMoving ? Math.sin(walkTime * bobFrequency) * bobAmplitude : 0;
                 camera.position.y = baseY + yOffset;
             }
+
+            orbitGroups.forEach(o => {
+                //o.planet.position.x += 0.01;
+                // console.log(o.planet.position);
+                // console.log(o.planet.getWorldPosition(new THREE.Vector3()));
+                //console.log(sunRoom5WorldPosition)
+                o.planet.position.x = sunRoom5WorldPosition.x + Math.cos(o.speed * timer.getElapsed()) * o.radius;
+                o.planet.position.z = sunRoom5WorldPosition.z + Math.sin(o.speed * timer.getElapsed()) * o.radius;
+                o.planet.rotation.y += o.spinRate * timer.getDelta(); // Rotate the planet
+                // o.planet.position.z = o.planet.position.z +  0.1;
+                //o.planet.position.y = 0.5; // keep the planet at a
+            });
 
             //control.update();
             renderer.render(scene, camera);
