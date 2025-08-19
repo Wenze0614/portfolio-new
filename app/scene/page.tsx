@@ -105,7 +105,7 @@ export default function Page() {
             0.1,
             1000
         );
-        camera.position.set(0, 1.2, 0);
+        camera.position.set(0, 1.6, 0);
         scene.add(camera);
 
         gltfLoader.load('/models/portfolio-cave.glb', (gltf) => {
@@ -130,7 +130,7 @@ export default function Page() {
             const textureLoader = new THREE.TextureLoader();
             //const bakedTexture = textureLoader.load('/textures/stone-texture.png');
             const bakedTexture = textureLoader.load('/textures/stone-texture.png');
-            const caveBodyLightMap = textureLoader.load('/textures/cave-body-lightmap-v3.jpg');
+            const caveBodyLightMap = textureLoader.load('/textures/cave-body-lightmap-v4.jpg');
 
             // Set proper settings (optional but good)
             bakedTexture.flipY = false; // glTF uses a different Y-axis orientation
@@ -226,7 +226,7 @@ export default function Page() {
 
             if (sunRoom5 && sunRoom5 instanceof THREE.Mesh) {
                 sunRoom5.getWorldPosition(sunRoom5WorldPosition);
-                camera.position.set(sunRoom5WorldPosition.x, 1.2, sunRoom5WorldPosition.z);
+                camera.position.set(sunRoom5WorldPosition.x, 1.6, sunRoom5WorldPosition.z);
                 sunRoom5.position.copy(sunRoom5WorldPosition);
                 scene.add(sunRoom5);
                 orbitGroups.push({ planet: sunRoom5, radius: 0, speed: 0, spinRate: 0.1 });
@@ -486,7 +486,7 @@ export default function Page() {
         let walkTime = 0;
         const bobFrequency = 1.5;     // Controls how fast the bobbing is
         const bobAmplitude = 0.02;  // Controls how much the camera bobs
-        const baseY = 1.2;          // Default head height
+        const baseY = 1.6;          // Default head height
 
         const onKeyDown = (event: KeyboardEvent) => {
             switch (event.code) {
