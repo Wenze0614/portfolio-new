@@ -124,6 +124,8 @@ export default function Page() {
             const caveEntry = model.getObjectByName('cave-entry');
             const caveBody = model.getObjectByName('cave-body')!; //need to clean the type
             const room5 = model.getObjectByName('room-5');
+            const table = model.getObjectByName('table-geo');
+            console.log('table-geo: ', table);
 
             const sunRoom5 = model.getObjectByName('Sun');
 
@@ -131,6 +133,7 @@ export default function Page() {
             //const bakedTexture = textureLoader.load('/textures/stone-texture.png');
             const bakedTexture = textureLoader.load('/textures/stone-texture.png');
             const caveBodyLightMap = textureLoader.load('/textures/cave-body-lightmap-v4.jpg');
+            const tableTexture = textureLoader.load('/textures/desk-texture.jpg');
 
             // Set proper settings (optional but good)
             bakedTexture.flipY = false; // glTF uses a different Y-axis orientation
@@ -139,9 +142,16 @@ export default function Page() {
             caveBodyLightMap.flipY = false; // glTF uses a different Y-axis orientation
             caveBodyLightMap.colorSpace = THREE.SRGBColorSpace; // Ensure the texture is in sRGB color space
 
+            tableTexture.flipY = false; // glTF uses a different Y-axis orientation
+            tableTexture.colorSpace = THREE.SRGBColorSpace; // Ensure the texture is in sRGB color space
+
             // Create a material using the baked texture
             const wallMaterial = new THREE.MeshLambertMaterial({
                 map: bakedTexture
+            });
+
+            const tableMaterial = new THREE.MeshBasicMaterial({
+                map: tableTexture,
             });
 
             const room5Material = new THREE.MeshStandardMaterial({
@@ -262,6 +272,15 @@ export default function Page() {
                 caveEntry.receiveShadow = true;
             } else {
                 console.error('Cave entry not found or is not a Mesh');
+            }
+
+            if(table && table instanceof THREE.Mesh) {
+                console.log('Table found:', table);
+                // Assign the new material
+                table.material = tableMaterial;
+            }
+            else {
+                console.error('Table not found or is not a Mesh');
             }
         }, undefined, (error) => {
             console.error('An error happened while loading the model:', error);
