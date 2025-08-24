@@ -133,7 +133,11 @@ export default function Page() {
             //const bakedTexture = textureLoader.load('/textures/stone-texture.png');
             const bakedTexture = textureLoader.load('/textures/stone-texture.png');
             const caveBodyLightMap = textureLoader.load('/textures/cave-body-lightmap-v4.jpg');
+            const caveBodyBaseMap = textureLoader.load('/textures/cave-body-texture-with-rock-texture.jpg');
             const tableTexture = textureLoader.load('/textures/desk-texture.jpg');
+            const rockarmTexture = textureLoader.load('/textures/rock_face_03_arm_2k.jpg');
+            const rockdispTexture = textureLoader.load('/textures/rock_face_03_disp_2k.jpg');
+            const rocknormTexture = textureLoader.load('/textures/rock_face_03_nor_gl_2k.jpg');
 
             // Set proper settings (optional but good)
             bakedTexture.flipY = false; // glTF uses a different Y-axis orientation
@@ -144,6 +148,14 @@ export default function Page() {
 
             tableTexture.flipY = false; // glTF uses a different Y-axis orientation
             tableTexture.colorSpace = THREE.SRGBColorSpace; // Ensure the texture is in sRGB color space
+
+            rockarmTexture.flipY = false;
+            rockarmTexture.colorSpace = THREE.SRGBColorSpace;
+            rockdispTexture.flipY = false;
+            rocknormTexture.flipY = false;
+
+            caveBodyBaseMap.flipY = false; // glTF uses a different Y-axis orientation
+            caveBodyBaseMap.colorSpace = THREE.SRGBColorSpace; // Ensure the texture is
 
             // Create a material using the baked texture
             const wallMaterial = new THREE.MeshLambertMaterial({
@@ -159,13 +171,16 @@ export default function Page() {
                 roughness: 1,
                 metalness: 0,
             });
-
+        
+            // const caveBodyMaterial = new THREE.MeshLambertMaterial({
+            //     map:caveBodyBaseMap
+            // });
             //const caveBodyMaterial = new THREE.MeshStandardMaterial({color: new THREE.Color(0.3098, 0.3098, 0.3098)});
 
             const caveBodyMaterial = new THREE.ShaderMaterial({
                 uniforms: {
                     baseMap: { value: bakedTexture },      // your stone texture
-                    lightMap: { value: caveBodyLightMap }, // your baked light/shadow texture
+                    lightMap: { value: caveBodyBaseMap }, // your baked light/shadow texture
                 },
                 vertexShader: `
                   attribute vec2 uv1;
