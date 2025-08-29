@@ -125,6 +125,8 @@ export default function Page() {
             const caveBody = model.getObjectByName('cave-body')!; //need to clean the type
             const room5 = model.getObjectByName('room-5');
             const table = model.getObjectByName('table-geo');
+            const newCavebody = model.getObjectByName('new-cave-body');
+            const ground = model.getObjectByName('ground');
             console.log('table-geo: ', table);
 
             const sunRoom5 = model.getObjectByName('Sun');
@@ -133,11 +135,14 @@ export default function Page() {
             //const bakedTexture = textureLoader.load('/textures/stone-texture.png');
             const bakedTexture = textureLoader.load('/textures/stone-texture.png');
             const caveBodyLightMap = textureLoader.load('/textures/cave-body-lightmap-v4.jpg');
-            const caveBodyBaseMap = textureLoader.load('/textures/cave-body-texture-with-rock-texture.jpg');
+            const caveBodyBaseMap = textureLoader.load('/textures/cave-body-lightmap-v4.jpg');
             const tableTexture = textureLoader.load('/textures/desk-texture.jpg');
             const rockarmTexture = textureLoader.load('/textures/rock_face_03_arm_2k.jpg');
             const rockdispTexture = textureLoader.load('/textures/rock_face_03_disp_2k.jpg');
             const rocknormTexture = textureLoader.load('/textures/rock_face_03_nor_gl_2k.jpg');
+
+            const newCavebodyTexture = textureLoader.load('/textures/new-cave-body-texture.jpg');
+            const groundTexture = textureLoader.load('/textures/ground-texture.jpg');
 
             // Set proper settings (optional but good)
             bakedTexture.flipY = false; // glTF uses a different Y-axis orientation
@@ -157,6 +162,11 @@ export default function Page() {
             caveBodyBaseMap.flipY = false; // glTF uses a different Y-axis orientation
             caveBodyBaseMap.colorSpace = THREE.SRGBColorSpace; // Ensure the texture is
 
+            newCavebodyTexture.flipY = false; // glTF uses a different Y-axis orientation
+            newCavebodyTexture.colorSpace = THREE.SRGBColorSpace; // Ensure the texture
+            
+            groundTexture.flipY = false; // glTF uses a different Y-axis orientation
+            groundTexture.colorSpace = THREE.SRGBColorSpace; // Ensure the texture is in s
             // Create a material using the baked texture
             const wallMaterial = new THREE.MeshLambertMaterial({
                 map: bakedTexture
@@ -212,6 +222,13 @@ export default function Page() {
                 `,
             });
 
+            const newCavebodyMaterial = new THREE.MeshLambertMaterial({
+                map: newCavebodyTexture
+            });
+            
+            const groundMaterial = new THREE.MeshLambertMaterial({
+                map: groundTexture
+            });
             if (rightWall && rightWall instanceof THREE.Mesh) {
                 console.log('Right wall found:', rightWall);
                 // Assign the new material
@@ -251,7 +268,7 @@ export default function Page() {
 
             if (sunRoom5 && sunRoom5 instanceof THREE.Mesh) {
                 sunRoom5.getWorldPosition(sunRoom5WorldPosition);
-                camera.position.set(sunRoom5WorldPosition.x, 1.6, sunRoom5WorldPosition.z);
+                //camera.position.set(sunRoom5WorldPosition.x, 1.6, sunRoom5WorldPosition.z);
                 sunRoom5.position.copy(sunRoom5WorldPosition);
                 scene.add(sunRoom5);
                 orbitGroups.push({ planet: sunRoom5, radius: 0, speed: 0, spinRate: 0.1 });
@@ -297,6 +314,23 @@ export default function Page() {
             else {
                 console.error('Table not found or is not a Mesh');
             }
+
+            // if(newCavebody && newCavebody instanceof THREE.Mesh) {
+            //     console.log('New Cave Body found:', newCavebody);
+            //     // Assign the new material
+            //     newCavebody.material = newCavebodyMaterial;
+            // }
+            // else {
+            //     console.error('new Cave body not found or is not a Mesh');
+            // }
+
+            // if(ground && ground instanceof THREE.Mesh) {
+            //     console.log('Ground found:', ground);
+            //     // Assign the new material
+            //     ground.material = groundMaterial;
+            // } else {
+            //     console.error('Ground not found or is not a Mesh');
+            // }
         }, undefined, (error) => {
             console.error('An error happened while loading the model:', error);
         });
@@ -319,7 +353,7 @@ export default function Page() {
             sun1.current.target.position.set(0, 0, -2);
             sun1.current.name = 'yellow sun';
             sun1.current.castShadow = true;
-            scene.add(sun1.current);
+            //scene.add(sun1.current);
             addSun(sun1.current)
             sun1.current.shadow.camera.left = -6;
             sun1.current.shadow.camera.right = 10;
@@ -334,8 +368,7 @@ export default function Page() {
             // scene.add(sun1Helper);
             // const sun1ShadowCameraHelper = new THREE.CameraHelper(sun1.current.shadow.camera);
             // scene.add(sun1ShadowCameraHelper);
-
-        }
+            }
         // SUN 2: light blue
         if (!sun2.current) {
             const sun2Color = new THREE.Color("#8FC6DC");
@@ -343,10 +376,10 @@ export default function Page() {
             sun2.current.position.set(-8.65, 6.81, 3.79,);
             sun2.current.name = 'blue sun';
             // sun2.current.castShadow = true;
-            scene.add(sun2.current);
+            //scene.add(sun2.current);
             addSun(sun2.current)
-            // const sun2Helper = new THREE.DirectionalLightHelper(sun2.current, 2, 'blue');
-            // scene.add(sun2Helper);
+            const sun2Helper = new THREE.DirectionalLightHelper(sun2.current, 2, 'blue');
+            scene.add(sun2Helper);
         }
 
         // SUN 2: light blue
@@ -356,10 +389,10 @@ export default function Page() {
             sun4.current.position.set(8.65, 6.81, 3.79,);
             sun4.current.name = 'blue sun 2';
             // sun2.current.castShadow = true;
-            scene.add(sun4.current);
+            //scene.add(sun4.current);
             addSun(sun4.current)
-            // const sun4Helper = new THREE.DirectionalLightHelper(sun4.current, 2, 'blue');
-            // scene.add(sun4Helper);
+            const sun4Helper = new THREE.DirectionalLightHelper(sun4.current, 2, 'blue');
+            scene.add(sun4Helper);
         }
 
         // SUN 3: green
@@ -368,14 +401,18 @@ export default function Page() {
             sun3.current = new THREE.DirectionalLight(sun3Color, 3.14);
             sun3.current.position.set(0, 5, 0);
             sun3.current.name = 'green sun';
-            scene.add(sun3.current);
+            //scene.add(sun3.current);
             addSun(sun3.current)
             const sun3Helper = new THREE.DirectionalLightHelper(sun3.current, 2, 'green');
             scene.add(sun3Helper);
         }
 
-        // const ambientLight = new THREE.AmbientLight("#AAC3DA", 1.431); // soft white light
+        // const ambientLight = new THREE.AmbientLight("#AAC3DA", 0.5); // soft white light
         // scene.add(ambientLight);
+
+        const pointLight1 = new THREE.PointLight("#D6B575", 16, 50);
+        pointLight1.position.set(camera.position.x, 1.2, camera.position.z);
+        scene.add(pointLight1);
 
 
         //grass
@@ -596,6 +633,9 @@ export default function Page() {
                 // o.planet.position.z = o.planet.position.z +  0.1;
                 //o.planet.position.y = 0.5; // keep the planet at a
             });
+            
+            //light follow the camera
+            pointLight1.position.set(camera.position.x, 1.2, camera.position.z);
 
             //control.update();
             renderer.render(scene, camera);
