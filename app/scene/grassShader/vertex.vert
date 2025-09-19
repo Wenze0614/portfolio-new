@@ -139,10 +139,8 @@ float noise(vec3 p) {
 }
 
 void main() {
-  //vertex ID within one entire grass blade, which includes both front and back faces
-//   int vertFB_ID = gl_VertexID % (grassVertices * 2);
+
   //vertex ID within a single face (either front or back)
-//   int vertID = vertFB_ID % grassVertices;
 int vertID = gl_VertexID % grassVertices;
 
   //grass offset
@@ -168,15 +166,10 @@ int vertID = gl_VertexID % grassVertices;
 
   tilePosition = (base.xy + 1.0)/2.0;
 
-
-  //randomize the angle of the grass
-//   float angle = remap(hashVal.x, -1.0, 1.0, -PI, PI); 
-
   //0 = left, 1 = right
   int xTest = vertID & 0x1;  
-//   int zTest = (vertFB_ID >= grassVertices) ? 1: -1;
   float xSide = float(xTest);
-  //float zSide = float(zTest); 
+
   //verID - xTest rounds the vertex ID to the nearest even number
   float heightPercentage = float(vertID - xTest) / (float(grassSegment)*2.0);
 
@@ -213,29 +206,8 @@ int vertID = gl_VertexID % grassVertices;
   y = curve.y * height;
   z = curve.z * height;
 
-  //transformation
-//   mat3 grassMatrix = rotateY(angle*0.1) * rotateX(PI*0.3);
- 
-//   vec3 originToCamera = normalize(cameraPosition - vec3(0.0, 0.0, 0.0));
-//   float angleToZ = acos(dot(originToCamera, vec3(0.0, 0.0, 1.0)));
-//   mat3 xRotation = rotateX(-angleToZ );
-
-
-//   vec2 camXZ = normalize(vec2(originToCamera.x, originToCamera.z));
-//   float angleToZ_Y = atan(camXZ.x, camXZ.y); // Signed angle in XZ plane
-//   mat3 yRotation = rotateY(angleToZ_Y);
-//   mat3 grassMatrix = yRotation;
-
-  //billboard rotation
-  vec3 forward = normalize(cameraPosition - vec3(0.0)); // world origin
-  vec3 up = vec3(0.0, 1.0, 0.0); // world up
-  vec3 right = normalize(cross(up, forward));
-  vec3 trueUp = cross(forward, right);
-
-  mat3 lookAtMatrix = mat3(right, trueUp, forward);
-
   float angleZ = remap(hashedInstanceID.x, -1.0, 1.0, -PI/4.0, 0.0);
-  mat3 grassMatrix = lookAtMatrix * rotateZ(angleZ);
+  mat3 grassMatrix = rotateZ(angleZ);
 
 
   vec3 grassLocalPosition = grassMatrix *  vec3(x, y, z) + grassOffset;
@@ -248,45 +220,9 @@ int vertID = gl_VertexID % grassVertices;
   vec3 viewDir = normalize(cameraPosition - grassWorldPosition);
   //calculate the face direction of the grass blade after local transformation
   vec3 grassFaceNomrl = normalize(grassMatrix * vec3(0.0, 0.0, 1.0));
-  
-
-  //calculate the dot product between the view direction and the grass face normal
-  //this tells us how much the grass is facing the camera
-  //if the grass is facing the camera, the dot product will be close to 1
-  //if the grass is facing away from the camera, the dot product will be close to -1
-  //method-1: billboard rotation
-//   float vewDotNormal = dot(viewDir, grassFaceNomrl);
-  //rotate the grass so it faces more to the camera
-//   if(abs(vewDotNormal) < 0.5){
-//     vec2 nXZ = normalize(grassFaceNomrl.xz);
-//     vec2 vXZ = normalize(viewDir.xz);
-//     float angleXZ = acos(dot(nXZ, vXZ));
-//     float sign = sign(nXZ.x * vXZ.y - nXZ.y*vXZ.x);
-//     angle *= sign;
-
-//     mat3 adjust = rotateY(angle * 0.5);
-//     grassLocalPosition = adjust * grassLocalPosition;
-//     grassLocalNormal = adjust * grassLocalNormal;
-//   }
 
     //get position in view space
     vec4 viewSpacePosition = modelViewMatrix * vec4( grassLocalPosition, 1.0);
-    //method-2: view space thickening
-    //viewDotNormal ranges from 0 to 1
-    //if the grass is facing the camera, the dot product will be close to 1
-    //if the grass is facing away, the dot product will be close to 0
-    //if the grass is perpendicular or facing opposite to the camera, the result is 0
-    float viewDotNormal = saturate(dot(viewDir, grassFaceNomrl));
-    //thickening effect factor
-    //facing camera, viewDotNormal close to 1, thickeningFactor close to 0, less effect
-    //facing away, viewDotNormal close to 0, thickeningFactor close to 1, more effect
-    float thickeningFactor = easeOut(1.0 - viewDotNormal, 4.0);
-    //make the effect strong for grass that is slightly facing the camera
-    //remove the effect for grass that is perpendicular or facing away from the camera
-    thickeningFactor *= smoothstep(0.0, 0.2, viewDotNormal);
-
-    viewSpacePosition.x += thickeningFactor * (xSide - 0.5) * width * 0.5  * 1.2;
-    
     gl_Position = projectionMatrix *  viewSpacePosition;
 
   vColor = mix(BASE_COLOR, TIP_COLOR, heightPercentage);
