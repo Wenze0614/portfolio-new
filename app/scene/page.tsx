@@ -61,7 +61,7 @@ export default function Page() {
         const guiSystem = makeGUISystem();
         guiSystem.init(ctx);
 
-        const controlSystem = makeControlsSystem();
+        const controlSystem = makeControlsSystem(ctx);
         controlSystem.init(ctx);
         guiSystem.toggleControl(ctx, controlSystem.switchControl);
 
@@ -85,7 +85,7 @@ export default function Page() {
         const stats = makeStats(renderer.domElement.parentElement ?? document.body);
         // #endregion
 
-        const terrainSystem = makeTerrainSystem();
+        const terrainSystem = makeTerrainSystem(ctx);
         terrainSystem.init(ctx);
 
         function makeToonRamp(bands: { color: string | number; width?: number }[]) {

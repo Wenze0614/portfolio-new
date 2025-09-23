@@ -3,28 +3,21 @@ import vertexShader from "../shaders/grassShaders/vertex.vert";
 import fragmentShader from "../shaders/grassShaders/fragment.frag";
 import * as THREE from "three";
 
-const TERRAIN_SIZE_X = 100;
-const TERRAIN_SIZE_Z = 200;
-
 // define near and far distance for LOD
-const LOD_NEAR = 30;
-const LOD_MID = 70;
+const LOD_NEAR = 50;
+const LOD_MID = 100;
 
 const HIGH_SEGMENTS = 3;
 const MED_SEGMENTS = 2;
 const LOW_SEGMENTS = 1;
 
-const GRASS_NUMBER_FACTOR = 0.5;
+const GRASS_NUMBER_FACTOR = 0.8;
 const HIGH_INSTANCES = 30_000 * GRASS_NUMBER_FACTOR;
 const MID_INSTANCES = 12_000 * GRASS_NUMBER_FACTOR;
 const LOW_INSTANCES = 3_000 * GRASS_NUMBER_FACTOR;
 
-const NUM_GRASS = 30625;
-// const NUM_GRASS = 10;
-const GRASS_SEGMENT = 3;
-// const GRASS_VERTICES = (GRASS_SEGMENT + 1) * 2;
 const GRASS_PATCH_SIZE = 25;
-const GRASS_WIDTH = 0.1;
+const GRASS_WIDTH = 0.2;
 const GRASS_HEIGHT = 0.9;
 
 const vertsPerBlade = (seg: number) => (seg + 1) * 2;
@@ -73,67 +66,31 @@ const createGrassGeometry = (segment: number, grassNumber: number, patchSize: nu
 
 type LODKey = 'HIGH' | 'MED' | 'LOW';
 
-// const createGrassGeometry = (segment: number, grassNumber: number) => {
-//     //indices for each singel gass blade
-//     const indices: number[] = [];
-
-//     for (let i = 0; i < segment; ++i) {
-//         const vi = i * 2;
-//         //triangle 1
-//         indices[i * 12 + 0] = vi + 0;
-//         indices[i * 12 + 1] = vi + 1;
-//         indices[i * 12 + 2] = vi + 2;
-//         //triangle 2
-//         indices[i * 12 + 3] = vi + 1;
-//         indices[i * 12 + 4] = vi + 3;
-//         indices[i * 12 + 5] = vi + 2;
-
-//         const fi = GRASS_VERTICES + vi;
-//         //back triangle 1
-//         indices[i * 12 + 6] = fi + 0;
-//         indices[i * 12 + 7] = fi + 1;
-//         indices[i * 12 + 8] = fi + 2;
-//         //back triangle 2
-//         indices[i * 12 + 9] = fi + 1;
-//         indices[i * 12 + 10] = fi + 3;
-//         indices[i * 12 + 11] = fi + 2;
-//     }
-
-//     const geo = new THREE.InstancedBufferGeometry();
-//     geo.instanceCount = grassNumber;
-//     geo.setIndex(indices);
-//     // geo.computeBoundingSphere();
-//     // geo.boundingSphere = new THREE.Sphere(
-//     //     new THREE.Vector3(0, GRASS_HEIGHT / 2, 0),
-//     //     GRASS_PATCH_SIZE * 1.5 + GRASS_HEIGHT
-//     // );
-//     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 1000);
-
-//     return geo;
-// }
-
-export default function makeGrassSystem(terrainTexture: THREE.Texture): System {
-    const grassTexture = new THREE.TextureLoader().load('/textures/greenTexture3.png');
+export default function makeGrassSystem(ctx:SceneContext, heightMap: THREE.Texture, terrainTexture: THREE.Texture): System {
+    const grassTexture =ctx.loaders.texture.load('/textures/greenTexture3.png');
     grassTexture.wrapS = THREE.RepeatWrapping;
     grassTexture.wrapT = THREE.RepeatWrapping;
     grassTexture.repeat.set(1, 1);
+
+    const grassMask = ctx.loaders.texture.load('/textures/terrain_grassmask.png');
+    // grassMask.flipY = false;
+    grassMask.needsUpdate = true;
+
+    const terrainWidth = ctx.state.terrainState.terrainWidth;
+    const terrainHeight = ctx.state.terrainState.terrainLength;
     const baseUniforms = {
         time: { value: 0 },
         resolution: { value: new THREE.Vector2(1, 1) },
         grassWidth: { value: GRASS_WIDTH },
         grassHeight: { value: GRASS_HEIGHT },
-        // grassSegment: { value: HIGH_SEGMENTS },
-        // grassVertices: { value: vertsPerBlade(HIGH_SEGMENTS) },
         grassPatchSize: { value: GRASS_PATCH_SIZE },
         grassTexture: { value: grassTexture },
-        terrainTexture: { value: terrainTexture },
+        grassHeightMap:{value: heightMap},
+        grassMask: {value: grassMask},
+        terrainSize: {value: new THREE.Vector2(terrainWidth, terrainHeight)},
+        terrainTexture: {value: terrainTexture}
     }
-    // const grassMaterial = new THREE.ShaderMaterial({
-    //     vertexShader,
-    //     fragmentShader,
-    //     side: THREE.DoubleSide,
-    //     uniforms: uniforms,
-    // });
+
     // Helper to make one LOD material with its own cloned uniforms/defines
     function makeLODMaterial(segments: number) {
         const mat = new THREE.ShaderMaterial({
@@ -176,8 +133,8 @@ export default function makeGrassSystem(terrainTexture: THREE.Texture): System {
         currentLOD: LODKey;
     };
     const tiles: Tile[] = [];
-    for (const cx of tileCenters(-TERRAIN_SIZE_X * 0.5, TERRAIN_SIZE_X * 0.5, GRASS_PATCH_SIZE)) {
-        for (const cz of tileCenters(-TERRAIN_SIZE_Z * 0.5, TERRAIN_SIZE_Z * 0.5, GRASS_PATCH_SIZE)) {
+    for (const cx of tileCenters(-terrainWidth * 0.5, terrainWidth * 0.5, GRASS_PATCH_SIZE)) {
+        for (const cz of tileCenters(-terrainHeight * 0.5, terrainHeight * 0.5, GRASS_PATCH_SIZE)) {
             const mesh = new THREE.Mesh(geometries.HIGH, mats.HIGH);
             mesh.matrixAutoUpdate = true; // we just position; three will handle world matrix
             mesh.position.set(cx, 0, cz);
@@ -215,20 +172,6 @@ export default function makeGrassSystem(terrainTexture: THREE.Texture): System {
             }
         }
     }
-
-    function tick(elapsed: number) {
-        mats.HIGH.uniforms.time.value =
-        mats.MED.uniforms.time.value  =
-        mats.LOW.uniforms.time.value  = elapsed;
-      
-
-      }
-
-    // function updateMatResolution(resolution: THREE.Vector2){
-    //     mats.HIGH.uniforms.resolution.value.set(resolution);
-    //     mats.MED.uniforms.resolution.value.set(resolution);
-    //     mats.LOW.uniforms.resolution.value.set(resolution);
-    // }
 
     return {
         init(ctx: SceneContext) {

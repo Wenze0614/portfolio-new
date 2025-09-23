@@ -1,6 +1,6 @@
 // app/scene/core/state.ts
 import * as THREE from 'three';
-import { AppState, CONTROL_TYPE, PLockState, OrbitState } from './types';
+import { AppState, CONTROL_TYPE, PLockState, OrbitState, TerrainState } from './types';
 
 export function makeState(): AppState {
     const isFullScreen = false; // placeholder, implement fullscreen logic as needed
@@ -15,6 +15,13 @@ export function makeState(): AppState {
         bobAmplitude: 0.02,
         baseY: 1.6,
     } as PLockState;
+
+    const _terrainState: TerrainState = {
+        terrainWidth: 100,
+        terrainLength: 200,
+        heightScale: 5.0,
+        heightOffset: 0.0
+    }
 
     function setControlType(t: CONTROL_TYPE, options?: Partial<PLockState>) {
         if (t === _controlState.controlType) return;
@@ -32,5 +39,5 @@ export function makeState(): AppState {
             : { controlType: CONTROL_TYPE.Orbit } as OrbitState;
     }
 
-    return { get controlState() { return _controlState; }, setControlType, isFullScreen, };
+    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, isFullScreen, };
 }

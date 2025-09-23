@@ -1,6 +1,8 @@
 // app/scene/systems/makeControlsSystem.ts
 import { System, SceneContext, PLockState, OrbitState, CONTROL_TYPE, ControlSystem } from '../core/types';
 import { OrbitControls, PointerLockControls } from 'three/examples/jsm/Addons.js';
+import { makeHeightSampler } from '../utils/makeHeightSampler';
+import * as THREE from 'three';
 
 const onKeyDown = (event: KeyboardEvent, controlState: PLockState) => {
     switch (event.code) {
@@ -42,8 +44,9 @@ function createOrbitControl(controlState: OrbitState, { scene, camera, renderer 
     return orbitControl;
 }
 
-function updatePointerLockControls(controlState: PLockState, pControl: PointerLockControls, { camera }: SceneContext) {
+function updatePointerLockControls(controlState: PLockState, pControl: PointerLockControls, ctx: SceneContext, heightSampler: { heightAtXZ: (x: number, z: number, scale: number, offset: number) => number }) {
 
+    const camera = ctx.camera;
     document.addEventListener('keydown', (e) => onKeyDown(e, controlState));
     document.addEventListener('keyup', (e) => onKeyUp(e, controlState));
 
@@ -71,14 +74,19 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
 
     // Apply bobbing
     const yOffset = isMoving ? Math.sin(controlState.walkTime * bobFrequency) * bobAmplitude : 0;
-    camera.position.y = baseY + yOffset;
+
+    // sample ground height under camera (XZ)
+    const x = camera.position.x;
+    const z = camera.position.z;
+    const groundY = heightSampler ? heightSampler.heightAtXZ(x, z, ctx.state.terrainState.heightScale, ctx.state.terrainState.heightOffset) : 0.0;
+    camera.position.y = baseY + yOffset + groundY;
 }
 
 const updateOrbitControls = (oControl: OrbitControls) => {
     oControl.update();
 }
 
-export function makeControlsSystem(): ControlSystem {
+export function makeControlsSystem(ctx: SceneContext): ControlSystem {
     let orbit: OrbitControls | null = null;
     let plock: PointerLockControls | null = null;
 
@@ -88,6 +96,21 @@ export function makeControlsSystem(): ControlSystem {
             if (!orbit.enabled) plock.lock()
         };
     };
+
+    const terrainWidth = ctx.state.terrainState.terrainWidth;
+    const terrainHeight = ctx.state.terrainState.terrainLength;
+
+    let heightSampler:{
+        heightAtXZ(x: number, z: number, heightScale: number, heightOffset: number): number;
+    }
+    (async () => {
+        const heightMap = await ctx.loaders.texture.loadAsync('/textures/terrain_height.jpg');
+        console.log('heightmap width: ', heightMap.image)
+        const terrainMin = new THREE.Vector2(-terrainWidth * 0.5, -terrainHeight * 0.5);
+        const terrainMax = new THREE.Vector2(terrainWidth * 0.5, terrainHeight * 0.5);
+        heightSampler = makeHeightSampler(heightMap, terrainMin, terrainMax, { flipV: true });
+    })()
+
 
     return {
         init(ctx: SceneContext) {
@@ -117,7 +140,7 @@ export function makeControlsSystem(): ControlSystem {
         },
         update(ctx: SceneContext) {
             ctx.state.controlState.controlType === 'Walk'
-                ? updatePointerLockControls(ctx.state.controlState as PLockState, plock!, ctx)
+                ? updatePointerLockControls(ctx.state.controlState as PLockState, plock!, ctx, heightSampler)
                 : updateOrbitControls(orbit!);
         },
         dispose() {

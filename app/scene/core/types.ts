@@ -44,9 +44,17 @@ export interface PLockState {
     baseY: number;          // Default head height
 }
 
+export interface TerrainState {
+    terrainWidth: number,
+    terrainLength: number,
+    heightScale: number,
+    heightOffset: number
+}
+
 export interface AppState {
     controlState: OrbitState | PLockState;
     setControlType(t: CONTROL_TYPE): void;
+    terrainState: TerrainState;
     isFullScreen: boolean;
 }
 

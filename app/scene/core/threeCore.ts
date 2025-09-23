@@ -16,13 +16,16 @@ export function setupThreeCore(
         scene.background = new THREE.Color(options.background);
     }
 
+    const axesHelper = new THREE.AxesHelper(10);
+    scene.add(axesHelper);
+
     const camera = new THREE.PerspectiveCamera(
         30,
         mount.clientWidth / mount.clientHeight,
         0.1,
         1000
     );
-    camera.position.set(0, 1.6, -70);
+    camera.position.set(0, 1.6, 70);
     camera.layers.enable(0); // default layer
     camera.layers.enable(1); // also render layer 1
     scene.add(camera);
