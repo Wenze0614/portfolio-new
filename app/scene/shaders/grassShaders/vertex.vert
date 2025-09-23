@@ -194,9 +194,12 @@ void main() {
   //verID - xTest rounds the vertex ID to the nearest even number
     float heightPercentage = float(vertID-xTest)/(float(grassSegment)*2.0);
 
-  //width decreases as the height increases
+    //width decreases as the height increases
     float width = grassWidth*easeOut(1.0-heightPercentage, 2.0)*grassGrowth;
     float height = grassHeight*grassGrowth;
+    // add some randomness to grass height
+    float randomTallGrass = hashVal.x > 0.7 ? hashVal.x * 2.0 : 1.0;
+    height *= randomTallGrass;
 
   //x position will be -width/2 or width/2 depending on which side the vertex is on
     float x = (xSide-0.5)*width;

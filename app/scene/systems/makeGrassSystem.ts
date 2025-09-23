@@ -18,7 +18,7 @@ const LOW_INSTANCES = 3_000 * GRASS_NUMBER_FACTOR;
 
 const GRASS_PATCH_SIZE = 25;
 const GRASS_WIDTH = 0.2;
-const GRASS_HEIGHT = 0.9;
+const GRASS_HEIGHT = 0.3;
 
 const vertsPerBlade = (seg: number) => (seg + 1) * 2;
 
