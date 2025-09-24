@@ -22,6 +22,20 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     heightMap.minFilter = THREE.LinearFilter;
     heightMap.magFilter = THREE.LinearFilter;
 
+    const windNoise = ctx.loaders.texture.load('/textures/wind-noise-1.png');
+    windNoise.wrapS = THREE.RepeatWrapping;
+    windNoise.wrapT = THREE.RepeatWrapping;
+    windNoise.repeat.set(1, 1);
+    windNoise.minFilter = THREE.LinearFilter;
+    windNoise.magFilter = THREE.LinearFilter;
+    windNoise.colorSpace = THREE.NoColorSpace;
+    windNoise.generateMipmaps = false;
+    windNoise.needsUpdate = true;
+
+    const grassMask = ctx.loaders.texture.load('/textures/terrain_grassmask.png');
+    // grassMask.flipY = false;
+    grassMask.needsUpdate = true;
+
     const W = ctx.state.terrainState.terrainWidth, L = ctx.state.terrainState.terrainLength;         // your world size (x,z)
     const RES_X = 256, RES_Z = 512; // vertices; start modest, increase if needed
     const geom = new THREE.PlaneGeometry(W, L, RES_X, RES_Z);
@@ -29,12 +43,17 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
 
     const terrainMat = new THREE.ShaderMaterial({
         uniforms: {
-            terrainSize: {value: new THREE.Vector2(W, L)},
+            terrainSize: { value: new THREE.Vector2(W, L) },
             heightMap: { value: heightMap },
-            heightScale: { value: ctx.state.terrainState.heightScale},            // world units of relief
+            heightScale: { value: ctx.state.terrainState.heightScale },            // world units of relief
             heightOffset: { value: ctx.state.terrainState.heightOffset },             // base Y
             texel: { value: new THREE.Vector2(1 / 1024, 1 / 2048) }, // if your map is 1024x2048
-            terrainColorMap: {value: terrainTexture}
+            terrainColorMap: { value: terrainTexture },
+            uWindSpeed: { value: ctx.state.windState.windSpeed },
+            uWindDirection: { value: ctx.state.windState.windDirection },
+            windNoise: { value: windNoise },
+            time: { value: 0 },
+            grassMask: {value: grassMask}
         },
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
@@ -61,10 +80,11 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
             // });
             ctx.scene.add(terrain);
 
-            grassSystem = makeGrassSystem(ctx, heightMap, terrainTexture);
+            grassSystem = makeGrassSystem(ctx, heightMap, terrainTexture, windNoise, grassMask);
             grassSystem.init(ctx);
         },
         update(ctx: SceneContext, dt: number) {
+            terrainMat.uniforms.time.value = dt;
             if (grassSystem) {
                 grassSystem.update(ctx, dt);
             }

@@ -51,10 +51,16 @@ export interface TerrainState {
     heightOffset: number
 }
 
+export interface WindState {
+    windSpeed: number,
+    windDirection: THREE.Vector2,
+}
+
 export interface AppState {
     controlState: OrbitState | PLockState;
     setControlType(t: CONTROL_TYPE): void;
     terrainState: TerrainState;
+    windState: WindState;
     isFullScreen: boolean;
 }
 

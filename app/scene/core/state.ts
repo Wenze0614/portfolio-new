@@ -23,6 +23,11 @@ export function makeState(): AppState {
         heightOffset: 0.0
     }
 
+    const _windState = {
+        windSpeed: 1.0, // default wind speed
+        windDirection : new THREE.Vector2(1, 1).normalize(), // default wind direction
+    };
+
     function setControlType(t: CONTROL_TYPE, options?: Partial<PLockState>) {
         if (t === _controlState.controlType) return;
         _controlState = t === CONTROL_TYPE.Walk
@@ -39,5 +44,5 @@ export function makeState(): AppState {
             : { controlType: CONTROL_TYPE.Orbit } as OrbitState;
     }
 
-    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, isFullScreen, };
+    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() {return _windState},isFullScreen, };
 }

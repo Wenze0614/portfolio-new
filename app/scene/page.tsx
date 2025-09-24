@@ -12,15 +12,6 @@ import makeGUISystem from "./systems/makeGUISystem";
 import makeLightSystem from "./systems/makeLightSystem";
 import { makeStats } from "./utils/makeStats";
 import makeTerrainSystem from "./systems/makeTerrainSystem";
-import makeGrassSystem from "./systems/makeGrassSystem";
-
-const NUM_GRASS = 30625;
-// const NUM_GRASS = 10;
-const GRASS_SEGMENT = 6;
-const GRASS_VERTICES = (GRASS_SEGMENT + 1) * 2;
-const GRASS_PATCH_SIZE = 50;
-const GRASS_WIDTH = 0.1;
-const GRASS_HEIGHT = 0.9;
 
 
 export default function Page() {
@@ -29,7 +20,6 @@ export default function Page() {
     const materials: THREE.Material[] = useMemo(() => [], []);
     const gltfLoader = useMemo(() => new GLTFLoader(), []);
     const grassClumpsGeo = useRef<THREE.Mesh>(null);
-    const treeGeo = useRef<THREE.Mesh>(null);
 
 
     const planets = [

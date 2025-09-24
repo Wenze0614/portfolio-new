@@ -66,15 +66,11 @@ const createGrassGeometry = (segment: number, grassNumber: number, patchSize: nu
 
 type LODKey = 'HIGH' | 'MED' | 'LOW';
 
-export default function makeGrassSystem(ctx:SceneContext, heightMap: THREE.Texture, terrainTexture: THREE.Texture): System {
+export default function makeGrassSystem(ctx:SceneContext, heightMap: THREE.Texture, terrainTexture: THREE.Texture, windNoise: THREE.Texture, grassMask: THREE.Texture): System {
     const grassTexture =ctx.loaders.texture.load('/textures/greenTexture3.png');
     grassTexture.wrapS = THREE.RepeatWrapping;
     grassTexture.wrapT = THREE.RepeatWrapping;
     grassTexture.repeat.set(1, 1);
-
-    const grassMask = ctx.loaders.texture.load('/textures/terrain_grassmask.png');
-    // grassMask.flipY = false;
-    grassMask.needsUpdate = true;
 
     const terrainWidth = ctx.state.terrainState.terrainWidth;
     const terrainHeight = ctx.state.terrainState.terrainLength;
@@ -88,7 +84,10 @@ export default function makeGrassSystem(ctx:SceneContext, heightMap: THREE.Textu
         grassHeightMap:{value: heightMap},
         grassMask: {value: grassMask},
         terrainSize: {value: new THREE.Vector2(terrainWidth, terrainHeight)},
-        terrainTexture: {value: terrainTexture}
+        terrainTexture: {value: terrainTexture},
+        windNoise: { value: windNoise },
+        uWindSpeed: {value: ctx.state.windState.windSpeed},
+        uWindDirection: {value: ctx.state.windState.windDirection}
     }
 
     // Helper to make one LOD material with its own cloned uniforms/defines
