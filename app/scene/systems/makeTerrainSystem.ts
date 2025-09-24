@@ -68,7 +68,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     });
     const terrain = new THREE.Mesh(geom, terrainMat);
     terrain.receiveShadow = true;
-    terrain.castShadow = true;
+    //terrain.castShadow = true;
 
     // custom depth material for shadows
     const depthMat = new THREE.MeshDepthMaterial({
