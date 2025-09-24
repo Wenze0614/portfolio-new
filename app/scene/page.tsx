@@ -12,6 +12,9 @@ import makeGUISystem from "./systems/makeGUISystem";
 import makeLightSystem from "./systems/makeLightSystem";
 import { makeStats } from "./utils/makeStats";
 import makeTerrainSystem from "./systems/makeTerrainSystem";
+import { makeSkySystem } from "./systems/makeSkySystem";
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import test from "node:test";
 
 
 export default function Page() {
@@ -55,7 +58,7 @@ export default function Page() {
         controlSystem.init(ctx);
         guiSystem.toggleControl(ctx, controlSystem.switchControl);
 
-        const lightSystem = makeLightSystem();
+        const lightSystem = makeLightSystem(ctx);
         lightSystem.init(ctx);
         guiSystem.updateLights(lightSystem.getLights());
 
@@ -77,6 +80,20 @@ export default function Page() {
 
         const terrainSystem = makeTerrainSystem(ctx);
         terrainSystem.init(ctx);
+
+
+
+        const skySystem = makeSkySystem(ctx);
+
+        const testCube = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshToonMaterial({ color: 'white'})
+        );
+        testCube.position.set(-5, 2, 5);
+        testCube.castShadow = true;
+        scene.add(testCube);
+        testCube.name = "test cube";
+        guiSystem.updateMeshes([testCube]);
 
         function makeToonRamp(bands: { color: string | number; width?: number }[]) {
             // width = pixels per band (controls how “thick” each band is). Default 64.
@@ -169,8 +186,12 @@ export default function Page() {
             stats.begin();
             timer.update();
             controlSystem.update(ctx);
+            lightSystem.update(ctx);
+            testCube.rotation.y += 0.01;
+            testCube.rotation.x += 0.005;
             // angle += 0.01; // rotation speed
-            terrainSystem.update(ctx, timer.getElapsed())
+            terrainSystem.update(ctx, timer.getElapsed());
+            skySystem.update(ctx, timer.getElapsed());
 
             //update uniforms
             for (const material of materials) {

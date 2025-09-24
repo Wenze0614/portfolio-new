@@ -69,6 +69,20 @@ export default function makeGUISystem(): GUISystem {
             });
             lightFolder.open();
         },
+        updateMeshes(meshes: THREE.Mesh[]) {
+            if (!meshes) return;
+            const meshFolder = gui.addFolder('Meshes');
+            meshes.forEach((child) => {
+                if (child instanceof THREE.Mesh) {
+                    const meshTweak = meshFolder.addFolder(`${child.name || 'mesh'}`);
+                    meshTweak.close();
+                    meshTweak.add(child, 'visible').name(`${child.name || 'mesh'} visible`);
+                    meshTweak.add(child.position, 'x', -20, 20, 0.01).name(`${child.name || 'mesh'} position X`);
+                    meshTweak.add(child.position, 'y', -20, 20, 0.01).name(`${child.name || 'mesh'} position Y`);
+                    meshTweak.add(child.position, 'z', -20, 20, 0.01).name(`${child.name || 'mesh'} position Z`);
+                }
+            })
+        },
         update(ctx: SceneContext) { },
         dispose() { }
 

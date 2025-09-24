@@ -1,3 +1,6 @@
+#include <common>
+#include <shadowmap_pars_vertex>
+
 uniform sampler2D heightMap;
 uniform float heightScale;
 uniform float heightOffset;
@@ -28,11 +31,18 @@ void main() {
   float dfdv = (hU-hD)/(2.0*texel.y);
   vec3 tangentU = vec3(terrainSize.x, heightScale*dfdu, 0.0);
   vec3 tangentV = vec3(0.0, heightScale*dfdv, terrainSize.y);
-  vec3 n = normalize( cross(tangentV, tangentU) );
+  vec3 nOS = normalize(cross(tangentV, tangentU)); // normal in object local space
+
+  // normal in VIEW space (matches Three’s convention for transformedNormal)
+  vec3 transformedNormal = normalize(mat3(modelViewMatrix)*nOS);
 
   vec4 mvPos = modelViewMatrix*vec4(displaced, 1.0);
-  vPosWS = (modelMatrix*vec4(displaced, 1.0)).xyz;
-  vNormalWS = normalize(mat3(normalMatrix)*n);
+  vec4 worldPosition = modelMatrix*vec4(displaced, 1.0);
+  vPosWS = worldPosition.xyz;
+  vNormalWS = normalize(mat3(normalMatrix)*nOS);
+
+  // Hand coords to shadow system
+  #include <shadowmap_vertex>
 
   gl_Position = projectionMatrix*mvPos;
 

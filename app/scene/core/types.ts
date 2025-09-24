@@ -18,6 +18,7 @@ export interface ControlSystem extends System {
 export interface GUISystem extends System {
     toggleControl: (ctx: SceneContext, switchControl: (ctx: SceneContext) => void) => void;
     updateLights: (lights: THREE.Light[]) => void;
+    updateMeshes: (meshes: THREE.Mesh[]) => void;
 }
 
 export interface LightSystem extends System {

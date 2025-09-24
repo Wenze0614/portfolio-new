@@ -1,3 +1,8 @@
+#include <common>
+#include <packing>
+#include <lights_pars_begin>
+#include <shadowmap_pars_fragment>
+
 uniform sampler2D terrainColorMap;
 uniform float uWindSpeed;
 uniform vec2 uWindDirection;
@@ -8,7 +13,6 @@ uniform sampler2D grassMask;
 varying vec3 vNormalWS;
 varying vec3 vPosWS;
 varying vec2 vUv;
-
 
 float getWindNoiseSample(vec2 uv) {
     vec2 flow = normalize(uWindDirection)*uWindSpeed*time;
@@ -35,5 +39,19 @@ void main() {
     float grassMask = texture2D(grassMask, vUv).r;
     vec3 color = addWindEffect(baseColor, windNoiseSample);
     color = mix(baseColor, color, grassMask); //remove wind effect where no grass
+
+    float shadowFactor = 1.0;
+    #if NUM_DIR_LIGHTS > 0
+        shadowFactor *= getShadow(
+            directionalShadowMap[0], 
+            directionalLightShadows[0].shadowMapSize, 
+            directionalLightShadows[0].shadowIntensity, 
+            directionalLightShadows[0].shadowBias, 
+            directionalLightShadows[0].shadowRadius, 
+            vDirectionalShadowCoord[0]);
+    #endif
+
+    vec3 ambient = 0.431*color;
+    color = mix(ambient, color, shadowFactor);
     gl_FragColor = vec4(color, 1.0);
 }

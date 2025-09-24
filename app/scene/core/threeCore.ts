@@ -23,7 +23,7 @@ export function setupThreeCore(
         30,
         mount.clientWidth / mount.clientHeight,
         0.1,
-        1000
+        1500
     );
     camera.position.set(0, 1.6, 70);
     camera.layers.enable(0); // default layer

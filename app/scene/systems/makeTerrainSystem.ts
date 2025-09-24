@@ -41,25 +41,70 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     const geom = new THREE.PlaneGeometry(W, L, RES_X, RES_Z);
     geom.rotateX(-Math.PI / 2);     // make it XZ plane, Y up
 
+    // Start from lambert uniforms (has ambient, directional, etc.)
+    const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
+    const customUniforms = {
+        terrainSize: { value: new THREE.Vector2(W, L) },
+        heightMap: { value: heightMap },
+        heightScale: { value: ctx.state.terrainState.heightScale },            // world units of relief
+        heightOffset: { value: ctx.state.terrainState.heightOffset },             // base Y
+        texel: { value: new THREE.Vector2(1 / 1024, 1 / 2048) }, // if your map is 1024x2048
+        terrainColorMap: { value: terrainTexture },
+        uWindSpeed: { value: ctx.state.windState.windSpeed },
+        uWindDirection: { value: ctx.state.windState.windDirection },
+        windNoise: { value: windNoise },
+        time: { value: 0 },
+        grassMask: { value: grassMask },
+    };
+    const terrainUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
+
+    console.log('terrain uniforms:', terrainUniforms);
+
     const terrainMat = new THREE.ShaderMaterial({
-        uniforms: {
-            terrainSize: { value: new THREE.Vector2(W, L) },
-            heightMap: { value: heightMap },
-            heightScale: { value: ctx.state.terrainState.heightScale },            // world units of relief
-            heightOffset: { value: ctx.state.terrainState.heightOffset },             // base Y
-            texel: { value: new THREE.Vector2(1 / 1024, 1 / 2048) }, // if your map is 1024x2048
-            terrainColorMap: { value: terrainTexture },
-            uWindSpeed: { value: ctx.state.windState.windSpeed },
-            uWindDirection: { value: ctx.state.windState.windDirection },
-            windNoise: { value: windNoise },
-            time: { value: 0 },
-            grassMask: {value: grassMask}
-        },
+        uniforms: terrainUniforms,
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
+        lights: true
     });
     const terrain = new THREE.Mesh(geom, terrainMat);
     terrain.receiveShadow = true;
+    terrain.castShadow = true;
+
+    // custom depth material for shadows
+    const depthMat = new THREE.MeshDepthMaterial({
+        depthPacking: THREE.RGBADepthPacking,
+    });
+
+    depthMat.onBeforeCompile = (shader) => {
+        // add your height uniforms
+        shader.uniforms.heightMap = { value: heightMap };  // NoColorSpace
+        shader.uniforms.heightScale = { value: ctx.state.terrainState.heightScale };
+        shader.uniforms.heightOffset = { value: ctx.state.terrainState.heightOffset };
+        shader.uniforms.terrainWidth = { value: ctx.state.terrainState.terrainWidth };
+        shader.uniforms.terrainLength = { value: ctx.state.terrainState.terrainLength };
+
+        // inject the same displacement you use in the visible vertex shader:
+        shader.vertexShader = shader.vertexShader
+            .replace(
+                '#include <common>',
+                `#include <common>
+             uniform sampler2D heightMap;
+             uniform float heightScale;
+             uniform float heightOffset;
+             uniform vec2 texel;
+             uniform float terrainWidth;
+             uniform float terrainLength;`
+            )
+            .replace(
+                '#include <begin_vertex>',
+                `#include <begin_vertex>
+             // UVs on PlaneGeometry are vec2 uv (0..1). If you flipped V elsewhere, mirror here too.
+             float h = texture2D(heightMap, uv).r;
+             transformed.y = heightOffset + h * heightScale;`
+            );
+    };
+
+    terrain.customDepthMaterial = depthMat;
     return {
         init(ctx: SceneContext) {
 
