@@ -66,40 +66,41 @@ const createGrassGeometry = (segment: number, grassNumber: number, patchSize: nu
 
 type LODKey = 'HIGH' | 'MED' | 'LOW';
 
-export default function makeGrassSystem(ctx:SceneContext, heightMap: THREE.Texture, terrainTexture: THREE.Texture, windNoise: THREE.Texture, grassMask: THREE.Texture): System {
-    const grassTexture =ctx.loaders.texture.load('/textures/greenTexture3.png');
+export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Texture, terrainTexture: THREE.Texture, windNoise: THREE.Texture, grassMask: THREE.Texture): System {
+    const grassTexture = ctx.loaders.texture.load('/textures/greenTexture3.png');
     grassTexture.wrapS = THREE.RepeatWrapping;
     grassTexture.wrapT = THREE.RepeatWrapping;
     grassTexture.repeat.set(1, 1);
 
     const terrainWidth = ctx.state.terrainState.terrainWidth;
     const terrainHeight = ctx.state.terrainState.terrainLength;
-    const baseUniforms = {
+    const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
+    const customUniforms = {
         time: { value: 0 },
         resolution: { value: new THREE.Vector2(1, 1) },
         grassWidth: { value: GRASS_WIDTH },
         grassHeight: { value: GRASS_HEIGHT },
         grassPatchSize: { value: GRASS_PATCH_SIZE },
         grassTexture: { value: grassTexture },
-        grassHeightMap:{value: heightMap},
-        grassMask: {value: grassMask},
-        terrainSize: {value: new THREE.Vector2(terrainWidth, terrainHeight)},
-        terrainTexture: {value: terrainTexture},
+        grassHeightMap: { value: heightMap },
+        grassMask: { value: grassMask },
+        terrainSize: { value: new THREE.Vector2(terrainWidth, terrainHeight) },
+        terrainTexture: { value: terrainTexture },
         windNoise: { value: windNoise },
-        uWindSpeed: {value: ctx.state.windState.windSpeed},
-        uWindDirection: {value: ctx.state.windState.windDirection}
+        uWindSpeed: { value: ctx.state.windState.windSpeed },
+        uWindDirection: { value: ctx.state.windState.windDirection }
     }
-
+    const grassUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
     // Helper to make one LOD material with its own cloned uniforms/defines
     function makeLODMaterial(segments: number) {
         const mat = new THREE.ShaderMaterial({
             vertexShader,
             fragmentShader,
-            uniforms: baseUniforms,
+            uniforms: grassUniforms,
             side: THREE.DoubleSide,
-            lights: false, // or true if you included three light chunks
+            lights: true,
         });
-        mat.defines = { ...(mat.defines || {}), GRASS_SEGMENTS: segments }; // optional compile-time define
+        mat.defines = { ...(mat.defines || {}), GRASS_SEGMENTS: segments };
         mat.needsUpdate = true;
         return mat;
     }
@@ -180,14 +181,14 @@ export default function makeGrassSystem(ctx:SceneContext, heightMap: THREE.Textu
             const dpr = ctx.renderer.getPixelRatio?.() ?? 1;
             const size = ctx.renderer.getSize(new THREE.Vector2());
             //updateMatResolution(new THREE.Vector2(size.width * dpr, size.height * dpr));
-            baseUniforms.resolution.value.set(size.width * dpr, size.height * dpr);
+            grassUniforms.resolution.value.set(size.width * dpr, size.height * dpr);
 
             // Handle resize to keep resolution up to date
             const onResize = () => {
                 const dpr2 = ctx.renderer.getPixelRatio?.() ?? 1;
                 const s = ctx.renderer.getSize(new THREE.Vector2());
                 //updateMatResolution(new THREE.Vector2(size.width * dpr, size.height * dpr));
-                baseUniforms.resolution.value.set(size.width * dpr, size.height * dpr);
+                grassUniforms.resolution.value.set(size.width * dpr, size.height * dpr);
             };
             // @ts-ignore store to ctx if you have a disposer pattern
             (this as any)._onResize = onResize;
@@ -195,7 +196,7 @@ export default function makeGrassSystem(ctx:SceneContext, heightMap: THREE.Textu
         },
         update(ctx: SceneContext, dt: number) {
             // tick(dt);
-            baseUniforms.time.value = dt;
+            grassUniforms.time.value = dt;
             updateTileLODs(ctx.camera);
         },
         dispose() {

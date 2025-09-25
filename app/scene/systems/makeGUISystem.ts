@@ -5,7 +5,7 @@ import { CONTROL_TYPE } from "../core/types";
 import { GUISystem, SceneContext, System } from "../core/types";
 // import gsap from "gsap";
 
-export default function makeGUISystem(): GUISystem {
+export default function makeGUISystem(ctx: SceneContext): GUISystem {
     const gui = new GUI({ container: document.body });
     return {
         init(ctx: SceneContext) {
@@ -56,9 +56,9 @@ export default function makeGUISystem(): GUISystem {
                     lightTweak.add(light, 'intensity', 0, 10, 0.01).name(`${light.name} intensity`);
                 }
                 if (light instanceof THREE.DirectionalLight || light instanceof THREE.SpotLight) {
-                    lightTweak.add(light.position, 'x', -20, 20, 0.01).name(`${light.name} position X`);
+                    lightTweak.add(light.position, 'x', -ctx.state.terrainState.terrainWidth * 0.5, ctx.state.terrainState.terrainWidth * 0.5, 0.001).name(`${light.name} position X`);
                     lightTweak.add(light.position, 'y', -20, 20, 0.01).name(`${light.name} position Y`);
-                    lightTweak.add(light.position, 'z', -20, 20, 0.01).name(`${light.name} position Z`);
+                    lightTweak.add(light.position, 'z', -ctx.state.terrainState.terrainLength * 0.5, ctx.state.terrainState.terrainLength * 0.5, 0.001).name(`${light.name} position Z`);
                 }
                 const colorParams = { color: `#${light.color.getHexString()}` }; // initial color as hex
                 lightTweak.addColor(colorParams, 'color')
@@ -77,9 +77,9 @@ export default function makeGUISystem(): GUISystem {
                     const meshTweak = meshFolder.addFolder(`${child.name || 'mesh'}`);
                     meshTweak.close();
                     meshTweak.add(child, 'visible').name(`${child.name || 'mesh'} visible`);
-                    meshTweak.add(child.position, 'x', -20, 20, 0.01).name(`${child.name || 'mesh'} position X`);
-                    meshTweak.add(child.position, 'y', -20, 20, 0.01).name(`${child.name || 'mesh'} position Y`);
-                    meshTweak.add(child.position, 'z', -20, 20, 0.01).name(`${child.name || 'mesh'} position Z`);
+                    meshTweak.add(child.position, 'x', -ctx.state.terrainState.terrainWidth * 0.5, ctx.state.terrainState.terrainWidth * 0.5, 0.001).name(`${child.name || 'mesh'} position X`);
+                    meshTweak.add(child.position, 'y', -20, 20, 0.001).name(`${child.name || 'mesh'} position Y`);
+                    meshTweak.add(child.position, 'z', -ctx.state.terrainState.terrainLength * 0.5, ctx.state.terrainState.terrainLength * 0.5, 0.001).name(`${child.name || 'mesh'} position Z`);
                 }
             })
         },

@@ -51,7 +51,7 @@ export default function Page() {
 
         // #region Core Setup
         //setup systems
-        const guiSystem = makeGUISystem();
+        const guiSystem = makeGUISystem(ctx);
         guiSystem.init(ctx);
 
         const controlSystem = makeControlsSystem(ctx);

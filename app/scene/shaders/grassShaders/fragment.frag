@@ -1,4 +1,7 @@
-// fragment.frag
+#include <common>
+#include <packing>
+#include <lights_pars_begin>
+#include <shadowmap_pars_fragment>
 
 uniform vec2 u_resolution;
 uniform sampler2D diffusel;
@@ -54,5 +57,20 @@ void main() {
 
     vec3 color = addWindEffect(baseColor, windNoiseSample);
     //vec3 color = mix( baseColor, baseColor * brightness, windEffectiveness);
+
+    //add shadow
+    float shadowFactor = 1.0;
+    #if NUM_DIR_LIGHTS > 0
+        shadowFactor *= getShadow(
+            directionalShadowMap[0], 
+            directionalLightShadows[0].shadowMapSize, 
+            directionalLightShadows[0].shadowIntensity, 
+            directionalLightShadows[0].shadowBias, 
+            directionalLightShadows[0].shadowRadius, 
+            vDirectionalShadowCoord[0]);
+    #endif
+    vec3 ambient = 0.314*color;
+    color = mix(ambient, color, shadowFactor);
+
     gl_FragColor = vec4(color, 1.0);
 }
