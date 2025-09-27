@@ -23,7 +23,7 @@ const GRASS_HEIGHT = 0.3;
 const vertsPerBlade = (seg: number) => (seg + 1) * 2;
 
 const buildGrassIndices = (segment: number): Uint32Array => {
-    const vpb = vertsPerBlade(segment);
+    const vpb = vertsPerBlade(segment); // for a single side
     // front + back for each segment (2 tris per face per segment => 12 indices per segment total)
     const idx = new Uint32Array(segment * 12);
     for (let i = 0; i < segment; ++i) {

@@ -23,8 +23,8 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     heightMap.magFilter = THREE.LinearFilter;
 
     const windNoise = ctx.loaders.texture.load('/textures/wind-noise-1.png');
-    windNoise.wrapS = THREE.RepeatWrapping;
-    windNoise.wrapT = THREE.RepeatWrapping;
+    windNoise.wrapS = THREE.MirroredRepeatWrapping;
+    windNoise.wrapT = THREE.MirroredRepeatWrapping;
     windNoise.repeat.set(1, 1);
     windNoise.minFilter = THREE.LinearFilter;
     windNoise.magFilter = THREE.LinearFilter;
@@ -76,14 +76,14 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     });
 
     depthMat.onBeforeCompile = (shader) => {
-        // add your height uniforms
+        // add height uniforms
         shader.uniforms.heightMap = { value: heightMap };  // NoColorSpace
         shader.uniforms.heightScale = { value: ctx.state.terrainState.heightScale };
         shader.uniforms.heightOffset = { value: ctx.state.terrainState.heightOffset };
         shader.uniforms.terrainWidth = { value: ctx.state.terrainState.terrainWidth };
         shader.uniforms.terrainLength = { value: ctx.state.terrainState.terrainLength };
 
-        // inject the same displacement you use in the visible vertex shader:
+        // inject the same displacement used in the visible vertex shader:
         shader.vertexShader = shader.vertexShader
             .replace(
                 '#include <common>',
@@ -104,7 +104,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
             );
     };
 
-    terrain.customDepthMaterial = depthMat;
+    //terrain.customDepthMaterial = depthMat;
     return {
         init(ctx: SceneContext) {
 

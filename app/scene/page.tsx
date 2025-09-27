@@ -15,6 +15,8 @@ import makeTerrainSystem from "./systems/makeTerrainSystem";
 import { makeSkySystem } from "./systems/makeSkySystem";
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import test from "node:test";
+import makeTreeSystem from "./systems/treeSystems/makeTreeSystem";
+import makeFoliageSystem from "./systems/treeSystems/makeFoliageSystem";
 
 
 export default function Page() {
@@ -85,6 +87,14 @@ export default function Page() {
 
         const skySystem = makeSkySystem(ctx);
 
+        const meshs: THREE.Mesh[] = [];
+        // const treeSystem = makeTreeSystem(ctx);
+        // treeSystem.init(ctx);
+        const foliageSystem = makeFoliageSystem(ctx);
+        const foliageMesh = foliageSystem.getFoliage();
+        foliageMesh.name = "foliage mesh";
+        meshs.push(foliageMesh);
+
         const testCube = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, 1),
             new THREE.MeshToonMaterial({ color: 'white'})
@@ -93,7 +103,9 @@ export default function Page() {
         testCube.castShadow = true;
         scene.add(testCube);
         testCube.name = "test cube";
-        guiSystem.updateMeshes([testCube]);
+        meshs.push(testCube);
+
+        guiSystem.updateMeshes(meshs);
 
         function makeToonRamp(bands: { color: string | number; width?: number }[]) {
             // width = pixels per band (controls how “thick” each band is). Default 64.

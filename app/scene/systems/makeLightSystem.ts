@@ -1,11 +1,13 @@
-import { LightSystem, SceneContext, System } from "../core/types";
+import { CONTROL_TYPE, LightSystem, SceneContext, System } from "../core/types";
 import * as THREE from "three";
+
+const SUN_DIRECTION = new THREE.Vector3(100, 160, 0)
 
 function fitDirLightToCamera(light: THREE.DirectionalLight, camera: THREE.Camera, margin = 20) {
     const pos = camera.position;
   
     // 1. Position the sun relative to the camera
-    light.position.copy(pos).add(new THREE.Vector3(100, 160, 0).normalize());
+    light.position.copy(pos).add(SUN_DIRECTION.normalize());
     light.target.position.copy(pos);
     light.target.updateMatrixWorld();
   
@@ -27,7 +29,7 @@ function fitDirLightToCamera(light: THREE.DirectionalLight, camera: THREE.Camera
 
 export default function makeLightSystem(ctx: SceneContext): LightSystem {
     const sun1Color = new THREE.Color("#E9E4C5");
-    const sun1 = new THREE.DirectionalLight(sun1Color, 4.3);
+    const sun1 = new THREE.DirectionalLight(sun1Color, 1.34);
     //sun1.position.set(10, 5, 1);
     //sun1.target.position.set(0, 0, 0);
     sun1.castShadow = true;
@@ -64,7 +66,7 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
             // ctx.scene.add(sun2Helper)
         },
         update(ctx: SceneContext) { 
-            fitDirLightToCamera(sun1, ctx.camera);
+            if(ctx.state.controlState.controlType === CONTROL_TYPE.Walk) fitDirLightToCamera(sun1, ctx.camera);
             sun1Helper.update();
             shadowCameraHelper.update();
         },

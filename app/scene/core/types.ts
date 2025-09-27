@@ -57,6 +57,7 @@ export interface WindState {
     windDirection: THREE.Vector2,
 }
 
+
 export interface AppState {
     controlState: OrbitState | PLockState;
     setControlType(t: CONTROL_TYPE): void;

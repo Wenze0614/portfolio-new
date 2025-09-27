@@ -80,6 +80,9 @@ export default function makeGUISystem(ctx: SceneContext): GUISystem {
                     meshTweak.add(child.position, 'x', -ctx.state.terrainState.terrainWidth * 0.5, ctx.state.terrainState.terrainWidth * 0.5, 0.001).name(`${child.name || 'mesh'} position X`);
                     meshTweak.add(child.position, 'y', -20, 20, 0.001).name(`${child.name || 'mesh'} position Y`);
                     meshTweak.add(child.position, 'z', -ctx.state.terrainState.terrainLength * 0.5, ctx.state.terrainState.terrainLength * 0.5, 0.001).name(`${child.name || 'mesh'} position Z`);
+                    meshTweak.add(child.scale, 'x', 0.01, 10, 0.001).name(`${child.name || 'mesh'} scale X`);
+                    meshTweak.add(child.scale, 'y', 0.01, 10, 0.001).name(`${child.name || 'mesh'} scale Y`);
+                    meshTweak.add(child.scale, 'z', 0.01, 10, 0.001).name(`${child.name || 'mesh'} scale Z`);
                 }
             })
         },
