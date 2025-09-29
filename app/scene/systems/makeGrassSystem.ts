@@ -88,7 +88,9 @@ export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Text
         terrainTexture: { value: terrainTexture },
         windNoise: { value: windNoise },
         uWindSpeed: { value: ctx.state.windState.windSpeed },
-        uWindDirection: { value: ctx.state.windState.windDirection }
+        uWindDirection: { value: ctx.state.windState.windDirection },
+        heightScale: { value: ctx.state.terrainState.heightScale },
+        heightOffset: { value: ctx.state.terrainState.heightOffset },
     }
     const grassUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
     // Helper to make one LOD material with its own cloned uniforms/defines

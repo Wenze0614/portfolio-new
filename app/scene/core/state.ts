@@ -19,7 +19,7 @@ export function makeState(): AppState {
     const _terrainState: TerrainState = {
         terrainWidth: 100,
         terrainLength: 200,
-        heightScale: 5.0,
+        heightScale: 2.0,
         heightOffset: 0.0
     }
 

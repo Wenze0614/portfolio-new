@@ -11,6 +11,8 @@ uniform float time;
 uniform vec2 terrainSize;
 uniform sampler2D grassMask;
 uniform sampler2D grassHeightMap;
+uniform float heightScale;
+uniform float heightOffset;
 
 varying vec2 tilePosition;
 varying vec3 vColor;
@@ -21,7 +23,6 @@ varying vec3 vPosWS;
 //const float PI = 3.1415926535; //defined in common
 const vec3 BASE_COLOR = vec3(0.1, 0.4, 0.04); // Base color for the grass
 const vec3 TIP_COLOR = vec3(0.5, 0.7, 0.3); // Tip color for the grass
-const float TERRAIN_MAX_HEIGHT = 5.0;
 
 float inverseLerp(float v, float minValue, float maxValue) {
   return (v-minValue)/(maxValue-minValue);
@@ -182,7 +183,7 @@ void main() {
   vec2 grassTerrainUVPosition = vec2(u, v);
   float grassGrowth = texture2D(grassMask, grassTerrainUVPosition).x;
   float terrainHeight = texture2D(grassHeightMap, grassTerrainUVPosition).x;
-  grassOffset.y += terrainHeight*TERRAIN_MAX_HEIGHT;
+  grassOffset.y += heightOffset + terrainHeight*heightScale;
 
   vGrassTerrainUVPosition = grassTerrainUVPosition;
 

@@ -17,7 +17,7 @@ void main() {
   // sample height (0..1) and displace along +Y
   float h = texture2D(heightMap, vUv).r;
   vec3 displaced = position;
-  displaced.y = heightOffset+h*heightScale;
+  displaced.y = heightOffset + h*heightScale;
 
   // approximate normal from height derivatives (object space)
   // central differences in UV space

@@ -172,23 +172,23 @@ export default function Page() {
 
 
         //#region Load Model
-        if (!grassClumpsGeo.current) {
-            gltfLoader.load('/models/grass.glb', (gltf) => {
-                const model = gltf.scene;
-                const grass = model.getObjectByName('grass');
-                grass?.position.set(25, 0, 30)
-                if (grass && grass instanceof THREE.Mesh) {
-                    grassClumpsGeo.current = grass;
-                    console.log("grass: ", grass);
+        // if (!grassClumpsGeo.current) {
+        //     gltfLoader.load('/models/grass.glb', (gltf) => {
+        //         const model = gltf.scene;
+        //         const grass = model.getObjectByName('grass');
+        //         grass?.position.set(25, 0, 30)
+        //         if (grass && grass instanceof THREE.Mesh) {
+        //             grassClumpsGeo.current = grass;
+        //             console.log("grass: ", grass);
 
-                    grass.material = grassMaterial;
-                    materials.push(grassMaterial);
-                    scene.add(grass);
-                } else {
-                    console.error('Grass not found or is not a Mesh');
-                }
-            });
-        }
+        //             grass.material = grassMaterial;
+        //             materials.push(grassMaterial);
+        //             scene.add(grass);
+        //         } else {
+        //             console.error('Grass not found or is not a Mesh');
+        //         }
+        //     });
+        // }
 
 
         const timer = new Timer();
