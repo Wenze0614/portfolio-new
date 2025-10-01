@@ -36,12 +36,12 @@ void main() {
     vec3 L = normalize(directionalLights[0].direction);
 
     float ndl = dot(N, L);
-    float brighdness = remap(ndl, -1.0, 1.0, 0.0, 0.75);
+    float brightness = remap(ndl, -1.0, 1.0, 0.25, 0.75);
     vec3 ambienLight = 0.25*color;
-    color = ambienLight+color*directionalLights[0].color*brighdness;
-    if(ndl<-0.9) {
-        color = ambienLight+color*directionalLights[0].color*0.1;
-    }
+    color = ambienLight+color*directionalLights[0].color*brightness;
+    // if(ndl<-0.9) {
+    //     color = ambienLight+color*directionalLights[0].color*0.1;
+    // }
     // if (ndl > uBrightnessThresholds[0])
     //     color = uColorMap[0];
     //   else if (ndl > uBrightnessThresholds[1])
@@ -52,16 +52,16 @@ void main() {
     //     color = uColorMap[3];
 
     //add shadow
-    float shadowFactor = 1.0;
-    #if NUM_DIR_LIGHTS > 0
-    shadowFactor *= getShadow(directionalShadowMap[0], directionalLightShadows[0].shadowMapSize, directionalLightShadows[0].shadowIntensity, directionalLightShadows[0].shadowBias, directionalLightShadows[0].shadowRadius, vDirectionalShadowCoord[0]);
-    // ✅ ignore self-shadowing:
-    // only apply strong shadow if another solid occluder blocks the light
-    // trick: clamp out near-1.0 alpha shadows
-    //shadowFactor = mix(1.0, shadowFactor, 0.5); // or use smoothstep to soften
-    #endif
+    // float shadowFactor = 1.0;
+    // #if NUM_DIR_LIGHTS > 0
+    // shadowFactor *= getShadow(directionalShadowMap[0], directionalLightShadows[0].shadowMapSize, directionalLightShadows[0].shadowIntensity, directionalLightShadows[0].shadowBias, directionalLightShadows[0].shadowRadius, vDirectionalShadowCoord[0]);
+    // // ✅ ignore self-shadowing:
+    // // only apply strong shadow if another solid occluder blocks the light
+    // // trick: clamp out near-1.0 alpha shadows
+    // //shadowFactor = mix(1.0, shadowFactor, 0.5); // or use smoothstep to soften
+    // #endif
 
-    vec3 ambient = 0.25*color;
-    color = mix(ambient, color, shadowFactor);
+    // vec3 ambient = 0.25*color;
+    //color = mix(ambient, color, shadowFactor);
     gl_FragColor = vec4(color, 1.0);
 }

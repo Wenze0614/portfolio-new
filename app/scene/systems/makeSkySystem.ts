@@ -10,11 +10,11 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js';
 export function makeSkySystem(ctx: SceneContext): System {
     //use an HDRI for the sky for now
     const rgbeLoader = new RGBELoader();
-    //const geometry = new THREE.SphereGeometry(300, 50, 30);
-    //geometry.scale(-1, 1, 1); // invert normals
+    const geometry = new THREE.SphereGeometry(1000, 50, 30);
+    geometry.scale(-1, 1, 1); // invert normals
 
     //todo: remove hdr later and use procedural sky
-    //const skyTexture = rgbeLoader.load('/textures/animeSky-night.hdr');
+    const skyTexture = rgbeLoader.load('/textures/animeSky-day-2-2k.hdr');
     // const cubeImages = [
     //     ctx.loaders.texture.load('/textures/sky/px.png'),
     //     ctx.loaders.texture.load('/textures/sky/nx.png'),
@@ -36,12 +36,14 @@ export function makeSkySystem(ctx: SceneContext): System {
     //     new THREE.MeshBasicMaterial({ map: cubeImages[4], side: THREE.BackSide }),
     // ]
 
-    //skyTexture.mapping = THREE.EquirectangularReflectionMapping;
-    //skyTexture.magFilter = THREE.NearestFilter;
-    //skyTexture.minFilter = THREE.NearestFilter;
-    //skyTexture.colorSpace = THREE.SRGBColorSpace;
-    //const material = new THREE.MeshBasicMaterial({ map: skyTexture });
-    //const skySphere = new THREE.Mesh(geometry, material);
+    skyTexture.mapping = THREE.EquirectangularReflectionMapping;
+    skyTexture.magFilter = THREE.NearestFilter;
+    skyTexture.minFilter = THREE.NearestFilter;
+    skyTexture.colorSpace = THREE.SRGBColorSpace;
+    const material = new THREE.MeshBasicMaterial({ map: skyTexture });
+    const skySphere = new THREE.Mesh(geometry, material);
+    skySphere.rotateY(Math.PI * 1.5);
+    skySphere.position.set(0, 0, 0);
 
     // const skyGeo = new THREE.BoxGeometry(1000, 1000, 1000);
     // const skyBox = new THREE.Mesh(skyGeo, skyMat);
@@ -49,26 +51,27 @@ export function makeSkySystem(ctx: SceneContext): System {
     // ctx.scene.add(skyBox);
     // ctx.scene.fog = new THREE.FogExp2(0xefd1b5, 0.00025);
 
+    ctx.scene.add(skySphere);
     // ctx.scene.background = skyTexture;
     // ctx.scene.environment = skyTexture;
 
     // 1) Sky mesh (infinite-looking)
-    const sky = new Sky();
-    sky.scale.setScalar(10000);
-    ctx.scene.add(sky);
+    // const sky = new Sky();
+    // sky.scale.setScalar(10000);
+    // ctx.scene.add(sky);
 
-    const sun = new THREE.Vector3();
-    const phi = THREE.MathUtils.degToRad(90 - 15); // elevation
-    const theta = THREE.MathUtils.degToRad(90);      // azimuth
-    sun.setFromSphericalCoords(1, phi, theta);
+    // const sun = new THREE.Vector3();
+    // const phi = THREE.MathUtils.degToRad(90 - 15); // elevation
+    // const theta = THREE.MathUtils.degToRad(90);      // azimuth
+    // sun.setFromSphericalCoords(1, phi, theta);
 
-    // 3) Sky params (tweak for style)
-    const skyMat = sky.material;
-    skyMat.uniforms['turbidity'].value = 2.0;
-    skyMat.uniforms['rayleigh'].value = 1.2;
-    skyMat.uniforms['mieCoefficient'].value = 0.005;
-    skyMat.uniforms['mieDirectionalG'].value = 0.8;
-    skyMat.uniforms['sunPosition'].value.copy(sun);
+    // // 3) Sky params (tweak for style)
+    // const skyMat = sky.material;
+    // skyMat.uniforms['turbidity'].value = 2.0;
+    // skyMat.uniforms['rayleigh'].value = 1.2;
+    // skyMat.uniforms['mieCoefficient'].value = 0.005;
+    // skyMat.uniforms['mieDirectionalG'].value = 0.8;
+    // skyMat.uniforms['sunPosition'].value.copy(sun);
 
     return {
         init() {

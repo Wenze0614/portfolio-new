@@ -16,6 +16,8 @@ varying vec2 tilePosition;
 varying vec3 vColor;
 varying vec4 vGrassData;
 varying vec2 vGrassTerrainUVPosition;
+varying vec3 vNormalWS;
+varying float vGrassHeightPercent;
 
 float inverseLerp(float v, float minValue, float maxValue) {
     return (v-minValue)/(maxValue-minValue);
@@ -58,16 +60,20 @@ void main() {
     vec3 color = addWindEffect(baseColor, windNoiseSample);
     //vec3 color = mix( baseColor, baseColor * brightness, windEffectiveness);
 
+    //add light
+    vec3 N = normalize(vNormalWS);
+    vec3 L = normalize(directionalLights[0].direction);
+
+    float ndl = dot(N, L);
+    //float brighdness = remap(ndl,-1.0, 1.0, 0.25, 0.75);
+    float brightness = mix(0.0, 0.13, ndl*vGrassHeightPercent);
+    //vec3 ambienLight = 0.25*color;
+    //color = color + directionalLights[0].color*brightness;
+
     //add shadow
     float shadowFactor = 1.0;
     #if NUM_DIR_LIGHTS > 0
-        shadowFactor *= getShadow(
-            directionalShadowMap[0], 
-            directionalLightShadows[0].shadowMapSize, 
-            directionalLightShadows[0].shadowIntensity, 
-            directionalLightShadows[0].shadowBias, 
-            directionalLightShadows[0].shadowRadius, 
-            vDirectionalShadowCoord[0]);
+    shadowFactor *= getShadow(directionalShadowMap[0], directionalLightShadows[0].shadowMapSize, directionalLightShadows[0].shadowIntensity, directionalLightShadows[0].shadowBias, directionalLightShadows[0].shadowRadius, vDirectionalShadowCoord[0]);
     #endif
     vec3 ambient = 0.314*color;
     color = mix(ambient, color, shadowFactor);

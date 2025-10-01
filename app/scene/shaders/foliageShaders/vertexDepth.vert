@@ -2,14 +2,12 @@ uniform int uFoliageSegment;
 uniform vec2 uQuadNumber; // x: horizontal quads, y: vertical quads
 uniform int uClumpNumber; // number of clumps
 uniform float uSphereRadius;
+uniform vec2 uFoliageSize;
 
 varying vec2 vUv;
 varying vec3 vPosWS;
 varying vec3 vNormalWS;
 varying vec4 vTerrainShadowCoord;
-
-const float width = 0.5;
-const float height = 0.5;
 
 const float JITTER = 0.134;
 const float PI = 3.141592653589793;
@@ -97,8 +95,8 @@ void main() {
 
     float heightPercentage = float(vertID-xTest)/(float(uFoliageSegment)*2.0); // 0 to 1 from bottom to top of the blade
 
-    float x = (xSide-0.5)*width;
-    float y = heightPercentage*height-height*0.5; // center at y=0
+    float x = (xSide-0.5)*uFoliageSize.x;
+    float y = heightPercentage*uFoliageSize.y-uFoliageSize.y*0.5; // center at y=0
     float z = 0.0;
     vec3 n = vec3(0.0, 0.0,-1.0); // default normal
 
@@ -108,9 +106,11 @@ void main() {
         float angle = (PI/(float(horitontal_quads)+1.0))*(float(quadID)+1.0);
 
         quadVertLocalPosition = rotateX(angle)*quadVertLocalPosition;
+        n = rotateX(angle)*n;
     } else {
         float angle = (PI/(float(vertical_quads)+1.0))*(float(quadID-horitontal_quads)+1.0);
         quadVertLocalPosition = rotateY(angle)*quadVertLocalPosition;
+        n = rotateY(angle)*n;
 
     }
 
@@ -126,7 +126,7 @@ void main() {
     vNormalWS = normalize(mat3(normalMatrix)*spherePosition);
     vec3 transformedNormal = normalize(mat3(modelViewMatrix)*spherePosition);
 
-    vec4 worldBasePos = modelMatrix*vec4(0.0, 0.0, 0.0, 1.0);		
+    vec4 worldBasePos = modelMatrix*vec4(0.0, 0.0, 0.0, 1.0);
 
     vUv.x = xSide;
     vUv.y = heightPercentage;

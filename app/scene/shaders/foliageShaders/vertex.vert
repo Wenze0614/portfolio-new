@@ -5,14 +5,15 @@ uniform int uFoliageSegment;
 uniform vec2 uQuadNumber; // x: horizontal quads, y: vertical quads
 uniform int uClumpNumber; // number of clumps
 uniform float uSphereRadius;
+uniform vec2 uFoliageSize;
 
 varying vec2 vUv;
 varying vec3 vPosWS;
 varying vec3 vNormalWS;
 varying vec4 vTerrainShadowCoord;
 
-const float width = 0.5;
-const float height = 0.5;
+// const float width = 0.5;
+// const float height = 0.5;
 
 const float JITTER = 0.134;
 
@@ -108,8 +109,8 @@ void main() {
 
     float heightPercentage = float(vertID-xTest)/(float(uFoliageSegment)*2.0); // 0 to 1 from bottom to top of the blade
 
-    float x = (xSide-0.5)*width;
-    float y = heightPercentage*height-height*0.5; // center at y=0
+    float x = (xSide-0.5)*uFoliageSize.x;
+    float y = heightPercentage*uFoliageSize.y-uFoliageSize.y*0.5; // center at y=0
     float z = 0.0;
     vec3 n = vec3(0.0, 0.0,-1.0); // default normal
 
@@ -143,7 +144,7 @@ void main() {
     if(ndl<0.0) {
         n = -n;
     }
-    vNormalWS = normalize(mat3(normalMatrix)*(mix(spherePosition, n, ndl*0.25)));
+    vNormalWS = normalize(mat3(modelMatrix)*(mix(spherePosition, n, ndl*0.25)));
     vec3 transformedNormal = normalize(mat3(modelViewMatrix)*(mix(spherePosition, n, ndl*0.25)));
 
 

@@ -19,6 +19,8 @@ varying vec3 vColor;
 varying vec4 vGrassData;
 varying vec2 vGrassTerrainUVPosition;
 varying vec3 vPosWS;
+varying vec3 vNormalWS;
+varying float vGrassHeightPercent;
 
 //const float PI = 3.1415926535; //defined in common
 const vec3 BASE_COLOR = vec3(0.1, 0.4, 0.04); // Base color for the grass
@@ -256,6 +258,9 @@ void main() {
   grassLocalNormal = normalize(grassLocalNormal);
 
   vec3 transformedNormal = normalize(mat3(modelViewMatrix)*grassLocalNormal);
+  vNormalWS = normalize(mat3(normalMatrix)*grassLocalNormal);
+
+  vGrassHeightPercent = heightPercentage;
 
   //view space thickening
 

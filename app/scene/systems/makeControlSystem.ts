@@ -3,6 +3,7 @@ import { System, SceneContext, PLockState, OrbitState, CONTROL_TYPE, ControlSyst
 import { OrbitControls, PointerLockControls } from 'three/examples/jsm/Addons.js';
 import { makeHeightSampler } from '../utils/makeHeightSampler';
 import * as THREE from 'three';
+import { useRef } from 'react';
 
 const onKeyDown = (event: KeyboardEvent, controlState: PLockState) => {
     switch (event.code) {
@@ -99,11 +100,16 @@ export function makeControlsSystem(ctx: SceneContext): ControlSystem {
 
     const terrainWidth = ctx.state.terrainState.terrainWidth;
     const terrainHeight = ctx.state.terrainState.terrainLength;
+    //const heightMapRef = useRef<THREE.Texture | null>(null);
 
     let heightSampler:{
         heightAtXZ(x: number, z: number, heightScale: number, heightOffset: number): number;
     }
+
     (async () => {
+        // if (!heightMapRef.current) {
+        //     heightMapRef.current = await ctx.loaders.texture.loadAsync('/textures/terrain_height.jpg');
+        // }
         const heightMap = await ctx.loaders.texture.loadAsync('/textures/terrain_height.jpg');
         console.log('heightmap width: ', heightMap.image)
         const terrainMin = new THREE.Vector2(-terrainWidth * 0.5, -terrainHeight * 0.5);

@@ -88,12 +88,13 @@ export default function Page() {
         const skySystem = makeSkySystem(ctx);
 
         const meshs: THREE.Mesh[] = [];
-        // const treeSystem = makeTreeSystem(ctx);
-        // treeSystem.init(ctx);
-        const foliageSystem = makeFoliageSystem(ctx);
-        const foliageMesh = foliageSystem.getFoliage();
-        foliageMesh.name = "foliage mesh";
-        meshs.push(foliageMesh);
+        const treeSystem = makeTreeSystem(ctx);
+        treeSystem.init(ctx);
+
+        //const foliageSystem = makeFoliageSystem(ctx);
+        //const foliageMesh = foliageSystem.getFoliage();
+        //foliageMesh.name = "foliage mesh";
+        //meshs.push(foliageMesh);
 
         const testCube = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, 1),
