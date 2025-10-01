@@ -7,6 +7,7 @@ import vertexDepth from '../../shaders/treeFoliageShaders/vertexDepth.vert';
 import { tree } from "next/dist/build/templates/app-page";
 import { makeHeightSampler } from "../../utils/makeHeightSampler";
 import { useRef } from "react";
+import { Console } from "console";
 
 
 const testFoliageGuides: FoliageClumpsData = {
@@ -75,14 +76,21 @@ export default function makeTreeSystem(ctx: SceneContext) {
                 const model = gltf.scene;
                 // model.scale.z = 0.5;
                 // model.position.set(-30, 0, 20);
-                const treeTrunk = model.getObjectByName('treeTrunk');
-                if (treeTrunk && treeTrunk instanceof THREE.Mesh) {
-                    treeTrunk.castShadow = true;
-                    treeTrunk.material = new THREE.MeshToonMaterial({
-                        map: ctx.loaders.texture.load('/textures/trees/tree_trunk_baseColor.png'),
-                    });
-                    ctx.scene.add(treeTrunk);
+                const treeTrunk = model.getObjectByName('treeTrunk') as THREE.Mesh | null;
+
+                if (!treeTrunk) {
+                    console.error("treeTrunk or treeFoliage not found in treeType-1.glb");
+                    return;
                 }
+
+                const treeTrunkMat = new THREE.MeshLambertMaterial({
+                    map: ctx.loaders.texture.load('/textures/trees/tree_trunk_baseColor.png'),
+                });
+
+                treeTrunk.castShadow = true;
+                treeTrunk.material = treeTrunkMat;
+                ctx.scene.add(treeTrunk);
+
                 // Extract guides (by name or collection)
                 const guides: FoliageClumpsData[] = [];
                 gltf.scene.traverse(obj => {
@@ -92,7 +100,7 @@ export default function makeTreeSystem(ctx: SceneContext) {
                         console.log('obj scale: ', obj.scale);
                         const guide: FoliageClumpsData = {
                             position: obj.position.clone(),
-                            clumpsNum: (obj.scale.x - 2) * 10,
+                            clumpsNum: Math.round((obj.scale.x - 2) * 10),
                             sphereRadius: obj.scale.x - 2,
                             segments: 1,
                             horizontalQuads: 0,
@@ -104,9 +112,58 @@ export default function makeTreeSystem(ctx: SceneContext) {
                     }
                 })
                 // console.log("guides: ", guides[0].position);
-                for (const guide of guides) {
-                    makeFoliageSystem(ctx, guide);
+                // for (const guide of guides) {
+                //     makeFoliageSystem(ctx, guide);
+                // }
+
+                //instancing trees
+                const treeTrunkGeo = treeTrunk.geometry as THREE.BufferGeometry;
+                treeTrunkGeo.applyMatrix4(treeTrunk.matrixWorld);
+                const COUNT = 200;
+                const trunkIM = new THREE.InstancedMesh(treeTrunkGeo, treeTrunkMat, COUNT);
+                trunkIM.castShadow = true;
+                trunkIM.receiveShadow = true;
+                trunkIM.frustumCulled = false; // todo: maybe tiling trees for better culling and LOD
+                ctx.scene.add(trunkIM);
+
+                // 4) Scatter across 200x200 terrain (x,z in [-100,100])
+                const dummy = new THREE.Object3D();
+                const { heightScale, heightOffset, terrainWidth, terrainLength } = ctx.state.terrainState;
+
+                // const heightMapRef = useRef<THREE.Texture | null>(null);
+
+                let heightSampler: {
+                    heightAtXZ(x: number, z: number, heightScale: number, heightOffset: number): number;
                 }
+
+                ctx.loaders.texture.loadAsync('/textures/terrain_height.jpg').then((heightMap) => {
+                    const treeTransformMatrx: THREE.Matrix4[] = [];
+                    const terrainMin = new THREE.Vector2(-terrainWidth * 0.5, -terrainLength * 0.5);
+                    const terrainMax = new THREE.Vector2(terrainWidth * 0.5, terrainLength * 0.5);
+                    heightSampler = makeHeightSampler(heightMap, terrainMin, terrainMax, { flipV: true });
+
+                    for (let i = 0; i < COUNT; i++) {
+                        const x = THREE.MathUtils.randFloatSpread(terrainWidth ?? 200);  // ~[-100,100]
+                        const z = THREE.MathUtils.randFloatSpread(terrainLength ?? 200);  // ~[-100,100]
+                        const y = heightSampler.heightAtXZ(x, z, heightScale, heightOffset);
+
+                        // random rot/scale per tree
+                        const yaw = Math.random() * Math.PI * 2;
+                        const s = THREE.MathUtils.lerp(0.85, 1.25, Math.random());
+
+                        dummy.position.set(x, y, z);
+                        dummy.rotation.set(0, yaw, 0);
+                        dummy.scale.set(s, s, s);
+                        dummy.updateMatrix();
+
+                        trunkIM.setMatrixAt(i, dummy.matrix);
+                        treeTransformMatrx.push(dummy.matrix.clone());
+                    }
+
+                    trunkIM.instanceMatrix.needsUpdate = true;
+                    console.log('treeTransformMatrx: ', treeTransformMatrx);
+                    makeFoliageSystem(ctx, guides, treeTransformMatrx, COUNT);
+                });
                 //makeFoliageSystem(ctx, testFoliageGuides);
             });
 
@@ -157,7 +214,7 @@ export default function makeTreeSystem(ctx: SceneContext) {
             //         fragmentShader: `
             //             uniform sampler2D uFoliageTexture;
             //             uniform vec3 uColorMap[4];
-                
+
             //             varying vec2 vUv;
             //             varying vec3 vNormalWS;
             //               void main() {

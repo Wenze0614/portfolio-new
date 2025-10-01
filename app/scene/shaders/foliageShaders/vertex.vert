@@ -1,11 +1,20 @@
 #include <common>
 #include <shadowmap_pars_vertex>
 
-uniform int uFoliageSegment;
-uniform vec2 uQuadNumber; // x: horizontal quads, y: vertical quads
-uniform int uClumpNumber; // number of clumps
-uniform float uSphereRadius;
-uniform vec2 uFoliageSize;
+#define MAX_SPHERES 10
+uniform int uFoliageSegment[MAX_SPHERES];
+uniform vec2 uQuadNumber[MAX_SPHERES]; // x: horizontal quads, y: vertical quads
+uniform int uClumpNumber[MAX_SPHERES]; // number of clumps
+uniform float uSphereRadius[MAX_SPHERES];
+uniform vec2 uFoliageSize[MAX_SPHERES];
+uniform vec3 uFoliageSpherePositions[MAX_SPHERES];
+uniform int uSphereVertOffset[MAX_SPHERES];
+
+attribute float sphereID; // 0~Number of spheres -1
+
+#ifdef USE_INSTANCING
+attribute mat4 treeTransformMatrix;
+#endif
 
 varying vec2 vUv;
 varying vec3 vPosWS;
@@ -87,16 +96,25 @@ float remap(float v, float inMin, float inMax, float outMin, float outMax) {
 }
 
 void main() {
-
-    int horitontal_quads = int(uQuadNumber.x);
-    int vertical_quads = int(uQuadNumber.y);
+    
+    int sphereIdx = int(sphereID + 0.5); //safety convert to int
+    int horitontal_quads = int(uQuadNumber[sphereIdx].x);
+    int vertical_quads = int(uQuadNumber[sphereIdx].y);
     int totalNumQuads = horitontal_quads+vertical_quads;
+    float vertIDoffset = (sphereIdx == 0) ? 0.0 : float(uSphereVertOffset[sphereIdx-1]);
+    float vertID_sphere = float(gl_VertexID) - vertIDoffset;
+    int foliageSegment = uFoliageSegment[sphereIdx]; // =1
+    int clumpNum = uClumpNumber[sphereIdx]; 
+    float sphereRadius = uSphereRadius[sphereIdx];
+    vec2 foliageSize = uFoliageSize[sphereIdx];
+    vec3 foliageSpherePosition = uFoliageSpherePositions[sphereIdx];
 
-    int foliageVerticesPerSidePerQuad = (uFoliageSegment+1)*2; //=4
+    int foliageVerticesPerSidePerQuad = (foliageSegment+1)*2; //=4
     int foliageVerticesPerQuad = foliageVerticesPerSidePerQuad*2; //=8
-    int clumpID = int(floor(float(gl_VertexID)/(float(foliageVerticesPerQuad*(totalNumQuads))))); // which clump. Range [0, CLUMPS_NUM)
-    int quadID = int(floor(float(gl_VertexID)/float(foliageVerticesPerQuad)))-clumpID*totalNumQuads; // which quad. Range [0, number of quads)
-    int quadVertID = gl_VertexID%(foliageVerticesPerSidePerQuad); // vertex id for a single quad. Range [0,  foliageVerticesPerSidePerQuad*2)
+
+    int clumpID = int(floor(vertID_sphere/(float(foliageVerticesPerQuad*(totalNumQuads))))); // which clump. Range [0, CLUMPS_NUM)
+    int quadID = int(floor(vertID_sphere/float(foliageVerticesPerQuad)))-clumpID*totalNumQuads; // which quad. Range [0, number of quads)
+    int quadVertID = int(vertID_sphere)%(foliageVerticesPerQuad); // vertex id for a single quad. Range [0,  foliageVerticesPerSidePerQuad*2)
     int vertID = quadVertID%foliageVerticesPerSidePerQuad; // vertex id for a single face. Range [0,  foliageVerticesPerSidePerQuad)
 
     vec2 hashedInstanceID = hash21(uint(vertID))*2.0-1.0;
@@ -107,10 +125,10 @@ void main() {
     float xSide = float(xTest);
     float zSide = float(zTest);
 
-    float heightPercentage = float(vertID-xTest)/(float(uFoliageSegment)*2.0); // 0 to 1 from bottom to top of the blade
+    float heightPercentage = float(vertID-xTest)/(float(foliageSegment)*2.0); // 0 to 1 from bottom to top of the blade
 
-    float x = (xSide-0.5)*uFoliageSize.x;
-    float y = heightPercentage*uFoliageSize.y-uFoliageSize.y*0.5; // center at y=0
+    float x = (xSide-0.5)*foliageSize.x;
+    float y = heightPercentage*foliageSize.y-foliageSize.y*0.5; // center at y=0
     float z = 0.0;
     vec3 n = vec3(0.0, 0.0,-1.0); // default normal
 
@@ -131,11 +149,13 @@ void main() {
     // add some jitter
     vec3 jitterAngle = hash31(float(clumpID))*2.0*PI; //0~2PI
     mat3 jitterRot = rotateX(jitterAngle.x)*rotateY(jitterAngle.y)*rotateZ(jitterAngle.z);
-    vec3 spherePosition = fibonacciPoint(clumpID, uClumpNumber, uSphereRadius); //also the normal
-    quadVertLocalPosition = spherePosition+jitterRot*quadVertLocalPosition;
+    vec3 spherePosition = fibonacciPoint(clumpID, clumpNum, sphereRadius); //also the normal
+    quadVertLocalPosition = foliageSpherePosition + spherePosition+jitterRot*quadVertLocalPosition;
+    vec4 quadVertLocalPositionPerTree = treeTransformMatrix * vec4(quadVertLocalPosition, 1.0); // apply tree transform matrix
+
 
     //for shadow map
-    vec4 worldPosition = modelMatrix*vec4(quadVertLocalPosition, 1.0);
+    vec4 worldPosition = modelMatrix*quadVertLocalPositionPerTree;
     vPosWS = worldPosition.xyz; // required for shadow map
 
     //experimenting with normal
@@ -144,8 +164,8 @@ void main() {
     if(ndl<0.0) {
         n = -n;
     }
-    vNormalWS = normalize(mat3(modelMatrix)*(mix(spherePosition, n, ndl*0.25)));
-    vec3 transformedNormal = normalize(mat3(modelViewMatrix)*(mix(spherePosition, n, ndl*0.25)));
+    vNormalWS = normalize(mat3(modelMatrix)*mat3(treeTransformMatrix)*(mix(spherePosition, n, ndl*0.25)));
+    vec3 transformedNormal = normalize(mat3(modelViewMatrix)*mat3(treeTransformMatrix)*(mix(spherePosition, n, ndl*0.25)));
 
 
     // sampling shadow from terrain shadow map instead of from foliage itself to avoid self-shadowing artifacts
@@ -156,7 +176,7 @@ void main() {
     vUv.x = xSide;
     vUv.y = heightPercentage;
 
-    gl_Position = projectionMatrix*modelViewMatrix*vec4(quadVertLocalPosition, 1.0);
+    gl_Position = projectionMatrix*modelViewMatrix*quadVertLocalPositionPerTree;
 
     // Hand coords to shadow system
     #include <shadowmap_vertex>
