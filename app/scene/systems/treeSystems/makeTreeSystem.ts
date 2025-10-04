@@ -1,9 +1,9 @@
 import { SceneContext } from "../../core/types";
 import * as THREE from "three";
 import makeFoliageSystem, { FoliageClumpsData } from "./makeFoliageSystem";
-import vertexShader from '../../shaders/treeFoliageShaders/vertex.vert';
-import fragmentShader from '../../shaders/treeFoliageShaders/fragment.frag';
-import vertexDepth from '../../shaders/treeFoliageShaders/vertexDepth.vert';
+import vertexShader from '../../shaders/treeTrunkShader/vertex.vert';
+import fragmentShader from '../../shaders/treeTrunkShader/fragment.frag';
+import vertexDepth from '../../shaders/treeTrunkShader/vertexDepth.vert';
 import { tree } from "next/dist/build/templates/app-page";
 import { makeHeightSampler } from "../../utils/makeHeightSampler";
 import { useRef } from "react";
@@ -70,6 +70,19 @@ const foliageGuids: FoliageClumpsData[] = [
 export default function makeTreeSystem(ctx: SceneContext) {
     //makeFoliageSystem(ctx);
     const foliageTexture = ctx.loaders.texture.load('/textures/trees/foliage-2.png');
+    const trunkTexture = ctx.loaders.texture.load('/textures/trees/tree_trunk_baseColor.png');
+
+    const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
+    const customUniforms = {
+        time: { value: 0 },
+        resolution: { value: new THREE.Vector2(1, 1) },
+        uWindSpeed: { value: ctx.state.windState.windSpeed },
+        uWindDirection: { value: ctx.state.windState.windDirection },
+        uFoliageTexture: { value: foliageTexture },
+        uTrunkTexture: { value: trunkTexture },
+    }
+    const treeTrunkUniforms = THREE.UniformsUtils.merge([baseUniforms,customUniforms]);
+
     return {
         init(ctx: SceneContext) {
             ctx.loaders.gltf.load('/models/trees.glb', (gltf) => {
@@ -83,13 +96,17 @@ export default function makeTreeSystem(ctx: SceneContext) {
                     return;
                 }
 
-                const treeTrunkMat = new THREE.MeshLambertMaterial({
-                    map: ctx.loaders.texture.load('/textures/trees/tree_trunk_baseColor.png'),
-                });
 
-                treeTrunk.castShadow = true;
-                treeTrunk.material = treeTrunkMat;
-                ctx.scene.add(treeTrunk);
+                const treeTrunkMat = new THREE.ShaderMaterial({
+                    uniforms: treeTrunkUniforms,
+                    vertexShader: vertexShader,
+                    fragmentShader: fragmentShader,
+                    lights: true,
+                })
+
+                // treeTrunk.castShadow = true;
+                // treeTrunk.material = treeTrunkMat;
+                // ctx.scene.add(treeTrunk);
 
                 // Extract guides (by name or collection)
                 const guides: FoliageClumpsData[] = [];
@@ -118,9 +135,23 @@ export default function makeTreeSystem(ctx: SceneContext) {
 
                 //instancing trees
                 const treeTrunkGeo = treeTrunk.geometry as THREE.BufferGeometry;
-                treeTrunkGeo.applyMatrix4(treeTrunk.matrixWorld);
-                const COUNT = 200;
+                // treeTrunkGeo.applyMatrix4(treeTrunk.matrixWorld);
+                const COUNT = 50;
+                // const trunkIM = new THREE.InstancedMesh(treeTrunkGeo, new THREE.MeshToonMaterial({
+                //     map:trunkTexture
+                // }), COUNT);
                 const trunkIM = new THREE.InstancedMesh(treeTrunkGeo, treeTrunkMat, COUNT);
+                trunkIM.customDepthMaterial = new THREE.ShaderMaterial({
+                    uniforms: treeTrunkUniforms,
+                    vertexShader: vertexDepth,
+                    fragmentShader: `
+                    varying vec2 vUv;
+                    varying vec3 vNormalWS;
+                      void main() {
+                        gl_FragColor = vec4( vec3( gl_FragCoord.z ), 1.0 );
+                      }
+                    `,
+                });
                 trunkIM.castShadow = true;
                 trunkIM.receiveShadow = true;
                 trunkIM.frustumCulled = false; // todo: maybe tiling trees for better culling and LOD
@@ -136,7 +167,7 @@ export default function makeTreeSystem(ctx: SceneContext) {
                     heightAtXZ(x: number, z: number, heightScale: number, heightOffset: number): number;
                 }
 
-                ctx.loaders.texture.loadAsync('/textures/terrain_height.jpg').then((heightMap) => {
+                ctx.loaders.texture.loadAsync('/textures/terrain_height_1.jpg').then((heightMap) => {
                     const treeTransformMatrx: THREE.Matrix4[] = [];
                     const terrainMin = new THREE.Vector2(-terrainWidth * 0.5, -terrainLength * 0.5);
                     const terrainMax = new THREE.Vector2(terrainWidth * 0.5, terrainLength * 0.5);
@@ -164,125 +195,7 @@ export default function makeTreeSystem(ctx: SceneContext) {
                     console.log('treeTransformMatrx: ', treeTransformMatrx);
                     makeFoliageSystem(ctx, guides, treeTransformMatrx, COUNT);
                 });
-                //makeFoliageSystem(ctx, testFoliageGuides);
             });
-
-            // ctx.loaders.gltf.load('/models/treeType-1.glb', (gltf) => {
-            //     const model = gltf.scene;
-            //     model.position.set(10, 0, -10);
-            //     // ctx.scene.add(model);
-
-            //     const treeTrunk = model.getObjectByName('treeTrunk') as THREE.Mesh | null;
-            //     const treeFoliage = model.getObjectByName('treeFoliage') as THREE.Mesh | null;
-
-            //     if (!treeTrunk || !treeFoliage) {
-            //         console.error("treeTrunk or treeFoliage not found in treeType-1.glb");
-            //         return;
-            //     }
-
-            //     const treeTrunkGeo = treeTrunk.geometry as THREE.BufferGeometry;
-            //     treeTrunkGeo.applyMatrix4(treeTrunk.matrixWorld);
-            //     const treeFoliageGeo = treeFoliage.geometry as THREE.BufferGeometry;
-            //     treeFoliageGeo.applyMatrix4(treeFoliage.matrixWorld);
-
-            //     const treeTrunkMat = new THREE.MeshToonMaterial({
-            //         map: ctx.loaders.texture.load('/textures/trees/tree_trunk_baseColor.png'),
-            //     });
-
-            //     // treeTrunk.castShadow = true;
-            //     // treeTrunk.material = treeTrunkMat;
-            //     // ctx.scene.add(treeTrunk);
-
-
-            //     const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
-            //     const customUniforms = {
-            //         time: { value: 0 },
-            //         resolution: { value: new THREE.Vector2(1, 1) },
-            //         uWindSpeed: { value: ctx.state.windState.windSpeed },
-            //         uWindDirection: { value: ctx.state.windState.windDirection },
-            //         uFoliageTexture: { value: foliageTexture },
-            //     }
-            //     const treeUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
-            //     const treeFoliageMat = new THREE.ShaderMaterial({
-            //         uniforms: treeUniforms,
-            //         vertexShader: vertexShader,
-            //         fragmentShader: fragmentShader,
-            //         lights: true,
-            //     })
-            //     const treeFoliageDepthMat = new THREE.ShaderMaterial({
-            //         vertexShader: vertexDepth,     // similar to your foliage vertex displacement
-            //         fragmentShader: `
-            //             uniform sampler2D uFoliageTexture;
-            //             uniform vec3 uColorMap[4];
-
-            //             varying vec2 vUv;
-            //             varying vec3 vNormalWS;
-            //               void main() {
-            //                 float m = texture2D(uFoliageTexture, vUv).a;
-            //                 if (m < 0.5) discard;
-            //                 gl_FragColor = vec4( vec3( gl_FragCoord.z ), 1.0 );
-            //               }
-            //             `,
-            //         uniforms: treeUniforms,             // same uniforms (at least the displacement ones!)
-            //     });
-            //     // treeFoliage.castShadow = true;
-            //     // treeFoliage.material = treeFoliageMat;
-            //     // treeFoliage.customDepthMaterial = treeFoliageDepthMat
-            //     // treeFoliage.receiveShadow = false;
-            //     // ctx.scene.add(treeFoliage);
-
-            //     const COUNT = 100;
-            //     const trunkIM = new THREE.InstancedMesh(treeTrunkGeo, treeTrunkMat, COUNT);
-            //     const foliageIM = new THREE.InstancedMesh(treeFoliageGeo, treeFoliageMat, COUNT);
-            //     foliageIM.customDepthMaterial = treeFoliageDepthMat;
-
-            //     trunkIM.castShadow = true;
-            //     trunkIM.receiveShadow = true;
-            //     foliageIM.castShadow = true;
-            //     foliageIM.receiveShadow = true;
-
-            //     ctx.scene.add(trunkIM);
-            //     ctx.scene.add(foliageIM);
-
-            //     // 4) Scatter across 200x200 terrain (x,z in [-100,100])
-            //     const dummy = new THREE.Object3D();
-            //     const { heightScale, heightOffset, terrainWidth, terrainLength } = ctx.state.terrainState;
-
-            //     // const heightMapRef = useRef<THREE.Texture | null>(null);
-
-            //     let heightSampler: {
-            //         heightAtXZ(x: number, z: number, heightScale: number, heightOffset: number): number;
-            //     }
-
-            //     ctx.loaders.texture.loadAsync('/textures/terrain_height.jpg').then((heightMap) => {
-            //         const terrainMin = new THREE.Vector2(-terrainWidth * 0.5, -terrainLength * 0.5);
-            //         const terrainMax = new THREE.Vector2(terrainWidth * 0.5, terrainLength * 0.5);
-            //         heightSampler = makeHeightSampler(heightMap, terrainMin, terrainMax, { flipV: true });
-
-            //         for (let i = 0; i < COUNT; i++) {
-            //             const x = THREE.MathUtils.randFloatSpread(terrainWidth ?? 200);  // ~[-100,100]
-            //             const z = THREE.MathUtils.randFloatSpread(terrainLength ?? 200);  // ~[-100,100]
-            //             const y = heightSampler.heightAtXZ(x, z, heightScale, heightOffset);
-
-            //             // random rot/scale per tree
-            //             const yaw = Math.random() * Math.PI * 2;
-            //             const s = THREE.MathUtils.lerp(0.85, 1.25, Math.random());
-
-            //             dummy.position.set(x, y, z);
-            //             dummy.rotation.set(0, yaw, 0);
-            //             dummy.scale.set(s, s, s);
-            //             dummy.updateMatrix();
-
-            //             trunkIM.setMatrixAt(i, dummy.matrix);
-            //             foliageIM.setMatrixAt(i, dummy.matrix);
-            //         }
-
-            //         trunkIM.instanceMatrix.needsUpdate = true;
-            //         foliageIM.instanceMatrix.needsUpdate = true;
-            //     });
-
-
-            // })
         },
         update(ctx: SceneContext) { },
         dispose() { }

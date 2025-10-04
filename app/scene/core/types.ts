@@ -50,6 +50,8 @@ export interface TerrainState {
     terrainLength: number,
     heightScale: number,
     heightOffset: number
+    tileSize:number,
+    tileResolution:number,
 }
 
 export interface WindState {

@@ -16,7 +16,6 @@ const HIGH_INSTANCES = 30_000 * GRASS_NUMBER_FACTOR;
 const MID_INSTANCES = 12_000 * GRASS_NUMBER_FACTOR;
 const LOW_INSTANCES = 3_000 * GRASS_NUMBER_FACTOR;
 
-const GRASS_PATCH_SIZE = 25;
 const GRASS_WIDTH = 0.2;
 const GRASS_HEIGHT = 0.3;
 
@@ -67,6 +66,8 @@ const createGrassGeometry = (segment: number, grassNumber: number, patchSize: nu
 type LODKey = 'HIGH' | 'MED' | 'LOW';
 
 export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Texture, terrainTexture: THREE.Texture, windNoise: THREE.Texture, grassMask: THREE.Texture): System {
+    const GRASS_PATCH_SIZE = ctx.state.terrainState.tileSize; // size of each grass patch tile
+    
     const grassTexture = ctx.loaders.texture.load('/textures/greenTexture3.png');
     grassTexture.wrapS = THREE.RepeatWrapping;
     grassTexture.wrapT = THREE.RepeatWrapping;

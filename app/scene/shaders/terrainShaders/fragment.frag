@@ -9,10 +9,13 @@ uniform vec2 uWindDirection;
 uniform sampler2D windNoise;
 uniform float time;
 uniform sampler2D grassMask;
+uniform sampler2D terrainTexture;
+uniform sampler2D grassTexture;
 
 varying vec3 vNormalWS;
 varying vec3 vPosWS;
 varying vec2 vUv;
+varying vec2 worldUv;
 
 float getWindNoiseSample(vec2 uv) {
     vec2 flow = normalize(uWindDirection)*uWindSpeed*time;
@@ -34,9 +37,13 @@ void main() {
     // vec3 L = normalize(vec3(0.4, 1.0, 0.3));
     // float ndl = max(dot(N, L), 0.0);
     // vec3 col = mix(vec3(0.16, 0.3, 0.14), vec3(0.35, 0.6, 0.3), ndl);
-    vec3 baseColor = texture2D(terrainColorMap, vUv).rgb;
-    float windNoiseSample = getWindNoiseSample(vUv);
-    float grassMask = texture2D(grassMask, vUv).r;
+
+    float windNoiseSample = getWindNoiseSample(worldUv);
+    float grassMask = texture2D(grassMask, worldUv).r;
+    vec3 grassTexture = texture2D(grassTexture, vUv).rgb;
+    vec3 terrainTexture = texture2D(terrainTexture, vUv).rgb;
+    vec3 baseColor = mix(terrainTexture, grassTexture, grassMask);
+    //vec3 baseColor = texture2D(terrainTexture, vUv).rgb;
     vec3 color = addWindEffect(baseColor, windNoiseSample);
     color = mix(baseColor, color, grassMask); //remove wind effect where no grass
 

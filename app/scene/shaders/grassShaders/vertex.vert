@@ -184,6 +184,9 @@ void main() {
     //vec2 grassTerrainUVPosition = vec2(grassWorldXZShifted.x/terrainSize.x, grassWorldXZShifted.y/terrainSize.y); //grass position mapped to terrain UV space
   vec2 grassTerrainUVPosition = vec2(u, v);
   float grassGrowth = texture2D(grassMask, grassTerrainUVPosition).x;
+  grassGrowth = grassGrowth < 0.2 ? 0.0 : grassGrowth;
+
+    //offset the grass y position based on terrain height
   float terrainHeight = texture2D(grassHeightMap, grassTerrainUVPosition).x;
   grassOffset.y += heightOffset + terrainHeight*heightScale;
 

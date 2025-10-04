@@ -6,18 +6,32 @@ uniform float heightScale;
 uniform float heightOffset;
 uniform vec2 texel;
 uniform vec2 terrainSize;
+uniform float textureTileSize;
 
 varying vec3 vNormalWS;
 varying vec3 vPosWS;
 varying vec2 vUv;
+varying vec2 worldUv;
 
 void main() {
   vUv = uv;
+  float tileID = float(gl_InstanceID);
+  float rowID = floor(tileID / float(terrainSize.x/textureTileSize));
+  float colID = mod(tileID, float(terrainSize.x/textureTileSize));
+  float centerX = (colID+0.5)*textureTileSize - terrainSize.x/2.0;
+  float centerZ = (rowID+0.5)*textureTileSize - terrainSize.y/2.0;
+  //vec2 shiftedPos = position.xz+vec2(terrainSize.x, terrainSize.y)*0.5; // shift from (-size/2,size/2) to (0,size)
+  //tileVUv = vec2(mod(shiftedPos.x, textureTileSize)/textureTileSize, mod(shiftedPos.y, textureTileSize)/textureTileSize); // tile texture every textureTileSize units
+
+  vec3 displaced = position;
+  // move to tile center
+  displaced.x += centerX;
+  displaced.z += centerZ;
+  worldUv = displaced.xz/terrainSize + 0.5;
 
   // sample height (0..1) and displace along +Y
-  float h = texture2D(heightMap, vUv).r;
-  vec3 displaced = position;
-  displaced.y = heightOffset + h*heightScale;
+  float h = texture2D(heightMap, worldUv).r;
+  displaced.y = heightOffset+h*heightScale;
 
   // approximate normal from height derivatives (object space)
   // central differences in UV space

@@ -17,6 +17,8 @@ export function makeState(): AppState {
     } as PLockState;
 
     const _terrainState: TerrainState = {
+        tileSize:25,
+        tileResolution:20,
         terrainWidth: 200,
         terrainLength: 200,
         heightScale: 2.0,
