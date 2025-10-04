@@ -10,7 +10,7 @@ export function makeState(): AppState {
         move: { forward: false, backward: false, left: false, right: false, run: false },
         direction: new THREE.Vector3(),
         walkTime: 0,
-        speed: 0.03,
+        speed: 0.06,
         bobFrequency: 1.5,
         bobAmplitude: 0.02,
         baseY: 1.6,

@@ -17,6 +17,7 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import test from "node:test";
 import makeTreeSystem from "./systems/treeSystems/makeTreeSystem";
 import makeFoliageSystem from "./systems/treeSystems/makeFoliageSystem";
+import makePostEffectSystem from "./systems/makePostEffectSystem";
 
 
 export default function Page() {
@@ -108,49 +109,7 @@ export default function Page() {
 
         guiSystem.updateMeshes(meshs);
 
-        function makeToonRamp(bands: { color: string | number; width?: number }[]) {
-            // width = pixels per band (controls how “thick” each band is). Default 64.
-            const widths = bands.map(b => b.width ?? 64);
-            const total = widths.reduce((a, b) => a + b, 0);
-
-            const canvas = document.createElement('canvas');
-            canvas.width = total;
-            canvas.height = 1;
-            const ctx = canvas.getContext('2d')!;
-
-            let x = 0;
-            for (const b of bands) {
-                const w = b.width ?? 64;
-                ctx.fillStyle = new THREE.Color(b.color).getStyle();
-                ctx.fillRect(x, 0, w, 1);
-                x += w;
-            }
-
-            const tex = new THREE.CanvasTexture(canvas);
-            tex.minFilter = THREE.NearestFilter;  // hard steps
-            tex.magFilter = THREE.NearestFilter;
-            tex.generateMipmaps = false;          // keep crisp bands
-            tex.wrapS = THREE.ClampToEdgeWrapping;
-            tex.wrapT = THREE.ClampToEdgeWrapping;
-            tex.colorSpace = THREE.SRGBColorSpace; // colored bands should be sRGB
-            return tex;
-        }
-
-        // 3-band: shadow, mid, highlight
-        const ramp3 = makeToonRamp([
-            // { color: '#c7a66a', width: 1 }, // dark/shadow color
-            // { color: '#c7a66a', width: 3 }, // midtone
-            { color: '#ebdfae', width: 1 }, // midtone
-            { color: '#fff7d5', width: 1 }, // light
-        ]);
-
-        const rampTree = makeToonRamp([
-            { color: '#1c2e1d', width: 1 }, // dark/shadow color
-            { color: "#2f5932", width: 1 },
-            { color: '#3a9140', width: 10 }, // midtone
-            { color: '#6cd974', width: 1 }, // light
-        ]);
-
+        
         //#region Load Textures
 
         //#endregion
@@ -171,25 +130,7 @@ export default function Page() {
 
         //#endregion
 
-
-        //#region Load Model
-        // if (!grassClumpsGeo.current) {
-        //     gltfLoader.load('/models/grass.glb', (gltf) => {
-        //         const model = gltf.scene;
-        //         const grass = model.getObjectByName('grass');
-        //         grass?.position.set(25, 0, 30)
-        //         if (grass && grass instanceof THREE.Mesh) {
-        //             grassClumpsGeo.current = grass;
-        //             console.log("grass: ", grass);
-
-        //             grass.material = grassMaterial;
-        //             materials.push(grassMaterial);
-        //             scene.add(grass);
-        //         } else {
-        //             console.error('Grass not found or is not a Mesh');
-        //         }
-        //     });
-        // }
+        const commposer = makePostEffectSystem().init(ctx);
 
 
         const timer = new Timer();
@@ -220,7 +161,8 @@ export default function Page() {
                 o.planet.rotation.y += o.spinRate * timer.getDelta(); // Rotate the planet
             });
 
-            renderer.render(scene, camera);
+            //renderer.render(scene, camera);
+            commposer.render();
             stats.end();
         };
         animate();
