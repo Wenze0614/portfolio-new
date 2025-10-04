@@ -21,7 +21,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     grassTexture.repeat.set(1, 1);
 
     // load heightmap as DATA (linear), not sRGB
-    const heightMap = ctx.loaders.texture.load('/textures/terrain_height_1.jpg');
+    const heightMap = ctx.loaders.texture.load('/textures/terrain_height_3.jpg');
     // heightMap.flipY = false;
     heightMap.colorSpace = THREE.NoColorSpace;
     heightMap.wrapS = heightMap.wrapT = THREE.RepeatWrapping;
@@ -87,6 +87,8 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
         terrainMat,
         (ctx.state.terrainState.terrainWidth / tileSize) * (ctx.state.terrainState.terrainLength / tileSize)
     )
+
+    terrainTileIM.frustumCulled = false; // todo: update the bounding box instead
 
     // custom depth material for shadows
     const depthMat = new THREE.MeshDepthMaterial({

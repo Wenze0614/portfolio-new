@@ -170,7 +170,7 @@ void main() {
   vec3 grassWorldPosition = vec3(modelMatrix*vec4(grassOffset, 1.0)).xyz;
   vec3 hashVal = hash33(grassWorldPosition);
 
-  tilePosition = (vec2(hashedInstanceID.x, hashedInstanceID.y)+1.0)*0.5;
+  tilePosition = (vec2(hashedInstanceID.x, hashedInstanceID.y)+1.0)*0.5; // uv position within the grass patch
   vec3 tileCenterWS = (modelMatrix*vec4(0.0, 0.0, 0.0, 1.0)).xyz; //tile center in world space
   vec2 worldXZ = tileCenterWS.xz+grassOffset.xz;
 
@@ -184,7 +184,7 @@ void main() {
     //vec2 grassTerrainUVPosition = vec2(grassWorldXZShifted.x/terrainSize.x, grassWorldXZShifted.y/terrainSize.y); //grass position mapped to terrain UV space
   vec2 grassTerrainUVPosition = vec2(u, v);
   float grassGrowth = texture2D(grassMask, grassTerrainUVPosition).x;
-  grassGrowth = grassGrowth < 0.2 ? 0.0 : grassGrowth;
+  grassGrowth = grassGrowth < 0.2 ? 0.0 : mix(0.7, 1.0, grassGrowth); //threshold and remap
 
     //offset the grass y position based on terrain height
   float terrainHeight = texture2D(grassHeightMap, grassTerrainUVPosition).x;

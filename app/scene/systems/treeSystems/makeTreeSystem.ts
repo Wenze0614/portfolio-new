@@ -136,7 +136,7 @@ export default function makeTreeSystem(ctx: SceneContext) {
                 //instancing trees
                 const treeTrunkGeo = treeTrunk.geometry as THREE.BufferGeometry;
                 // treeTrunkGeo.applyMatrix4(treeTrunk.matrixWorld);
-                const COUNT = 50;
+                const COUNT = 100;
                 // const trunkIM = new THREE.InstancedMesh(treeTrunkGeo, new THREE.MeshToonMaterial({
                 //     map:trunkTexture
                 // }), COUNT);

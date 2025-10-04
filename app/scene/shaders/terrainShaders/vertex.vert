@@ -27,7 +27,8 @@ void main() {
   // move to tile center
   displaced.x += centerX;
   displaced.z += centerZ;
-  worldUv = displaced.xz/terrainSize + 0.5;
+  worldUv = (displaced.xz/terrainSize + 0.5);
+  worldUv.y = 1.0-worldUv.y; // flip Y for texture lookup
 
   // sample height (0..1) and displace along +Y
   float h = texture2D(heightMap, worldUv).r;

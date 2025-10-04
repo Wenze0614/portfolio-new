@@ -11,6 +11,7 @@ uniform sampler2D windNoise;
 uniform float time;
 uniform float uWindSpeed;
 uniform vec2 uWindDirection;
+uniform sampler2D grassMask;
 
 varying vec2 tilePosition;
 varying vec3 vColor;
@@ -49,7 +50,14 @@ vec3 addWindEffect(vec3 baseColor, float windNoiseSample) {
 }
 void main() {
     float grassX = vGrassData.x;
-    vec3 baseColor = texture2D(terrainTexture, vGrassTerrainUVPosition).rgb;
+    //vec3 baseColor = texture2D(terrainTexture, vGrassTerrainUVPosition).rgb;
+
+    float grassMask = texture2D(grassMask, vGrassTerrainUVPosition).r;
+    vec3 grassColor = texture2D(grassTexture, tilePosition).rgb;
+    vec3 terrainColor = texture2D(terrainTexture, tilePosition).rgb;
+    //vec3 baseColor = grassMask >= 0.7 ? grassColor: mix(terrainColor, grassColor, grassMask);
+    //vec3 baseColor = grassMask>= 0.35 ? grassColor : mix(terrainColor,grassColor, grassMask);
+    vec3 baseColor = mix(terrainColor, grassColor, grassMask);
 
     //make the color brighter in the middle and darker on the side
     //slowly increase the brightness from +-0.125 to the middle of the grass 0.0
@@ -71,11 +79,19 @@ void main() {
     //color = color + directionalLights[0].color*brightness;
 
     //add shadow
+    // float shadowFactor = 1.0;
+    // #if NUM_DIR_LIGHTS > 0
+    // shadowFactor *= getShadow(directionalShadowMap[0], directionalLightShadows[0].shadowMapSize, directionalLightShadows[0].shadowIntensity, directionalLightShadows[0].shadowBias, directionalLightShadows[0].shadowRadius, vDirectionalShadowCoord[0]);
+    // #endif
+    // vec3 ambient = 0.314*color;
+    // color = mix(ambient, color, shadowFactor);
+
     float shadowFactor = 1.0;
     #if NUM_DIR_LIGHTS > 0
     shadowFactor *= getShadow(directionalShadowMap[0], directionalLightShadows[0].shadowMapSize, directionalLightShadows[0].shadowIntensity, directionalLightShadows[0].shadowBias, directionalLightShadows[0].shadowRadius, vDirectionalShadowCoord[0]);
     #endif
-    vec3 ambient = 0.314*color;
+
+    vec3 ambient = 0.431*color;
     color = mix(ambient, color, shadowFactor);
 
     gl_FragColor = vec4(color, 1.0);

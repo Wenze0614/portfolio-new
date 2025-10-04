@@ -21,7 +21,7 @@ export function makeState(): AppState {
         tileResolution:20,
         terrainWidth: 200,
         terrainLength: 200,
-        heightScale: 2.0,
+        heightScale: 1.0,
         heightOffset: 0.0
     }
 

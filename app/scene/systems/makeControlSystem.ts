@@ -110,7 +110,7 @@ export function makeControlsSystem(ctx: SceneContext): ControlSystem {
         // if (!heightMapRef.current) {
         //     heightMapRef.current = await ctx.loaders.texture.loadAsync('/textures/terrain_height.jpg');
         // }
-        const heightMap = await ctx.loaders.texture.loadAsync('/textures/terrain_height_1.jpg');
+        const heightMap = await ctx.loaders.texture.loadAsync('/textures/terrain_height_3.jpg');
         console.log('heightmap width: ', heightMap.image)
         const terrainMin = new THREE.Vector2(-terrainWidth * 0.5, -terrainHeight * 0.5);
         const terrainMax = new THREE.Vector2(terrainWidth * 0.5, terrainHeight * 0.5);

@@ -40,9 +40,9 @@ void main() {
 
     float windNoiseSample = getWindNoiseSample(worldUv);
     float grassMask = texture2D(grassMask, worldUv).r;
-    vec3 grassTexture = texture2D(grassTexture, vUv).rgb;
-    vec3 terrainTexture = texture2D(terrainTexture, vUv).rgb;
-    vec3 baseColor = mix(terrainTexture, grassTexture, grassMask);
+    vec3 grassColor = texture2D(grassTexture, vUv).rgb;
+    vec3 terrainColor = texture2D(terrainTexture, vUv).rgb;
+    vec3 baseColor = mix(terrainColor,grassColor, grassMask);
     //vec3 baseColor = texture2D(terrainTexture, vUv).rgb;
     vec3 color = addWindEffect(baseColor, windNoiseSample);
     color = mix(baseColor, color, grassMask); //remove wind effect where no grass
