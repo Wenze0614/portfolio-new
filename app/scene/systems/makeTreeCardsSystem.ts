@@ -3,7 +3,7 @@ import * as THREE from "three";
 import vertexShader from '../shaders/treeCardShaders/vertex.vert';
 import fragmentShader from '../shaders/treeCardShaders/fragment.frag';
 
-const COUNT = 1000;
+const COUNT = 500;
 export default function makeTreeCardsSystem(ctx: SceneContext) {
     const plane = new THREE.PlaneGeometry(1, 1);
     const treeBaseColor = ctx.loaders.texture.load('/textures/treeCards/tree-1/tree_1_color_eevee.png');
@@ -29,7 +29,7 @@ export default function makeTreeCardsSystem(ctx: SceneContext) {
     const translation = new Float32Array(COUNT * 3);
     for (let i = 0; i < COUNT; i++) {
         const randomAngle = (Math.random() * 2 - 1) * Math.PI; // [-PI, PI]
-        const radius = Math.random() * 50 + 100; //[100, 150]
+        const radius = 100; //[100, 150]
         const x = Math.cos(randomAngle) * radius;  //
         const z = Math.sin(randomAngle) * radius;
         const y = 0;
