@@ -57,7 +57,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
         heightMap: { value: heightMap },
         heightScale: { value: ctx.state.terrainState.heightScale },            // world units of relief
         heightOffset: { value: ctx.state.terrainState.heightOffset },             // base Y
-        texel: { value: new THREE.Vector2(1 / 4096) }, // texture texel, used for derivative and normal calc
+        texel: { value: new THREE.Vector2(1 / 4096, 1 / 4096) }, // texture texel, used for derivative and normal calc
         terrainColorMap: { value: terrainTexture },
         uWindSpeed: { value: ctx.state.windState.windSpeed },
         uWindDirection: { value: ctx.state.windState.windDirection },
