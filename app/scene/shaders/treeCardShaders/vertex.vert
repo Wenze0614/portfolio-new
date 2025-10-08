@@ -1,6 +1,7 @@
 attribute vec3 instanceOffset;   // per-tree world position
 
 varying vec2 vUv;
+varying float vDistToCam;
 
 float quadSize = 20.0;
 
@@ -33,6 +34,7 @@ void main() {
     float quadSize = mix(10.0, 30.0, hashedInstanceID.x);
   // Vector from instance to camera (XZ only)
     vec3 toCam = cameraPosition-instanceOffset;
+    vDistToCam = length(toCam);
     toCam.y = 0.0; // ignore vertical tilt
     vec3 fwd = normalize(toCam);
 
