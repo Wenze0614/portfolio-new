@@ -93,6 +93,7 @@ export default function Page() {
         const treeSystem = makeTreeSystem(ctx);
         treeSystem.init(ctx);
 
+        //add tree cards for background
         const treeCardSystem = makeTreeCardsSystem(ctx);
         treeCardSystem.init(ctx);
 
@@ -132,6 +133,18 @@ export default function Page() {
             }
             guiSystem.updateMeshes(meshs);
         });
+
+        ctx.loaders.gltf.load('/models/env.glb', (gltf) => {
+            const model = gltf.scene;
+            const env = model.getObjectByName('env');
+            if (env && env instanceof THREE.Mesh) {
+                // env.scale.set(0.5, 0.5, 0.5);
+                env.position.set(0, 3, 0);
+                scene.add(env);
+                meshs.push(env);
+            }
+        });
+        guiSystem.updateMeshes(meshs);
 
 
         const commposer = makePostEffectSystem().init(ctx);
