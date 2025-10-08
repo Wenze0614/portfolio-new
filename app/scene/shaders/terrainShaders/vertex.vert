@@ -36,10 +36,10 @@ void main() {
 
   // approximate normal from height derivatives (object space)
   // central differences in UV space
-  float hL = texture2D(heightMap, vUv+vec2(-texel.x, 0.0)).r;
-  float hR = texture2D(heightMap, vUv+vec2(texel.x, 0.0)).r;
-  float hD = texture2D(heightMap, vUv+vec2(0.0,-texel.y)).r;
-  float hU = texture2D(heightMap, vUv+vec2(0.0, texel.y)).r;
+  float hL = texture2D(heightMap, worldUv+vec2(-texel.x, 0.0)).r;
+  float hR = texture2D(heightMap, worldUv+vec2(texel.x, 0.0)).r;
+  float hD = texture2D(heightMap, worldUv+vec2(0.0,-texel.y)).r;
+  float hU = texture2D(heightMap, worldUv+vec2(0.0, texel.y)).r;
 
   //calculate derivatives and tangent vectors
   float dfdu = (hR-hL)/(2.0*texel.x);

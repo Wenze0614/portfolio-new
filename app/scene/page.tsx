@@ -18,6 +18,7 @@ import test from "node:test";
 import makeTreeSystem from "./systems/treeSystems/makeTreeSystem";
 import makeFoliageSystem from "./systems/treeSystems/makeFoliageSystem";
 import makePostEffectSystem from "./systems/makePostEffectSystem";
+import makeTreeCardsSystem from "./systems/makeTreeCardsSystem";
 
 
 export default function Page() {
@@ -92,6 +93,10 @@ export default function Page() {
         const treeSystem = makeTreeSystem(ctx);
         treeSystem.init(ctx);
 
+        //add tree cards for background
+        const treeCardSystem = makeTreeCardsSystem(ctx);
+        treeCardSystem.init(ctx);
+
         //const foliageSystem = makeFoliageSystem(ctx);
         //const foliageMesh = foliageSystem.getFoliage();
         //foliageMesh.name = "foliage mesh";
@@ -99,7 +104,7 @@ export default function Page() {
 
         const testCube = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, 1),
-            new THREE.MeshToonMaterial({ color: 'white'})
+            new THREE.MeshToonMaterial({ color: 'white' })
         );
         testCube.position.set(-5, 2, 5);
         testCube.castShadow = true;
@@ -109,26 +114,38 @@ export default function Page() {
 
         guiSystem.updateMeshes(meshs);
 
-        
-        //#region Load Textures
-
-        //#endregion
-
-        //#region Set Texuture Properties
-
-        //#endregion
-
-        //#region Create a material using the baked texture
-
-
-
-        const grassMaterial = new THREE.MeshToonMaterial({
-            color: new THREE.Color(0.474, 0.749, 0.349),
-            side: THREE.DoubleSide,
+        const pokeballTexture = ctx.loaders.texture.load('/textures/pokeball_BaseColor.png');
+        pokeballTexture.flipY = false;
+        pokeballTexture.colorSpace = THREE.SRGBColorSpace;
+        ctx.loaders.gltf.load('/models/pokeball.glb', (gltf) => {
+            const model = gltf.scene;
+            const pokeball = model.getObjectByName('pokeball-low');
+            if (pokeball && pokeball instanceof THREE.Mesh) {
+                pokeball.scale.set(2, 2, 2);
+                pokeball.position.set(5, 2, -5);
+                pokeball.castShadow = true;
+                pokeball.material = new THREE.MeshBasicMaterial({
+                    map: pokeballTexture,
+                });
+                pokeball.name = "pokeball";
+                scene.add(pokeball);
+                meshs.push(pokeball);
+            }
+            guiSystem.updateMeshes(meshs);
         });
 
+        ctx.loaders.gltf.load('/models/env.glb', (gltf) => {
+            const model = gltf.scene;
+            const env = model.getObjectByName('env');
+            if (env && env instanceof THREE.Mesh) {
+                // env.scale.set(0.5, 0.5, 0.5);
+                env.position.set(0, 3, 0);
+                scene.add(env);
+                meshs.push(env);
+            }
+        });
+        guiSystem.updateMeshes(meshs);
 
-        //#endregion
 
         const commposer = makePostEffectSystem().init(ctx);
 
@@ -161,8 +178,8 @@ export default function Page() {
                 o.planet.rotation.y += o.spinRate * timer.getDelta(); // Rotate the planet
             });
 
-            //renderer.render(scene, camera);
-            commposer.render();
+            renderer.render(scene, camera);
+            //commposer.render();
             stats.end();
         };
         animate();

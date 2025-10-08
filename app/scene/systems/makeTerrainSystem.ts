@@ -42,7 +42,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     // grassMask.flipY = false;
     grassMask.needsUpdate = true;
 
-    const W = ctx.state.terrainState.terrainWidth, L = ctx.state.terrainState.terrainLength;         // your world size (x,z)
+    const W = ctx.state.terrainState.terrainWidth, L = ctx.state.terrainState.terrainLength;         // world size (x,z)
     // const RES_X = 256, RES_Z = 256; // vertices; start modest, increase if needed
     // const geom = new THREE.PlaneGeometry(W, L, RES_X, RES_Z);
     // geom.rotateX(-Math.PI / 2);     // make it XZ plane, Y up
@@ -57,7 +57,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
         heightMap: { value: heightMap },
         heightScale: { value: ctx.state.terrainState.heightScale },            // world units of relief
         heightOffset: { value: ctx.state.terrainState.heightOffset },             // base Y
-        texel: { value: new THREE.Vector2(1 / 1024, 1 / 2048) }, // if your map is 1024x2048
+        texel: { value: new THREE.Vector2(1 / 4096, 1 / 4096) }, // texture texel, used for derivative and normal calc
         terrainColorMap: { value: terrainTexture },
         uWindSpeed: { value: ctx.state.windState.windSpeed },
         uWindDirection: { value: ctx.state.windState.windDirection },
