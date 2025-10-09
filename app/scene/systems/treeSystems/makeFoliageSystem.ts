@@ -208,6 +208,7 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
         // depthWrite: true,          // keep writing depth
         // depthTest: true,
         lights: true,
+        fog: true,
     });
     foliageMat.defines = { ...(foliageMat.defines || {}), USE_INSTANCING: 1 };
     console.log("tree uniform: ", treeUniforms)

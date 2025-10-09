@@ -102,6 +102,7 @@ export default function makeTreeSystem(ctx: SceneContext) {
                     vertexShader: vertexShader,
                     fragmentShader: fragmentShader,
                     lights: true,
+                    fog: true,
                 })
 
                 // treeTrunk.castShadow = true;

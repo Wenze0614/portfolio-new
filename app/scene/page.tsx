@@ -19,6 +19,7 @@ import makeTreeSystem from "./systems/treeSystems/makeTreeSystem";
 import makeFoliageSystem from "./systems/treeSystems/makeFoliageSystem";
 import makePostEffectSystem from "./systems/makePostEffectSystem";
 import makeTreeCardsSystem from "./systems/makeTreeCardsSystem";
+import makeEnvSystem from "./systems/makeEnvSystem";
 
 
 export default function Page() {
@@ -52,6 +53,9 @@ export default function Page() {
         //initialize core ThreeJS components
         const ctx = setupThreeCore(canvasRef.current, { background: "#62aef0" });
         const { scene, camera, renderer, clock, state, loaders, disposeCore } = ctx;
+
+
+        scene.fog = new THREE.Fog(ctx.state.fogState.fogColor, 20, 300);
 
         // #region Core Setup
         //setup systems
@@ -112,7 +116,6 @@ export default function Page() {
         testCube.name = "test cube";
         meshs.push(testCube);
 
-        guiSystem.updateMeshes(meshs);
 
         const pokeballTexture = ctx.loaders.texture.load('/textures/pokeball_BaseColor.png');
         pokeballTexture.flipY = false;
@@ -130,21 +133,11 @@ export default function Page() {
                 pokeball.name = "pokeball";
                 scene.add(pokeball);
                 meshs.push(pokeball);
+                guiSystem.updateMeshes(meshs);
             }
-            guiSystem.updateMeshes(meshs);
         });
 
-        ctx.loaders.gltf.load('/models/env.glb', (gltf) => {
-            const model = gltf.scene;
-            const env = model.getObjectByName('env');
-            if (env && env instanceof THREE.Mesh) {
-                // env.scale.set(0.5, 0.5, 0.5);
-                env.position.set(0, 3, 0);
-                scene.add(env);
-                meshs.push(env);
-            }
-        });
-        guiSystem.updateMeshes(meshs);
+        makeEnvSystem(ctx).init(meshs, guiSystem);
 
 
         const commposer = makePostEffectSystem().init(ctx);

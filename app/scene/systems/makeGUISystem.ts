@@ -50,6 +50,7 @@ export default function makeGUISystem(ctx: SceneContext): GUISystem {
             const lightFolder = gui.addFolder('Lights');
             lights.forEach((light) => {
                 const lightTweak = lightFolder.addFolder(`${light.name}`);
+                lightTweak.domElement.style.marginLeft = '10px';
                 lightTweak.close();
                 lightTweak.add(light, 'visible').name(`${light.name} visible`);
                 if ('intensity' in light) {
@@ -75,6 +76,7 @@ export default function makeGUISystem(ctx: SceneContext): GUISystem {
             meshes.forEach((child) => {
                 if (child instanceof THREE.Mesh) {
                     const meshTweak = meshFolder.addFolder(`${child.name || 'mesh'}`);
+                    meshTweak.domElement.style.marginLeft = '10px';
                     meshTweak.close();
                     meshTweak.add(child, 'visible').name(`${child.name || 'mesh'} visible`);
                     meshTweak.add(child.position, 'x', -ctx.state.terrainState.terrainWidth * 0.5, ctx.state.terrainState.terrainWidth * 0.5, 0.001).name(`${child.name || 'mesh'} position X`);

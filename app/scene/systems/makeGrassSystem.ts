@@ -102,6 +102,7 @@ export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Text
             uniforms: grassUniforms,
             side: THREE.DoubleSide,
             lights: true,
+            fog: true,
         });
         mat.defines = { ...(mat.defines || {}), GRASS_SEGMENTS: segments };
         mat.needsUpdate = true;

@@ -1,9 +1,13 @@
+#include <common>
+#include <fog_pars_fragment>
+
 uniform sampler2D baseColor;
 uniform sampler2D normalMap;
 uniform sampler2D generalNormalMap;
 
 varying vec2 vUv;
 varying float vDistToCam;
+varying vec3 vPosWS;
 
 void main() {
 
@@ -31,4 +35,7 @@ void main() {
     baseColor = mix(baseColor, baseColor*0.75, darkness);
 
     gl_FragColor = vec4(baseColor, 1.0);
+
+
+  #include <fog_fragment>
 }

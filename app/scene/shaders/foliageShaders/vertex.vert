@@ -1,5 +1,6 @@
 #include <common>
 #include <shadowmap_pars_vertex>
+#include <fog_pars_vertex>
 
 #define MAX_SPHERES 10
 uniform int uFoliageSegment[MAX_SPHERES];
@@ -178,6 +179,9 @@ void main() {
 
     gl_Position = projectionMatrix*modelViewMatrix*quadVertLocalPositionPerTree;
 
+    vec4 mvPosition = modelViewMatrix*quadVertLocalPositionPerTree;
+
     // Hand coords to shadow system
     #include <shadowmap_vertex>
+    #include <fog_vertex>
 }
