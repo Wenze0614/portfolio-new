@@ -2,6 +2,7 @@
 #include <packing>
 #include <lights_pars_begin>
 #include <shadowmap_pars_fragment>
+#include <fog_pars_fragment>
 
 uniform sampler2D terrainColorMap;
 uniform float uWindSpeed;
@@ -55,4 +56,6 @@ void main() {
     vec3 ambient = 0.431*color;
     color = mix(ambient, color, shadowFactor);
     gl_FragColor = vec4(color, 1.0);
+
+    #include <fog_fragment>
 }

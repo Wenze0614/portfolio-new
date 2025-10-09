@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { SceneContext, System } from '../core/types';
-import { Sky } from 'three/examples/jsm/objects/Sky.js';
+import modifyShader from '../utils/modifyShader';
 
 // makeSkySystem.ts
 // This system is responsible for creating and managing the sky in the scene.
@@ -41,6 +41,9 @@ export function makeSkySystem(ctx: SceneContext): System {
     skyTexture.minFilter = THREE.NearestFilter;
     skyTexture.colorSpace = THREE.SRGBColorSpace;
     const material = new THREE.MeshBasicMaterial({ map: skyTexture });
+    material.onBeforeCompile = (shader) => {
+        modifyShader(shader);
+    }
     const skySphere = new THREE.Mesh(geometry, material);
     skySphere.rotateY(Math.PI * 1.5);
     skySphere.position.set(0, 0, 0);

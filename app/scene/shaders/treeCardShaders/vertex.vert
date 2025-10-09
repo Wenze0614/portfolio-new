@@ -54,6 +54,8 @@ void main() {
     + up*position.y*quadSize;
     vPosWS = worldPos;
 
+    vec4 worldPosition = vec4(worldPos, 1.0);
+
     vec4 mvPosition = viewMatrix*vec4(worldPos, 1.0);
 
     gl_Position = projectionMatrix * mvPosition;

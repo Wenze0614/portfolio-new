@@ -20,6 +20,8 @@ import makeFoliageSystem from "./systems/treeSystems/makeFoliageSystem";
 import makePostEffectSystem from "./systems/makePostEffectSystem";
 import makeTreeCardsSystem from "./systems/makeTreeCardsSystem";
 import makeEnvSystem from "./systems/makeEnvSystem";
+import makeFogSystem from "./systems/makeFogSystem";
+import modifyShader from "./utils/modifyShader";
 
 
 export default function Page() {
@@ -54,8 +56,8 @@ export default function Page() {
         const ctx = setupThreeCore(canvasRef.current, { background: "#62aef0" });
         const { scene, camera, renderer, clock, state, loaders, disposeCore } = ctx;
 
-
-        scene.fog = new THREE.Fog(ctx.state.fogState.fogColor, 20, 300);
+        makeFogSystem();
+        scene.fog = new THREE.FogExp2(0xDFE9F3, 0.0341);
 
         // #region Core Setup
         //setup systems
@@ -106,9 +108,13 @@ export default function Page() {
         //foliageMesh.name = "foliage mesh";
         //meshs.push(foliageMesh);
 
+        const testCubeMat = new THREE.MeshToonMaterial({ color: 'white' });
+        testCubeMat.onBeforeCompile = (shader) => {
+            modifyShader(shader);
+        }
         const testCube = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, 1),
-            new THREE.MeshToonMaterial({ color: 'white' })
+            testCubeMat
         );
         testCube.position.set(-5, 2, 5);
         testCube.castShadow = true;
@@ -127,9 +133,13 @@ export default function Page() {
                 pokeball.scale.set(2, 2, 2);
                 pokeball.position.set(5, 2, -5);
                 pokeball.castShadow = true;
-                pokeball.material = new THREE.MeshBasicMaterial({
+                const pokeballMat = new THREE.MeshBasicMaterial({
                     map: pokeballTexture,
                 });
+                pokeballMat.onBeforeCompile = (shader) => {
+                    modifyShader(shader);
+                }
+                pokeball.material = pokeballMat;
                 pokeball.name = "pokeball";
                 scene.add(pokeball);
                 meshs.push(pokeball);

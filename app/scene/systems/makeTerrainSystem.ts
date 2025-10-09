@@ -76,7 +76,8 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
         uniforms: terrainUniforms,
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
-        lights: true
+        lights: true,
+        fog: true,
     });
     // const terrain = new THREE.Mesh(geom, terrainMat);
     // terrain.receiveShadow = true;

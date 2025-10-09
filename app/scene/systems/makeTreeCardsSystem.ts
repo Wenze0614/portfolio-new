@@ -12,6 +12,7 @@ export default function makeTreeCardsSystem(ctx: SceneContext) {
 
     const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
     const customUniforms = {
+        time: { value: 0.0 },
         baseColor: { value: treeBaseColor },
         normalMap: { value: treeNormal },
         generalNormalMap: { value: treeGeneralNormal },
@@ -45,7 +46,8 @@ export default function makeTreeCardsSystem(ctx: SceneContext) {
         init(ctx: SceneContext) {
             ctx.scene.add(treeCardIM);
         },
-        update(ctx: SceneContext) { },
+        update(dt:number) {
+         },
         dispose() { }
     }
 }

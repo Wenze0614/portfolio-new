@@ -92,9 +92,9 @@ export default function makeEnvSystem(ctx: SceneContext) {
                 //     `,
                 // })
                 if (env && env instanceof THREE.Mesh) {
-                    // env.material = envMaterial;
+                    env.material  = new THREE.MeshBasicMaterial({ map: envTexture });
                     // env.scale.set(0.5, 0.5, 0.5);
-                    env.position.set(0, 3, 0);
+                    // env.position.set(0, 3, 0);
                     ctx.scene.add(env);
                     meshs.push(env);
                     guiSystem.updateMeshes(meshs);
@@ -102,7 +102,7 @@ export default function makeEnvSystem(ctx: SceneContext) {
 
                 if(envTerrain && envTerrain instanceof THREE.Mesh) {
                     // envTerrain.material = envTerrainMaterial;
-                    envTerrain.position.set(0, 3, 0);
+                    // envTerrain.position.set(0, 3, 0);
                     ctx.scene.add(envTerrain);
                 }
             });
