@@ -32,17 +32,17 @@ export default function Page() {
     const grassClumpsGeo = useRef<THREE.Mesh>(null);
 
 
-    const planets = [
-        { name: "Mercury", speed: 0.2, spinRate: 0.027, },
-        { name: "Venus", speed: 0.15, spinRate: -0.007 }, // retrograde
-        { name: "Earth", speed: 0.1, spinRate: 1.6 * 0.5 },
-        { name: "Mars", speed: 0.08, spinRate: 1.5 * 0.5 },
-        { name: "Jupiter", speed: 0.05, spinRate: 3.86 * 0.25 },
-        { name: "Saturn", speed: 0.04, spinRate: 3.6 * 0.25 },
-        { name: "Uranus", speed: 0.03, spinRate: -2.2 * 0.5 }, // retrograde
-        { name: "Neptune", speed: 0.02, spinRate: 2.4 * 0.5 },
-    ];
-    const sunRoom5WorldPosition = new THREE.Vector3();
+    // const planets = [
+    //     { name: "Mercury", speed: 0.2, spinRate: 0.027, },
+    //     { name: "Venus", speed: 0.15, spinRate: -0.007 }, // retrograde
+    //     { name: "Earth", speed: 0.1, spinRate: 1.6 * 0.5 },
+    //     { name: "Mars", speed: 0.08, spinRate: 1.5 * 0.5 },
+    //     { name: "Jupiter", speed: 0.05, spinRate: 3.86 * 0.25 },
+    //     { name: "Saturn", speed: 0.04, spinRate: 3.6 * 0.25 },
+    //     { name: "Uranus", speed: 0.03, spinRate: -2.2 * 0.5 }, // retrograde
+    //     { name: "Neptune", speed: 0.02, spinRate: 2.4 * 0.5 },
+    // ];
+    // const sunRoom5WorldPosition = new THREE.Vector3();
 
     const orbitGroups: { planet: THREE.Object3D, radius: number, speed: number, spinRate: number }[] = [];
 
@@ -56,8 +56,8 @@ export default function Page() {
         const ctx = setupThreeCore(canvasRef.current, { background: "#62aef0" });
         const { scene, camera, renderer, clock, state, loaders, disposeCore } = ctx;
 
-        makeFogSystem();
-        scene.fog = new THREE.FogExp2(0xDFE9F3, 0.0341);
+        makeFogSystem(ctx);
+        scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
 
         // #region Core Setup
         //setup systems
@@ -109,9 +109,9 @@ export default function Page() {
         //meshs.push(foliageMesh);
 
         const testCubeMat = new THREE.MeshToonMaterial({ color: 'white' });
-        testCubeMat.onBeforeCompile = (shader) => {
-            modifyShader(shader);
-        }
+        // testCubeMat.onBeforeCompile = (shader) => {
+        //     modifyShader(shader);
+        // }
         const testCube = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, 1),
             testCubeMat
@@ -136,9 +136,9 @@ export default function Page() {
                 const pokeballMat = new THREE.MeshBasicMaterial({
                     map: pokeballTexture,
                 });
-                pokeballMat.onBeforeCompile = (shader) => {
-                    modifyShader(shader);
-                }
+                // pokeballMat.onBeforeCompile = (shader) => {
+                //     modifyShader(shader);
+                // }
                 pokeball.material = pokeballMat;
                 pokeball.name = "pokeball";
                 scene.add(pokeball);
@@ -168,18 +168,30 @@ export default function Page() {
             skySystem.update(ctx, timer.getElapsed());
 
             //update uniforms
-            for (const material of materials) {
-                if (material instanceof THREE.ShaderMaterial) {
-                    material.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height);
-                    material.uniforms.time.value = timer.getElapsed();
-                }
-            }
+            // for (const material of materials) {
+            //     if (material instanceof THREE.ShaderMaterial) {
+            //         material.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height);
+            //         material.uniforms.time.value = timer.getElapsed();
+            //     }
+            // }
 
-            orbitGroups.forEach(o => {
-                o.planet.position.x = sunRoom5WorldPosition.x + Math.cos(o.speed * timer.getElapsed()) * o.radius;
-                o.planet.position.z = sunRoom5WorldPosition.z + Math.sin(o.speed * timer.getElapsed()) * o.radius;
-                o.planet.rotation.y += o.spinRate * timer.getDelta(); // Rotate the planet
-            });
+            // orbitGroups.forEach(o => {
+            //     o.planet.position.x = sunRoom5WorldPosition.x + Math.cos(o.speed * timer.getElapsed()) * o.radius;
+            //     o.planet.position.z = sunRoom5WorldPosition.z + Math.sin(o.speed * timer.getElapsed()) * o.radius;
+            //     o.planet.rotation.y += o.spinRate * timer.getDelta(); // Rotate the planet
+            // });
+            // scene.traverse(o => {
+            //     if (o instanceof THREE.Mesh) {
+            //         const mats = Array.isArray(o.material) ? o.material : (o.material ? [o.material] : []);
+            //         for (const m of mats) {
+            //             const sh = m?.userData?.shader;
+            //             if (sh?.uniforms?.fogTime) sh.uniforms.fogTime.value = performance.now() * 0.001;
+            //         }
+            //     }
+            // })
+
+            treeSystem.update(ctx, timer.getElapsed());
+
 
             renderer.render(scene, camera);
             //commposer.render();
