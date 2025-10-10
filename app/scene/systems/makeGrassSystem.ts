@@ -102,6 +102,7 @@ export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Text
             uniforms: grassUniforms,
             side: THREE.DoubleSide,
             lights: true,
+            fog: true,
         });
         mat.defines = { ...(mat.defines || {}), GRASS_SEGMENTS: segments };
         mat.needsUpdate = true;
@@ -200,6 +201,7 @@ export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Text
         update(ctx: SceneContext, dt: number) {
             // tick(dt);
             grassUniforms.time.value = dt;
+            grassUniforms.fogTime.value = dt;
             updateTileLODs(ctx.camera);
         },
         dispose() {

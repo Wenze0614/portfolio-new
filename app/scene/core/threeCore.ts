@@ -16,8 +16,8 @@ export function setupThreeCore(
         scene.background = new THREE.Color(options.background);
     }
 
-    const axesHelper = new THREE.AxesHelper(10);
-    scene.add(axesHelper);
+    // const axesHelper = new THREE.AxesHelper(10);
+    // scene.add(axesHelper);
 
     const camera = new THREE.PerspectiveCamera(
         30,

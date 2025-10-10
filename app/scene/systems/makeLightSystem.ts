@@ -44,10 +44,10 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     sun1.shadow.mapSize.set(2048, 2048);
     sun1.shadow.bias = -0.0005;
     sun1.shadow.normalBias = 0.02; // reduces acne when surfaces are coplanar-ish
-    const sun1Helper = new THREE.DirectionalLightHelper(sun1, 1, 'red');
+    //const sun1Helper = new THREE.DirectionalLightHelper(sun1, 1, 'red');
     // Add a helper temporarily
-    const shadowCameraHelper = new THREE.CameraHelper(sun1.shadow.camera);
-    ctx.scene.add(shadowCameraHelper);
+    // const shadowCameraHelper = new THREE.CameraHelper(sun1.shadow.camera);
+    // ctx.scene.add(shadowCameraHelper);
 
     // const sun2Color = new THREE.Color("#8FC6DC");
     // const sun2 = new THREE.DirectionalLight(sun2Color, 3.14);
@@ -60,15 +60,15 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
         init(ctx: SceneContext) {
 
             ctx.scene.add(sun1);
-            ctx.scene.add(sun1Helper)
+            // ctx.scene.add(sun1Helper)
 
             // ctx.scene.add(sun2);
             // ctx.scene.add(sun2Helper)
         },
         update(ctx: SceneContext) { 
             if(ctx.state.controlState.controlType === CONTROL_TYPE.Walk) fitDirLightToCamera(sun1, ctx.camera);
-            sun1Helper.update();
-            shadowCameraHelper.update();
+            // sun1Helper.update();
+            // shadowCameraHelper.update();
         },
         dispose() { },
         getLights() {

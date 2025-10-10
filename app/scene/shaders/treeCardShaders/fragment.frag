@@ -1,8 +1,14 @@
+#include <common>
+#include <fog_pars_fragment>
+
 uniform sampler2D baseColor;
 uniform sampler2D normalMap;
 uniform sampler2D generalNormalMap;
 
 varying vec2 vUv;
+varying float vDistToCam;
+varying vec3 vPosWS;
+
 void main() {
 
     vec4 color = texture2D(baseColor, vUv).rgba;
@@ -25,6 +31,11 @@ void main() {
     // float brightness = remap(ndl, -1.0, 1.0, 0.25, 0.75);
     vec3 ambienLight = 0.25*baseColor;
     baseColor = ambienLight+baseColor*vec3(.8, .8, .8)*brightness;
+    float darkness = smoothstep(150.0, 400.0, vDistToCam);
+    baseColor = mix(baseColor, baseColor*0.75, darkness);
 
     gl_FragColor = vec4(baseColor, 1.0);
+
+
+  #include <fog_fragment>
 }

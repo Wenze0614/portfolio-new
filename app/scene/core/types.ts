@@ -59,12 +59,17 @@ export interface WindState {
     windDirection: THREE.Vector2,
 }
 
+export interface FogState {
+    fogColor: THREE.Color,
+}
+
 
 export interface AppState {
     controlState: OrbitState | PLockState;
     setControlType(t: CONTROL_TYPE): void;
     terrainState: TerrainState;
     windState: WindState;
+    fogState: FogState;
     isFullScreen: boolean;
 }
 

@@ -8,10 +8,12 @@
 
 varying vec3 vNormalWS;
 varying vec2 vUv;
+varying vec3 vPosWS;
 
 void main() {
   // world position
     vec4 worldPosition = modelMatrix*instanceMatrix*vec4(position, 1.0);
+    vPosWS = worldPosition.xyz;
     gl_Position = projectionMatrix*viewMatrix*worldPosition;
 
   // world/view normal
@@ -20,8 +22,9 @@ void main() {
     vNormalWS = nWorld;
     vec3 transformedNormal = normalize(mat3(viewMatrix)*nWorld);
 
-    vec4 mvPos = viewMatrix*worldPosition;
+    vec4 mvPosition = viewMatrix*worldPosition;
     vUv = uv;
   // Hand coords to shadow system
   #include <shadowmap_vertex>
+  #include <fog_vertex>
 }

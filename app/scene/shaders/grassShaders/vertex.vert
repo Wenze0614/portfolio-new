@@ -1,5 +1,6 @@
 #include <common>
 #include <shadowmap_pars_vertex>
+#include <fog_pars_vertex>
 
 uniform float u_effectBlend;
 uniform float u_remap;
@@ -278,7 +279,7 @@ void main() {
   //if the grass is facing away from the camera, the dot product will be close to -1
 
     //get position in view space
-  vec4 viewSpacePosition = modelViewMatrix*vec4(grassLocalPosition, 1.0);
+  vec4 mvPosition = modelViewMatrix*vec4(grassLocalPosition, 1.0);
     //method-2: view space thickening
     //viewDotNormal ranges from 0 to 1
     //if the grass is facing the camera, the dot product will be close to 1
@@ -293,9 +294,9 @@ void main() {
     //remove the effect for grass that is perpendicular or facing away from the camera
   thickeningFactor *= smoothstep(0.0, 0.2, viewDotNormal);
 
-  viewSpacePosition.x += thickeningFactor*(xSide-0.5)*width*0.5*1.2;
+  mvPosition.x += thickeningFactor*(xSide-0.5)*width*0.5*1.2;
 
-  gl_Position = projectionMatrix*viewSpacePosition;
+  gl_Position = projectionMatrix*mvPosition;
   gl_Position.w = grassGrowth<0.25 ? 0.0 : gl_Position.w; 
 
   //vColor = mix(BASE_COLOR, TIP_COLOR, heightPercentage);
@@ -304,5 +305,6 @@ void main() {
 
   // Hand coords to shadow system
   #include <shadowmap_vertex>
+  #include <fog_vertex>
 
 }

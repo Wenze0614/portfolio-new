@@ -2,6 +2,7 @@
 #include <packing>
 #include <lights_pars_begin>
 #include <shadowmap_pars_fragment>
+#include <fog_pars_fragment>
 
 uniform sampler2D uFoliageTexture;
 uniform vec3 uColorMap[4];
@@ -10,6 +11,7 @@ uniform float uBrightnessThresholds[4];
 varying vec2 vUv;
 varying vec3 vNormalWS;
 varying vec4 vTerrainShadowCoord;
+varying vec3 vPosWS;
 
 float inverseLerp(float v, float minValue, float maxValue) {
     return (v-minValue)/(maxValue-minValue);
@@ -64,4 +66,5 @@ void main() {
     // vec3 ambient = 0.25*color;
     //color = mix(ambient, color, shadowFactor);
     gl_FragColor = vec4(color, 1.0);
+    #include <fog_fragment>
 }

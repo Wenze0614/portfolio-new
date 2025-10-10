@@ -1,5 +1,6 @@
 #include <common>
 #include <shadowmap_pars_vertex>
+#include <fog_pars_vertex>
 
 uniform sampler2D heightMap;
 uniform float heightScale;
@@ -55,10 +56,11 @@ void main() {
   vec4 worldPosition = modelMatrix*vec4(displaced, 1.0);
   vPosWS = worldPosition.xyz;
   vNormalWS = normalize(mat3(normalMatrix)*nOS);
+  
+  gl_Position = projectionMatrix*mvPos;
 
   // Hand coords to shadow system
   #include <shadowmap_vertex>
-
-  gl_Position = projectionMatrix*mvPos;
+  #include <fog_vertex>
 
 }

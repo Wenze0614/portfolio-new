@@ -2,6 +2,7 @@
 #include <packing>
 #include <lights_pars_begin>
 #include <shadowmap_pars_fragment>
+#include <fog_pars_fragment>
 
 uniform sampler2D terrainColorMap;
 uniform float uWindSpeed;
@@ -42,23 +43,19 @@ void main() {
     float grassMask = texture2D(grassMask, worldUv).r;
     vec3 grassColor = texture2D(grassTexture, vUv).rgb;
     vec3 terrainColor = texture2D(terrainTexture, vUv).rgb;
-    vec3 baseColor = mix(terrainColor,grassColor, grassMask);
+    vec3 baseColor = mix(terrainColor, grassColor, grassMask);
     //vec3 baseColor = texture2D(terrainTexture, vUv).rgb;
     vec3 color = addWindEffect(baseColor, windNoiseSample);
     color = mix(baseColor, color, grassMask); //remove wind effect where no grass
 
     float shadowFactor = 1.0;
     #if NUM_DIR_LIGHTS > 0
-        shadowFactor *= getShadow(
-            directionalShadowMap[0], 
-            directionalLightShadows[0].shadowMapSize, 
-            directionalLightShadows[0].shadowIntensity, 
-            directionalLightShadows[0].shadowBias, 
-            directionalLightShadows[0].shadowRadius, 
-            vDirectionalShadowCoord[0]);
+    shadowFactor *= getShadow(directionalShadowMap[0], directionalLightShadows[0].shadowMapSize, directionalLightShadows[0].shadowIntensity, directionalLightShadows[0].shadowBias, directionalLightShadows[0].shadowRadius, vDirectionalShadowCoord[0]);
     #endif
 
     vec3 ambient = 0.431*color;
     color = mix(ambient, color, shadowFactor);
     gl_FragColor = vec4(color, 1.0);
+
+    #include <fog_fragment>
 }

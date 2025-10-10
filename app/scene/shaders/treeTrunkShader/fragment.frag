@@ -2,11 +2,13 @@
 #include <packing>
 #include <lights_pars_begin>
 #include <shadowmap_pars_fragment>
+#include <fog_pars_fragment>
 
 uniform sampler2D uTrunkTexture;
 
 varying vec2 vUv;
 varying vec3 vNormalWS;
+varying vec3 vPosWS;
 // varying vec4 vTerrainShadowCoord;
 
 float inverseLerp(float v, float minValue, float maxValue) {
@@ -54,5 +56,8 @@ void main() {
 
     vec3 ambient = 0.7*color;
     color = mix(ambient, color, shadowFactor);
+
     gl_FragColor = vec4(color, 1.0);
+
+    #include <fog_fragment>
 }

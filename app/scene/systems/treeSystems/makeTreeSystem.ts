@@ -1,4 +1,4 @@
-import { SceneContext } from "../../core/types";
+import { SceneContext, System } from "../../core/types";
 import * as THREE from "three";
 import makeFoliageSystem, { FoliageClumpsData } from "./makeFoliageSystem";
 import vertexShader from '../../shaders/treeTrunkShader/vertex.vert';
@@ -81,7 +81,18 @@ export default function makeTreeSystem(ctx: SceneContext) {
         uFoliageTexture: { value: foliageTexture },
         uTrunkTexture: { value: trunkTexture },
     }
-    const treeTrunkUniforms = THREE.UniformsUtils.merge([baseUniforms,customUniforms]);
+    const treeTrunkUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
+
+
+    const treeTrunkMat = new THREE.ShaderMaterial({
+        uniforms: treeTrunkUniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        lights: true,
+        fog: true,
+    })
+
+    let foliageSys:System;
 
     return {
         init(ctx: SceneContext) {
@@ -97,12 +108,6 @@ export default function makeTreeSystem(ctx: SceneContext) {
                 }
 
 
-                const treeTrunkMat = new THREE.ShaderMaterial({
-                    uniforms: treeTrunkUniforms,
-                    vertexShader: vertexShader,
-                    fragmentShader: fragmentShader,
-                    lights: true,
-                })
 
                 // treeTrunk.castShadow = true;
                 // treeTrunk.material = treeTrunkMat;
@@ -193,11 +198,14 @@ export default function makeTreeSystem(ctx: SceneContext) {
 
                     trunkIM.instanceMatrix.needsUpdate = true;
                     console.log('treeTransformMatrx: ', treeTransformMatrx);
-                    makeFoliageSystem(ctx, guides, treeTransformMatrx, COUNT);
+                    foliageSys = makeFoliageSystem(ctx, guides, treeTransformMatrx, COUNT);
                 });
             });
         },
-        update(ctx: SceneContext) { },
+        update(ctx: SceneContext, dt: number) {
+            treeTrunkMat.uniforms.fogTime.value = dt;
+            if(foliageSys) foliageSys.update(ctx, dt);
+        },
         dispose() { }
     }
 }
