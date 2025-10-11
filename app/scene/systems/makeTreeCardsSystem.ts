@@ -47,6 +47,7 @@ export default function makeTreeCardsSystem(ctx: SceneContext) {
             ctx.scene.add(treeCardIM);
         },
         update(dt:number) {
+            treeCardUniforms.fogTime.value = dt;
          },
         dispose() { }
     }
