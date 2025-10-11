@@ -191,6 +191,7 @@ export default function Page() {
             // })
 
             treeSystem.update(ctx, timer.getElapsed());
+            treeCardSystem.update(timer.getElapsed());
 
 
             renderer.render(scene, camera);

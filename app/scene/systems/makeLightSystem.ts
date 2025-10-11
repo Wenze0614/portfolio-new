@@ -1,7 +1,7 @@
 import { CONTROL_TYPE, LightSystem, SceneContext, System } from "../core/types";
 import * as THREE from "three";
 
-const SUN_DIRECTION = new THREE.Vector3(100, 160, 0)
+const SUN_DIRECTION = new THREE.Vector3(50, 80, 0)
 
 function fitDirLightToCamera(light: THREE.DirectionalLight, camera: THREE.Camera, margin = 20) {
     const pos = camera.position;
@@ -30,21 +30,21 @@ function fitDirLightToCamera(light: THREE.DirectionalLight, camera: THREE.Camera
 export default function makeLightSystem(ctx: SceneContext): LightSystem {
     const sun1Color = new THREE.Color("#E9E4C5");
     const sun1 = new THREE.DirectionalLight(sun1Color, 1.34);
-    //sun1.position.set(10, 5, 1);
-    //sun1.target.position.set(0, 0, 0);
+    sun1.position.copy(SUN_DIRECTION);
+    sun1.target.position.set(0, 0, 0);
     sun1.castShadow = true;
     sun1.name = 'yellow sun';
-    // sun1.shadow.camera.near = 1;
-    // sun1.shadow.camera.far  = 500;
-    // sun1.shadow.camera.left = -200;
-    // sun1.shadow.camera.right = 200;
-    // sun1.shadow.camera.top = 200;
-    // sun1.shadow.camera.bottom = -200;
-    fitDirLightToCamera(sun1, ctx.camera);
+    sun1.shadow.camera.near = 1;
+    sun1.shadow.camera.far  = 150;
+    sun1.shadow.camera.left = -150;
+    sun1.shadow.camera.right = 150;
+    sun1.shadow.camera.top = 150;
+    sun1.shadow.camera.bottom = -150;
+    // fitDirLightToCamera(sun1, ctx.camera);
     sun1.shadow.mapSize.set(2048, 2048);
     sun1.shadow.bias = -0.0005;
     sun1.shadow.normalBias = 0.02; // reduces acne when surfaces are coplanar-ish
-    //const sun1Helper = new THREE.DirectionalLightHelper(sun1, 1, 'red');
+    // const sun1Helper = new THREE.DirectionalLightHelper(sun1, 1, 'red');
     // Add a helper temporarily
     // const shadowCameraHelper = new THREE.CameraHelper(sun1.shadow.camera);
     // ctx.scene.add(shadowCameraHelper);
@@ -66,7 +66,7 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
             // ctx.scene.add(sun2Helper)
         },
         update(ctx: SceneContext) { 
-            if(ctx.state.controlState.controlType === CONTROL_TYPE.Walk) fitDirLightToCamera(sun1, ctx.camera);
+            // if(ctx.state.controlState.controlType === CONTROL_TYPE.Walk) fitDirLightToCamera(sun1, ctx.camera);
             // sun1Helper.update();
             // shadowCameraHelper.update();
         },
