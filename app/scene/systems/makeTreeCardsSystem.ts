@@ -32,7 +32,7 @@ export default function makeTreeCardsSystem(ctx: SceneContext) {
         const vi = i*3;
         const randomAngle = (Math.random() * 2 - 1) * Math.PI; // [-PI, PI]
 
-        const radius = Math.random()*250 + 150; //[150, 400]
+        const radius = Math.random()*150 + 150; //[150, 300]
 
         instanceOffsetLevel[vi + 0] = Math.cos(randomAngle) * radius;
         instanceOffsetLevel[vi + 1] = 0;

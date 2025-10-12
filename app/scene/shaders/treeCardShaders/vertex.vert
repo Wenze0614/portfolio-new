@@ -38,8 +38,8 @@ void main() {
     float quadSize = mix(10.0, 30.0, hashedInstanceID.x);
   // Vector from instance to camera (XZ only)
     vec3 toCam = cameraPosition-instanceOffset;
-    vDistToCam = length(toCam);
     toCam.y = 0.0; // ignore vertical tilt
+    vDistToCam = length(toCam);
     vec3 fwd = normalize(toCam);
 
   // Build billboard basis
@@ -47,9 +47,14 @@ void main() {
     vec3 right = normalize(cross(up, fwd));
     up = cross(fwd, right); // orthogonal correction
 
+  // Add y offset so trees don't intersect ground
+  float distToCenter = length(instanceOffset.xz);
+  float yOffset = 0.0009 * distToCenter * distToCenter; // quadratic lift
+
   // Expand the plane in right/up directions
     vec3 worldPos = instanceOffset
-    + up*(0.48*quadSize) // lift plane up but not fully above ground
+    + vec3(0.0, 1.0, 0.0) * yOffset
+    // + up*(0.48*quadSize) // lift plane up but not fully above ground
     + right*position.x*quadSize 
     + up*position.y*quadSize;
     vPosWS = worldPos;
