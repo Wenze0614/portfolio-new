@@ -38,7 +38,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     windNoise.generateMipmaps = false;
     windNoise.needsUpdate = true;
 
-    const grassMask = ctx.loaders.texture.load('/textures/terrain_height_1.jpg');
+    const grassMask = ctx.loaders.texture.load('/textures/terrain_height_3.jpg');
     // grassMask.flipY = false;
     grassMask.needsUpdate = true;
 

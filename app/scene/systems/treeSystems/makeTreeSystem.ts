@@ -8,6 +8,7 @@ import { tree } from "next/dist/build/templates/app-page";
 import { makeHeightSampler } from "../../utils/makeHeightSampler";
 import { useRef } from "react";
 import { Console } from "console";
+import forestData from '../../data/forest.json';
 
 
 const testFoliageGuides: FoliageClumpsData = {
@@ -67,6 +68,22 @@ const foliageGuids: FoliageClumpsData[] = [
     // {position: new THREE.Vector3(-35, 0, 15), scale: 1.5},
     // {position: new THREE.Vector3(-25, 0, 20), scale: 1.0},
 ]
+
+function createTreeTransformMatrix(treeData: any[]): THREE.Matrix4[] {
+    const dummy = new THREE.Object3D();
+    const matrices: THREE.Matrix4[] = [];
+
+    for (let i = 0; i < treeData.length; i++) {
+        const {x, y, z, yaw, scale} = treeData[i];
+        dummy.position.set(x, y, z);
+        dummy.rotation.set(0, yaw, 0);
+        dummy.scale.set(scale, scale, scale);
+        dummy.updateMatrix();
+        matrices.push(dummy.matrix.clone());
+    }
+    return matrices;
+}
+
 export default function makeTreeSystem(ctx: SceneContext) {
     //makeFoliageSystem(ctx);
     const foliageTexture = ctx.loaders.texture.load('/textures/trees/foliage-2.png');
@@ -172,34 +189,14 @@ export default function makeTreeSystem(ctx: SceneContext) {
                     heightAtXZ(x: number, z: number, heightScale: number, heightOffset: number): number;
                 }
 
-                ctx.loaders.texture.loadAsync('/textures/terrain_height_1.jpg').then((heightMap) => {
-                    const treeTransformMatrx: THREE.Matrix4[] = [];
-                    const terrainMin = new THREE.Vector2(-terrainWidth * 0.5, -terrainLength * 0.5);
-                    const terrainMax = new THREE.Vector2(terrainWidth * 0.5, terrainLength * 0.5);
-                    heightSampler = makeHeightSampler(heightMap, terrainMin, terrainMax, { flipV: true });
+                const treeData = forestData.trees;
+                const treeTransformMatrx = createTreeTransformMatrix(treeData);
+                for (let i = 0; i < Math.min(COUNT, treeData.length); i++) {
+                    trunkIM.setMatrixAt(i, treeTransformMatrx[i]);
+                }
+                trunkIM.instanceMatrix.needsUpdate = true;
+                foliageSys = makeFoliageSystem(ctx, guides, treeTransformMatrx, Math.min(COUNT, treeData.length));
 
-                    for (let i = 0; i < COUNT; i++) {
-                        const x = THREE.MathUtils.randFloatSpread(terrainWidth ?? 200);  // ~[-100,100]
-                        const z = THREE.MathUtils.randFloatSpread(terrainLength ?? 200);  // ~[-100,100]
-                        const y = heightSampler.heightAtXZ(x, z, heightScale, heightOffset);
-
-                        // random rot/scale per tree
-                        const yaw = Math.random() * Math.PI * 2;
-                        const s = THREE.MathUtils.lerp(0.85, 1.25, Math.random());
-
-                        dummy.position.set(x, y, z);
-                        dummy.rotation.set(0, yaw, 0);
-                        dummy.scale.set(s, s, s);
-                        dummy.updateMatrix();
-
-                        trunkIM.setMatrixAt(i, dummy.matrix);
-                        treeTransformMatrx.push(dummy.matrix.clone());
-                    }
-
-                    trunkIM.instanceMatrix.needsUpdate = true;
-                    console.log('treeTransformMatrx: ', treeTransformMatrx);
-                    foliageSys = makeFoliageSystem(ctx, guides, treeTransformMatrx, COUNT);
-                });
             });
         },
         update(ctx: SceneContext, dt: number) {

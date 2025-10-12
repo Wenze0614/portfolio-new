@@ -59,6 +59,7 @@ export default function makeFogSystem(ctx: SceneContext) {
       fogFactor = saturate(fogFactor);
 
       gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+        // gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, 0.0 ); // disable fog
     #endif`;
 
     THREE.ShaderChunk.fog_pars_fragment = `
