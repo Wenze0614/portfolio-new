@@ -39,9 +39,9 @@ const buildFoliageUnit = (foliageClumpsData: FoliageClumpsData[]): { idx: Uint32
     //const vpb = vertsPerQuadOneSide(foliageClumpsData.segments); // for a single side
 
     // front + back for each segment (2 tris per face per segment => 12 indices per segment total)
-    console.log("building foliage unit for foliageClumpsData: ", foliageClumpsData);
+    //console.log("building foliage unit for foliageClumpsData: ", foliageClumpsData);
     const foliageSphereData = foliageClumpsData.reduce((acc, cur, index) => {
-        console.log("acc: ", acc, " cur: ", cur, " index: ", index);
+        //console.log("acc: ", acc, " cur: ", cur, " index: ", index);
         const curretnIndexOffset = cur.clumpsNum * cur.segments * 12 * (cur.horizontalQuads + cur.verticalQuads);
         const currentVertOffset = cur.clumpsNum * vertsPerQuadOneSide(cur.segments) * 2 * (cur.horizontalQuads + cur.verticalQuads)
         const indexOffset = index === 0 ? curretnIndexOffset : acc.idxOffset[index - 1] + curretnIndexOffset;
@@ -53,7 +53,7 @@ const buildFoliageUnit = (foliageClumpsData: FoliageClumpsData[]): { idx: Uint32
             vertOffset: [...acc.vertOffset, vertOffset]
         }
     }, { totalIdxNum: 0, totalVertNum: 0, idxOffset: [], vertOffset: [] } as FoliageSphereData);
-    console.log("foliage sphere data: ", foliageSphereData);
+    //console.log("foliage sphere data: ", foliageSphereData);
     const idx = new Uint32Array(foliageSphereData.totalIdxNum);
     const sphereID = new Float32Array(foliageSphereData.totalVertNum);
     for (let s = 0; s < foliageClumpsData.length; ++s) {
@@ -104,8 +104,8 @@ const buildFoliageUnit = (foliageClumpsData: FoliageClumpsData[]): { idx: Uint32
             }
         }
     }
-    console.log("foliage idx: ", idx);
-    console.log("foliage sphereID: ", sphereID);
+    //console.log("foliage idx: ", idx);
+    //console.log("foliage sphereID: ", sphereID);
     return { idx, sphereID, foliageSphereData };
 }
 
@@ -114,7 +114,7 @@ const createFoliageGeometry = (foliageClumpsData: FoliageClumpsData[], treeTrans
     const transformMatrixArray = new Float32Array(treeCount * 16);
     for (let i = 0; i < treeCount; ++i) {
         const matrix = treeTransformMatrx[i];
-        console.log('matrix: ', matrix);
+        //console.log('matrix: ', matrix);
         matrix.toArray(transformMatrixArray, i * 16);
     }
     const geo = new THREE.InstancedBufferGeometry();
@@ -211,7 +211,7 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
         fog: true,
     });
     foliageMat.defines = { ...(foliageMat.defines || {}), USE_INSTANCING: 1 };
-    console.log("tree uniform: ", treeUniforms)
+    //console.log("tree uniform: ", treeUniforms)
     const foliageMesh = new THREE.Mesh(foliageGeo, foliageMat);
     //foliageMesh.position.copy(foliageGuides.position);
     // foliageMesh.position.y = 1;

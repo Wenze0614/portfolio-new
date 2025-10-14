@@ -22,6 +22,7 @@ import makeTreeCardsSystem from "./systems/makeTreeCardsSystem";
 import makeEnvSystem from "./systems/makeEnvSystem";
 import makeFogSystem from "./systems/makeFogSystem";
 import modifyShader from "./utils/modifyShader";
+import makePianoSystem from "./systems/makePianoSystem";
 
 
 export default function Page() {
@@ -146,6 +147,59 @@ export default function Page() {
                 guiSystem.updateMeshes(meshs);
             }
         });
+        let myMixer: THREE.AnimationMixer;
+
+        ctx.loaders.gltf.load('/models/archie.glb', (gltf) => {
+            console.log("archie gltf: ", gltf);
+            const model = gltf.scene;
+            model.scale.set(0.02, 0.02, 0.02);
+            model.position.set(0, 0.2, 0);
+            scene.add(model);
+            const archie = model.getObjectByName('archie');
+            const archieTexture = ctx.loaders.texture.load('/textures/maya_baseColor.png');
+            archieTexture.flipY = false;
+            archieTexture.colorSpace = THREE.SRGBColorSpace;
+            if (archie && archie instanceof THREE.Mesh) {
+                archie.material = new THREE.MeshBasicMaterial({
+                    map: archieTexture,
+                });
+                // ctx.scene.add(archie);
+                // archie.position.set(0, 0.2, 0);
+            }
+            const mixer = new THREE.AnimationMixer(model);
+                const clips = gltf.animations;
+
+                // pick the first animation (or by name)
+                const idle = THREE.AnimationClip.findByName(clips, 'Idle');
+                if(idle){
+                    const action = mixer.clipAction(idle);
+                    action.reset().play();
+                }else{
+                    console.warn("Idle animation not found on archie");
+                }
+                // store mixer for update loop
+                myMixer = mixer;
+        })
+
+        // ctx.loaders.gltf.load('/models/room.glb', (gltf) => {
+        //     const model = gltf.scene;
+        //     console.log("room gltf: ", gltf);
+        //     const room = model.getObjectByName('room');
+        //     const roomTexture = ctx.loaders.texture.load('/textures/room.jpg');
+        //     roomTexture.flipY = false;
+        //     roomTexture.colorSpace = THREE.SRGBColorSpace;
+        //     if (room && room instanceof THREE.Mesh) {
+        //         room.material = new THREE.MeshBasicMaterial({
+        //             map: roomTexture,
+        //         })
+        //         room.scale.set(3, 3, 3);
+        //         // scene.add(room);
+        //     } else {
+        //         console.error("room not found in room.glb");
+        //     }
+
+        // })
+        makePianoSystem(ctx).init(meshs, guiSystem);
 
         makeEnvSystem(ctx).init(meshs, guiSystem);
 
@@ -192,6 +246,8 @@ export default function Page() {
 
             treeSystem.update(ctx, timer.getElapsed());
             treeCardSystem.update(timer.getElapsed());
+
+            if (myMixer) myMixer.update(timer.getDelta());
 
 
             renderer.render(scene, camera);
