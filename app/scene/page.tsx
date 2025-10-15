@@ -22,7 +22,7 @@ import makeTreeCardsSystem from "./systems/makeTreeCardsSystem";
 import makeEnvSystem from "./systems/makeEnvSystem";
 import makeFogSystem from "./systems/makeFogSystem";
 import modifyShader from "./utils/modifyShader";
-import makePianoSystem from "./systems/makePianoSystem";
+import makeInteractiveSystem from "./systems/interactiveSystem/makeInteractiveSystem";
 
 
 export default function Page() {
@@ -124,29 +124,6 @@ export default function Page() {
         meshs.push(testCube);
 
 
-        const pokeballTexture = ctx.loaders.texture.load('/textures/pokeball_BaseColor.png');
-        pokeballTexture.flipY = false;
-        pokeballTexture.colorSpace = THREE.SRGBColorSpace;
-        ctx.loaders.gltf.load('/models/pokeball.glb', (gltf) => {
-            const model = gltf.scene;
-            const pokeball = model.getObjectByName('pokeball-low');
-            if (pokeball && pokeball instanceof THREE.Mesh) {
-                pokeball.scale.set(2, 2, 2);
-                pokeball.position.set(5, 2, -5);
-                pokeball.castShadow = true;
-                const pokeballMat = new THREE.MeshBasicMaterial({
-                    map: pokeballTexture,
-                });
-                // pokeballMat.onBeforeCompile = (shader) => {
-                //     modifyShader(shader);
-                // }
-                pokeball.material = pokeballMat;
-                pokeball.name = "pokeball";
-                scene.add(pokeball);
-                meshs.push(pokeball);
-                guiSystem.updateMeshes(meshs);
-            }
-        });
         let myMixer: THREE.AnimationMixer;
 
         ctx.loaders.gltf.load('/models/archie.glb', (gltf) => {
@@ -199,7 +176,9 @@ export default function Page() {
         //     }
 
         // })
-        makePianoSystem(ctx).init(meshs, guiSystem);
+        const interactiveSystem = makeInteractiveSystem(ctx);
+        interactiveSystem.init(meshs, guiSystem);
+
 
         makeEnvSystem(ctx).init(meshs, guiSystem);
 
@@ -246,6 +225,7 @@ export default function Page() {
 
             treeSystem.update(ctx, timer.getElapsed());
             treeCardSystem.update(timer.getElapsed());
+            interactiveSystem.update(timer.getElapsed());
 
             if (myMixer) myMixer.update(timer.getDelta());
 

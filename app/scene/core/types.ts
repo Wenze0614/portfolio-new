@@ -6,7 +6,7 @@ import { GLTFLoader } from "three/examples/jsm/Addons.js";
 
 
 export interface System {
-    init(ctx: SceneContext): Promise<void> | void;
+    init(ctx: SceneContext, meshes?: THREE.Mesh[], guiSystem?: GUISystem, opts?:{position: THREE.Vector3}): Promise<void> | void;
     update(ctx: SceneContext, dt?: number): void;
     dispose(): void;
   }

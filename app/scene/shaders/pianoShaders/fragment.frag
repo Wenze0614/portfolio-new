@@ -35,15 +35,16 @@ void main() {
     //float brighdness = remap(ndl,-1.0, 1.0, 0.25, 0.75);
     float brightness = mix(0.0, 0.5, diffuseToon);
     // vec3 ambienLight = 0.25*color;
-    color = color+directionalLights[0].color*brightness;
+    // color = color+directionalLights[0].color*brightness;
+    color = color + vec3(1.0) * 0.3;
 
     float shadowFactor = 1.0;
     #if NUM_DIR_LIGHTS > 0
     shadowFactor *= getShadow(directionalShadowMap[0], directionalLightShadows[0].shadowMapSize, directionalLightShadows[0].shadowIntensity, directionalLightShadows[0].shadowBias, directionalLightShadows[0].shadowRadius, vDirectionalShadowCoord[0]);
     #endif
 
-    vec3 ambient = 0.431*color;
-    color = mix(ambient, color, shadowFactor);
+    // vec3 ambient = 0.431*color;
+    // color = mix(ambient, color, shadowFactor);
 
     // --- Spotlight params ---
     float spotDistance = 20.0;      // max reach (0 = infinite)
@@ -88,7 +89,7 @@ void main() {
 
 // Apply to your albedo/base color
 // (assumes 'color' currently holds your sampled albedo)
-    color = color + irradiance * 1.2;  // or: color = color * (ambient + irradiance);
+    color = color + irradiance * 0.3;  // or: color = color * (ambient + irradiance);
 
     gl_FragColor = vec4(color, 1.0);
 

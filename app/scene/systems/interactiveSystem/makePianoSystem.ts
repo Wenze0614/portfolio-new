@@ -1,9 +1,9 @@
-import { GUISystem, SceneContext } from "../core/types";
+import { GUISystem, SceneContext, System } from "../../core/types";
 import * as THREE from "three";
-import vertexShader from '../shaders/pianoShaders/vertex.vert';
-import fragmentShader from '../shaders/pianoShaders/fragment.frag';
+import vertexShader from '../../shaders/pianoShaders/vertex.vert';
+import fragmentShader from '../../shaders/pianoShaders/fragment.frag';
 
-export default function makePianoSystem(ctx: SceneContext) {
+export default function makePianoSystem(ctx: SceneContext):System {
     const pianoTexture = ctx.loaders.texture.load('/textures/piano_texture.jpg');
     pianoTexture.flipY = false;
     pianoTexture.colorSpace = THREE.SRGBColorSpace;
@@ -16,8 +16,7 @@ export default function makePianoSystem(ctx: SceneContext) {
     const pianoUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
 
     return {
-        init(meshs: THREE.Mesh[], guiSystem: GUISystem) {
-
+        init(ctx:SceneContext, meshs: THREE.Mesh[], guiSystem: GUISystem, opts: {position: THREE.Vector3}) {
             ctx.loaders.gltf.load('/models/piano.glb', (gltf) => {
                 const model = gltf.scene;
                 console.log("piano gltf: ", gltf);
@@ -33,7 +32,7 @@ export default function makePianoSystem(ctx: SceneContext) {
                     piano.castShadow = true;
                     piano.receiveShadow = true;
                     piano.scale.set(1.2, 1.2, 1.2);
-                    piano.position.set(10, 0.2, 50);
+                    piano.position.copy(opts.position);
                     piano.rotation.y = -Math.PI/2;
                     // piano.castShadow = true;
                     // piano.receiveShadow = true;
