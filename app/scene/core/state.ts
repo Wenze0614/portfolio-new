@@ -34,6 +34,13 @@ export function makeState(): AppState {
         fogColor: new THREE.Color(0xDFE9F3),
     }
 
+    const _postEffectState = {
+        bloom: {
+            strength: 1.5,
+            layer:1
+        }
+    }
+
     function setControlType(t: CONTROL_TYPE, options?: Partial<PLockState>) {
         if (t === _controlState.controlType) return;
         _controlState = t === CONTROL_TYPE.Walk
@@ -50,5 +57,5 @@ export function makeState(): AppState {
             : { controlType: CONTROL_TYPE.Orbit } as OrbitState;
     }
 
-    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() {return _windState}, get fogState() {return _fogState},isFullScreen, };
+    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() {return _windState}, get fogState() {return _fogState}, get postEffectState() {return _postEffectState},isFullScreen, };
 }

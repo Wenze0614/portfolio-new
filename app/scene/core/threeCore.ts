@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { makeState } from './state';
 import { SceneContext } from './types';
 import { makeLoaders } from './loaders';
+import { EffectComposer, RenderPass } from 'three/examples/jsm/Addons.js';
 
 // setup scene, camera, renderer, clock, resize handling
 export function setupThreeCore(
@@ -27,7 +28,7 @@ export function setupThreeCore(
     );
     camera.position.set(0, 1.6, 50);
     camera.layers.enable(0); // default layer
-    camera.layers.enable(1); // also render layer 1
+    // camera.layers.enable(1); // also render layer 1
     scene.add(camera);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -35,6 +36,18 @@ export function setupThreeCore(
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const finalComposer = new EffectComposer(renderer);
+    const bloomComposer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+
+    finalComposer.addPass(renderPass);
+    bloomComposer.addPass(renderPass);
+
+    const composers = {
+        finalComposer,
+        bloomComposer
+    }
 
     mount.appendChild(renderer.domElement);
 
@@ -47,6 +60,8 @@ export function setupThreeCore(
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        finalComposer.setSize(w, h);
+        bloomComposer.setSize(w, h);
     };
     window.addEventListener('resize', onResize);
     onResize();
@@ -59,5 +74,5 @@ export function setupThreeCore(
         renderer.dispose();
     }
 
-    return { scene, camera, renderer, clock, state, loaders, disposeCore };
+    return { scene, camera, renderer, composers, clock, state, loaders, disposeCore };
 }

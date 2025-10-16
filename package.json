@@ -14,7 +14,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "stats.js": "^0.17.0",
-    "three": "^0.176.0"
+    "three": "^0.176.0",
+    "three-good-godrays": "^0.7.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

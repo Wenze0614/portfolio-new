@@ -3,24 +3,28 @@ import * as THREE from "three";
 
 const _NOISE_GLSL = `
 float sampleNoise(vec3 p) {
-    vec2 uv1 = p.xy;
-    vec2 uv2 = p.yz;
-    vec2 uv3 = p.zx;
+    #ifdef FOG_USE_NOISE
+        vec2 uv1 = p.xy;
+        vec2 uv2 = p.yz;
+        vec2 uv3 = p.zx;
 
-    uv1 += vec2(fogTime * 0.005, 0.0);
-    uv2 += vec2(0.0, fogTime * 0.005);
-    uv3 += vec2(fogTime * 0.003, fogTime * 0.004);
+        uv1 += vec2(fogTime * 0.005, 0.0);
+        uv2 += vec2(0.0, fogTime * 0.005);
+        uv3 += vec2(fogTime * 0.003, fogTime * 0.004);
 
-    uv1 = fract(uv1);
-    uv2 = fract(uv2);
-    uv3 = fract(uv3);
-    
-    float n1 = texture2D(noiseTexture, uv1).r;
-    float n2 = texture2D(noiseTexture, uv2).r;
-    float n3 = texture2D(noiseTexture, uv3).r;
+        uv1 = fract(uv1);
+        uv2 = fract(uv2);
+        uv3 = fract(uv3);
+        
+        float n1 = texture2D(noiseTexture, uv1).r;
+        float n2 = texture2D(noiseTexture, uv2).r;
+        float n3 = texture2D(noiseTexture, uv3).r;
 
-    //blend noise from different axis to reduce repetition
-    return (n1 + n2 + n3) / 3.0;
+        //blend noise from different axis to reduce repetition
+        return (n1 + n2 + n3) / 3.0;
+    #else
+        return 1.0; // disable noise
+    #endif
 }
 
 float FBM(vec3 p) {
@@ -50,6 +54,11 @@ export default function makeFogSystem(ctx: SceneContext) {
       vec3 noiseSampleCoord = vWorldPosition * 0.0025;
       float noise = FBM(noiseSampleCoord + FBM(noiseSampleCoord)) * 0.5 + 0.5;
     // float noise = sampleNoise(noiseSampleCoord);
+    //   float noise = 1.0; // fallback
+
+    //   #ifdef FOG_USE_NOISE     // <-- define this only when fogTime exists
+    //     noise = FBM(noiseSampleCoord + FBM(noiseSampleCoord)) * 0.5 + 0.5;
+    //   #endif
       fogDepth *= mix(noise, 1.0, saturate((fogDepth - 200.0) / 400.0));
       fogDepth *= fogDepth * 0.08;
 

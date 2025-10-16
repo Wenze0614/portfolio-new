@@ -1,3 +1,4 @@
+import { BloomPass, EffectComposer, ShaderPass, UnrealBloomPass } from "three/examples/jsm/Addons.js";
 import { CONTROL_TYPE, LightSystem, SceneContext, System } from "../core/types";
 import * as THREE from "three";
 
@@ -5,27 +6,27 @@ const SUN_DIRECTION = new THREE.Vector3(50, 80, 0)
 
 function fitDirLightToCamera(light: THREE.DirectionalLight, camera: THREE.Camera, margin = 20) {
     const pos = camera.position;
-  
+
     // 1. Position the sun relative to the camera
     light.position.copy(pos).add(SUN_DIRECTION.normalize());
     light.target.position.copy(pos);
     light.target.updateMatrixWorld();
-  
+
     // 2. Define how wide/tall the shadow box is around the camera
     const halfW = 60; // half the width in world units
     const halfH = 60; // half the height in world units
-  
+
     const cam = light.shadow.camera; // this is the light's ortho cam
-    cam.left   = -halfW;
-    cam.right  =  halfW;
-    cam.top    =  halfH;
+    cam.left = -halfW;
+    cam.right = halfW;
+    cam.top = halfH;
     cam.bottom = -halfH;
-    cam.near   = -50;
-    cam.far    = 100;
-  
+    cam.near = -50;
+    cam.far = 100;
+
     // 3. Tell Three to recompute projection
     cam.updateProjectionMatrix();
-  }
+}
 
 export default function makeLightSystem(ctx: SceneContext): LightSystem {
     const sun1Color = new THREE.Color("#E9E4C5");
@@ -35,7 +36,7 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     sun1.castShadow = true;
     sun1.name = 'yellow sun';
     sun1.shadow.camera.near = 1;
-    sun1.shadow.camera.far  = 150;
+    sun1.shadow.camera.far = 150;
     sun1.shadow.camera.left = -150;
     sun1.shadow.camera.right = 150;
     sun1.shadow.camera.top = 150;
@@ -65,7 +66,7 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
             // ctx.scene.add(sun2);
             // ctx.scene.add(sun2Helper)
         },
-        update(ctx: SceneContext) { 
+        update(ctx: SceneContext) {
             // if(ctx.state.controlState.controlType === CONTROL_TYPE.Walk) fitDirLightToCamera(sun1, ctx.camera);
             // sun1Helper.update();
             // shadowCameraHelper.update();
@@ -73,6 +74,23 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
         dispose() { },
         getLights() {
             return [sun1];
+        },
+        addComposer(composer: EffectComposer) {
+            // const params = {
+            //     density: 0.0001,
+            //     maxDensity: 0.01,
+            //     edgeStrength: 0.1,
+            //     edgeRadius: 2,
+            //     distanceAttenuation: 0.9,
+            //     color: new THREE.Color("0xffffff"),
+            //     raymarchSteps: 30,
+            //     blur: true,
+            //     gammaCorrection: true,
+            // };
+
+            // const godraysPass = new GodraysPass(sun1, ctx.camera, params);
+            // godraysPass.renderToScreen = true;
+            // composer.addPass(godraysPass);
         }
     }
 }

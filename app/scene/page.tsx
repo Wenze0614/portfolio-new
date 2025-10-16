@@ -55,10 +55,13 @@ export default function Page() {
 
         //initialize core ThreeJS components
         const ctx = setupThreeCore(canvasRef.current, { background: "#62aef0" });
-        const { scene, camera, renderer, clock, state, loaders, disposeCore } = ctx;
-
+        const { scene, camera, renderer,composers, clock, state, loaders, disposeCore } = ctx;
+        //need to initialize fog system first to embed fog uniforms into threejs material uniforms
         makeFogSystem(ctx);
         scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
+
+        const composerSys = makePostEffectSystem(ctx);
+        // const composer = composerSys.init();
 
         // #region Core Setup
         //setup systems
@@ -183,7 +186,6 @@ export default function Page() {
         makeEnvSystem(ctx).init(meshs, guiSystem);
 
 
-        const commposer = makePostEffectSystem().init(ctx);
 
 
         const timer = new Timer();
@@ -197,31 +199,9 @@ export default function Page() {
             testCube.rotation.y += 0.01;
             testCube.rotation.x += 0.005;
             // angle += 0.01; // rotation speed
+            lightSystem.update(ctx);
             terrainSystem.update(ctx, timer.getElapsed());
             skySystem.update(ctx, timer.getElapsed());
-
-            //update uniforms
-            // for (const material of materials) {
-            //     if (material instanceof THREE.ShaderMaterial) {
-            //         material.uniforms.resolution.value.set(renderer.domElement.width, renderer.domElement.height);
-            //         material.uniforms.time.value = timer.getElapsed();
-            //     }
-            // }
-
-            // orbitGroups.forEach(o => {
-            //     o.planet.position.x = sunRoom5WorldPosition.x + Math.cos(o.speed * timer.getElapsed()) * o.radius;
-            //     o.planet.position.z = sunRoom5WorldPosition.z + Math.sin(o.speed * timer.getElapsed()) * o.radius;
-            //     o.planet.rotation.y += o.spinRate * timer.getDelta(); // Rotate the planet
-            // });
-            // scene.traverse(o => {
-            //     if (o instanceof THREE.Mesh) {
-            //         const mats = Array.isArray(o.material) ? o.material : (o.material ? [o.material] : []);
-            //         for (const m of mats) {
-            //             const sh = m?.userData?.shader;
-            //             if (sh?.uniforms?.fogTime) sh.uniforms.fogTime.value = performance.now() * 0.001;
-            //         }
-            //     }
-            // })
 
             treeSystem.update(ctx, timer.getElapsed());
             treeCardSystem.update(timer.getElapsed());
@@ -230,8 +210,8 @@ export default function Page() {
             if (myMixer) myMixer.update(timer.getDelta());
 
 
-            renderer.render(scene, camera);
-            //commposer.render();
+            // renderer.render(scene, camera);
+            composerSys.update();
             stats.end();
         };
         animate();

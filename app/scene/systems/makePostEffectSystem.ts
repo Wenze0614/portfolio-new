@@ -2,28 +2,75 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { SceneContext } from "../core/types";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import * as THREE from "three";
+import { OutputPass, UnrealBloomPass } from "three/examples/jsm/Addons.js";
+import vertexShader from '../shaders/bloomMixShaders/vertex.vert';
+import fragmentShader from '../shaders/bloomMixShaders/fragment.frag';
+import { add } from "three/tsl";
 
-export default function makePostEffectSystem() {
-    return {
-        init(ctx: SceneContext) {
-            // 2) composer
-            const composer = new EffectComposer(ctx.renderer);
-            composer.addPass(new RenderPass(ctx.scene, ctx.camera));
 
-            // 3) grayscale shader (with strength control)
-            const GrayscaleShader = {
-                uniforms: {
-                    tDiffuse: { value: null },
-                    strength: { value: 1.0 }, // 0 = normal color, 1 = full B&W
-                },
-                vertexShader: /* glsl */`
+const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomComposer: EffectComposer) => {
+    const bloom = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        0.6,   // strength (overall intensity)
+        0.5,   // radius   (spread)
+        -1.0,   // threshold (only pixels brighter than this bloom)
+    );
+    bloomComposer.addPass(bloom);
+    bloomComposer.renderToScreen = false;
+    const mixPass = new ShaderPass(new THREE.ShaderMaterial({
+        uniforms: {
+            baseTexture: { value: null },
+            bloomTexture: { value: bloomComposer.renderTarget2.texture }
+        },
+        vertexShader,
+        fragmentShader,
+    }), "baseTexture");
+
+    finalComposer.addPass(mixPass);
+
+    finalComposer.renderToScreen = true;
+    const outputPass = new OutputPass();
+    // finalComposer.addPass(outputPass);
+
+    const bloomLayer = new THREE.Layers();
+    bloomLayer.set(ctx.state.postEffectState.bloom.layer);
+    const darkMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const materials: { [key: string]: THREE.Material } = {};
+    const nonBloom = (obj: THREE.Object3D) => {
+        if (bloomLayer.test(obj.layers) === false) {
+            if (obj instanceof THREE.Mesh) {
+                materials[obj.uuid] = obj.material;
+                obj.material = darkMaterial;
+            }
+        } else {
+            console.log("find bloom obj: ", obj);
+            console.log("obj layers: ", obj.layers);
+        }
+    };
+    const restoreMaterial = (obj: THREE.Object3D) => {
+        if (obj instanceof THREE.Mesh && materials[obj.uuid]) {
+            obj.material = materials[obj.uuid];
+            delete materials[obj.uuid];
+        }
+    }
+    return { nonBloom, restoreMaterial };
+}
+
+const addGrayScale = (ctx: SceneContext, finalComposer: EffectComposer) => {
+    const GrayscaleShader = {
+        uniforms: {
+            tDiffuse: { value: null },
+            strength: { value: 1.0 }, // 0 = normal color, 1 = full B&W
+        },
+        vertexShader: /* glsl */`
                     varying vec2 vUv;
                     void main() {
                     vUv = uv;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
                     }
                 `,
-                fragmentShader: /* glsl */`
+        fragmentShader: /* glsl */`
                     uniform sampler2D tDiffuse;
                     uniform float strength;
                     varying vec2 vUv;
@@ -36,14 +83,40 @@ export default function makePostEffectSystem() {
                     gl_FragColor = vec4(mix(col.rgb, bw, strength), col.a);
                     }
                 `
-            };
+    };
 
-            const grayPass = new ShaderPass(GrayscaleShader);
-            grayPass.material.uniforms.strength.value = 1.0; // set to 0–1 as needed
-            composer.addPass(grayPass);
-            return composer;
+    const grayPass = new ShaderPass(GrayscaleShader);
+    grayPass.material.uniforms.strength.value = 1.0; // set to 0–1 as needed
+    finalComposer.addPass(grayPass);
+}
+
+export default function makePostEffectSystem(ctx: SceneContext) {
+    ctx.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    ctx.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    ctx.renderer.toneMappingExposure = 1.0;
+
+    const finalComposer = ctx.composers.finalComposer;
+    const bloomComposer = ctx.composers.bloomComposer;
+
+    const { nonBloom, restoreMaterial } = addBloom(ctx, finalComposer, bloomComposer);
+
+    const testComposer = new EffectComposer(ctx.renderer);
+    testComposer.addPass(new RenderPass(ctx.scene, ctx.camera));
+
+    return {
+        init() {
+            return finalComposer;
         },
-        update(ctx: SceneContext) { },
+        update() {
+            ctx.scene.fog = null;
+            ctx.scene.traverse(nonBloom);
+            bloomComposer.render();
+            ctx.scene.traverse(restoreMaterial);
+            ctx.scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
+            finalComposer.render();
+
+            // testComposer.render();
+        },
         dispose() { }
     }
 }

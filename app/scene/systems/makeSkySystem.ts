@@ -47,6 +47,7 @@ export function makeSkySystem(ctx: SceneContext): System {
     const skySphere = new THREE.Mesh(geometry, material);
     skySphere.rotateY(Math.PI * 1.5);
     skySphere.position.set(0, 0, 0);
+    // ctx.scene.environment = skyTexture;
 
     // const skyGeo = new THREE.BoxGeometry(1000, 1000, 1000);
     // const skyBox = new THREE.Mesh(skyGeo, skyMat);

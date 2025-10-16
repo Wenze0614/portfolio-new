@@ -108,6 +108,7 @@ export default function makeTreeSystem(ctx: SceneContext) {
         lights: true,
         fog: true,
     })
+    treeTrunkMat.defines.FOG_USE_NOISE = 1;
 
     let foliageSys:System;
 

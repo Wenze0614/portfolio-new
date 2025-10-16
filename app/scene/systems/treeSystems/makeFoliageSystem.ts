@@ -210,7 +210,8 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
         lights: true,
         fog: true,
     });
-    foliageMat.defines = { ...(foliageMat.defines || {}), USE_INSTANCING: 1 };
+    foliageMat.defines = { ...(foliageMat.defines || {}), USE_INSTANCING: 1, FOG_USE_NOISE:1 };
+    // foliageMat.defines.FOG_USE_NOISE = 1;
     //console.log("tree uniform: ", treeUniforms)
     const foliageMesh = new THREE.Mesh(foliageGeo, foliageMat);
     //foliageMesh.position.copy(foliageGuides.position);

@@ -142,6 +142,7 @@ export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Text
             const mesh = new THREE.Mesh(geometries.HIGH, mats.HIGH);
             mesh.matrixAutoUpdate = true; // we just position; three will handle world matrix
             mesh.position.set(cx, 0, cz);
+            // mesh.layers.enable(ctx.state.postEffectState.bloom.layer);
 
             // Optional: custom name for debugging
             // mesh.name = `GrassTile_${cx}_${cz}`;

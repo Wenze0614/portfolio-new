@@ -2,7 +2,7 @@
 
 import { init } from "next/dist/compiled/webpack/webpack";
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/Addons.js";
+import { EffectComposer, GLTFLoader } from "three/examples/jsm/Addons.js";
 
 
 export interface System {
@@ -23,6 +23,7 @@ export interface GUISystem extends System {
 
 export interface LightSystem extends System {
     getLights: () => THREE.Light[];
+    addComposer: (composer: EffectComposer) => void;
 }
 
 export enum CONTROL_TYPE {
@@ -63,6 +64,15 @@ export interface FogState {
     fogColor: THREE.Color,
 }
 
+export interface BloomState {
+    strength: number,
+    layer:number,
+}
+
+export interface PostEffectState {
+    bloom: BloomState,
+}
+
 
 export interface AppState {
     controlState: OrbitState | PLockState;
@@ -70,6 +80,7 @@ export interface AppState {
     terrainState: TerrainState;
     windState: WindState;
     fogState: FogState;
+    postEffectState:PostEffectState;
     isFullScreen: boolean;
 }
 
@@ -77,6 +88,10 @@ export interface SceneContext {
     scene: THREE.Scene;
     camera: THREE.Camera;
     renderer: THREE.WebGLRenderer;
+    composers: {
+        finalComposer: EffectComposer;
+        bloomComposer: EffectComposer;
+    }
     clock: THREE.Clock;
     loaders: {
         gltf: GLTFLoader;
