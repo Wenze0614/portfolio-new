@@ -44,9 +44,6 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
                 materials[obj.uuid] = obj.material;
                 obj.material = darkMaterial;
             }
-        } else {
-            console.log("find bloom obj: ", obj);
-            console.log("obj layers: ", obj.layers);
         }
     };
     const restoreMaterial = (obj: THREE.Object3D) => {

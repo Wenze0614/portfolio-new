@@ -41,6 +41,7 @@ export interface PLockState {
     direction: THREE.Vector3;
     move: { forward: boolean; backward: boolean; left: boolean; right: boolean; run: boolean; };
     walkTime: number;
+    timeSinceLastStep: number; // Time since the last footstep sound was played
     bobFrequency: number;     // Controls how fast the bobbing is
     bobAmplitude: number;  // Controls how much the camera bobs
     baseY: number;          // Default head height
@@ -84,11 +85,13 @@ export interface AppState {
     fogState: FogState;
     postEffectState:PostEffectState;
     isFullScreen: boolean;
+    walkStateDefaults: PLockState;
 }
 
 export interface SceneContext {
     scene: THREE.Scene;
     camera: THREE.Camera;
+    listener: THREE.AudioListener;
     renderer: THREE.WebGLRenderer;
     composers: {
         finalComposer: EffectComposer;
@@ -98,6 +101,7 @@ export interface SceneContext {
     loaders: {
         gltf: GLTFLoader;
         texture: THREE.TextureLoader;
+        audio: THREE.AudioLoader;
     };
     state: AppState; // your store/event bus
 }

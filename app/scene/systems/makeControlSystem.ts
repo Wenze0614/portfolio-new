@@ -4,6 +4,7 @@ import { OrbitControls, PointerLockControls } from 'three/examples/jsm/Addons.js
 import { makeHeightSampler } from '../utils/makeHeightSampler';
 import * as THREE from 'three';
 import { useRef } from 'react';
+import { AudioSystem } from './makeAudioSystem';
 
 const onKeyDown = (event: KeyboardEvent, controlState: PLockState) => {
     switch (event.code) {
@@ -45,11 +46,9 @@ function createOrbitControl(controlState: OrbitState, { scene, camera, renderer 
     return orbitControl;
 }
 
-function updatePointerLockControls(controlState: PLockState, pControl: PointerLockControls, ctx: SceneContext, heightSampler: { heightAtXZ: (x: number, z: number, scale: number, offset: number) => number }) {
+function updatePointerLockControls(controlState: PLockState, pControl: PointerLockControls, ctx: SceneContext, heightSampler: { heightAtXZ: (x: number, z: number, scale: number, offset: number) => number }, audioSys: AudioSystem) {
 
     const camera = ctx.camera;
-    document.addEventListener('keydown', (e) => onKeyDown(e, controlState));
-    document.addEventListener('keyup', (e) => onKeyUp(e, controlState));
 
     const { direction, move, speed, bobFrequency, bobAmplitude, baseY } = controlState;
 
@@ -69,6 +68,7 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
     const isMoving = direction.lengthSq() > 0;
     if (isMoving) {
         controlState.walkTime += 0.1;
+        controlState.timeSinceLastStep += 0.1;
     } else {
         controlState.walkTime = 0;
     }
@@ -81,13 +81,29 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
     const z = camera.position.z;
     const groundY = heightSampler ? heightSampler.heightAtXZ(x, z, ctx.state.terrainState.heightScale, ctx.state.terrainState.heightOffset) : 0.0;
     camera.position.y = baseY + yOffset + groundY;
+
+
+    const stepInterval = 4.0; // seconds between steps
+    console.log("timeSinceLastStep: ", controlState.timeSinceLastStep);
+    if(isMoving && controlState.walkTime > 0.8 &&  controlState.timeSinceLastStep > stepInterval) {
+        if(groundY < 0.1) {
+            console.log("play step sound");
+            audioSys.play("terrainStep");
+            controlState.timeSinceLastStep = 0;
+        } else {
+            audioSys.play("grassStep");
+            controlState.timeSinceLastStep = 0;
+        }
+
+    }
+
 }
 
 const updateOrbitControls = (oControl: OrbitControls) => {
     oControl.update();
 }
 
-export function makeControlsSystem(ctx: SceneContext): ControlSystem {
+export function makeControlsSystem(ctx: SceneContext, audioSys:AudioSystem): ControlSystem {
     let orbit: OrbitControls | null = null;
     let plock: PointerLockControls | null = null;
 
@@ -117,6 +133,8 @@ export function makeControlsSystem(ctx: SceneContext): ControlSystem {
         heightSampler = makeHeightSampler(heightMap, terrainMin, terrainMax, { flipV: true });
     })()
 
+    document.addEventListener('keydown', (e) => onKeyDown(e, ctx.state.controlState as PLockState));
+    document.addEventListener('keyup', (e) => onKeyUp(e, ctx.state.controlState as PLockState));
 
     return {
         init(ctx: SceneContext) {
@@ -146,7 +164,7 @@ export function makeControlsSystem(ctx: SceneContext): ControlSystem {
         },
         update(ctx: SceneContext) {
             ctx.state.controlState.controlType === 'Walk'
-                ? updatePointerLockControls(ctx.state.controlState as PLockState, plock!, ctx, heightSampler)
+                ? updatePointerLockControls(ctx.state.controlState as PLockState, plock!, ctx, heightSampler, audioSys)
                 : updateOrbitControls(orbit!);
         },
         dispose() {

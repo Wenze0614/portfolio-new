@@ -23,6 +23,7 @@ import makeEnvSystem from "./systems/makeEnvSystem";
 import makeFogSystem from "./systems/makeFogSystem";
 import modifyShader from "./utils/modifyShader";
 import makeInteractiveSystem from "./systems/interactiveSystem/makeInteractiveSystem";
+import makeAudioSystem from "./systems/makeAudioSystem";
 
 
 export default function Page() {
@@ -55,7 +56,7 @@ export default function Page() {
 
         //initialize core ThreeJS components
         const ctx = setupThreeCore(canvasRef.current, { background: "#62aef0" });
-        const { scene, camera, renderer,composers, clock, state, loaders, disposeCore } = ctx;
+        const { scene, camera, listener, renderer,composers, clock, state, loaders, disposeCore } = ctx;
         //need to initialize fog system first to embed fog uniforms into threejs material uniforms
         makeFogSystem(ctx);
         scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
@@ -68,9 +69,13 @@ export default function Page() {
         const guiSystem = makeGUISystem(ctx);
         guiSystem.init(ctx);
 
-        const controlSystem = makeControlsSystem(ctx);
+        const audioSys = makeAudioSystem(ctx);
+        audioSys.init();
+
+        const controlSystem = makeControlsSystem(ctx, audioSys);
         controlSystem.init(ctx);
         guiSystem.toggleControl(ctx, controlSystem.switchControl);
+
 
         const lightSystem = makeLightSystem(ctx);
         lightSystem.init(ctx);
