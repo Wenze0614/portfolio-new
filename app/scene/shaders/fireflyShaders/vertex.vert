@@ -4,8 +4,11 @@ uniform float uTime;
 
 attribute float aScale;
 
+varying vec3 vPosWS;
+
 void main() {
     vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+    vPosWS = worldPosition.xyz;
     vec4 viewPosition = viewMatrix * modelMatrix * vec4(position, 1.0);
     vec3 offset = vec3(
         0.0,

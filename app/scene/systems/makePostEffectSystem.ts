@@ -22,7 +22,7 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
         uniforms: {
             baseTexture: { value: null },
             bloomTexture: { value: bloomComposer.renderTarget2.texture },
-            uStrength: {value: 0.3}
+            uStrength: { value: 0.3 }
         },
         vertexShader,
         fragmentShader,
@@ -40,7 +40,7 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
     const materials: { [key: string]: THREE.Material } = {};
     const nonBloom = (obj: THREE.Object3D) => {
         if (bloomLayer.test(obj.layers) === false) {
-            if (obj instanceof THREE.Mesh) {
+            if (obj instanceof THREE.Mesh || obj instanceof THREE.Points) {
                 materials[obj.uuid] = obj.material;
                 obj.material = darkMaterial;
             }
@@ -50,9 +50,11 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
         }
     };
     const restoreMaterial = (obj: THREE.Object3D) => {
-        if (obj instanceof THREE.Mesh && materials[obj.uuid]) {
-            obj.material = materials[obj.uuid];
-            delete materials[obj.uuid];
+        if (materials[obj.uuid]) {
+            if (obj instanceof THREE.Mesh || obj instanceof THREE.Points) {
+                obj.material = materials[obj.uuid];
+                delete materials[obj.uuid];
+            }
         }
     }
     return { nonBloom, restoreMaterial };
