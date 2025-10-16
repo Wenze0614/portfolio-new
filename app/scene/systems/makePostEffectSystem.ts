@@ -22,7 +22,7 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
         uniforms: {
             baseTexture: { value: null },
             bloomTexture: { value: bloomComposer.renderTarget2.texture },
-            uStrength: { value: 0.3 }
+            uStrength: { value: 0.6 }
         },
         vertexShader,
         fragmentShader,
@@ -111,11 +111,15 @@ export default function makePostEffectSystem(ctx: SceneContext) {
             return finalComposer;
         },
         update() {
+            // disable fog and set background to black for bloom pass
             ctx.scene.fog = null;
-            ctx.scene.traverse(nonBloom);
+            ctx.scene.background = new THREE.Color(0x000000);
+            // ctx.scene.traverse(nonBloom);
+            ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer);
             bloomComposer.render();
-            ctx.scene.traverse(restoreMaterial);
+            // ctx.scene.traverse(restoreMaterial);
             ctx.scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
+            ctx.camera.layers.set(0);
             finalComposer.render();
 
             // testComposer.render();

@@ -45,6 +45,7 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     sun1.shadow.mapSize.set(2048, 2048);
     sun1.shadow.bias = -0.0005;
     sun1.shadow.normalBias = 0.02; // reduces acne when surfaces are coplanar-ish
+    sun1.layers.enable(ctx.state.postEffectState.bloom.layer);
     // const sun1Helper = new THREE.DirectionalLightHelper(sun1, 1, 'red');
     // Add a helper temporarily
     // const shadowCameraHelper = new THREE.CameraHelper(sun1.shadow.camera);
