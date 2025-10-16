@@ -67,6 +67,8 @@ export interface FogState {
 export interface BloomState {
     strength: number,
     layer:number,
+    radius:number,
+    threshold:number,
 }
 
 export interface PostEffectState {

@@ -12,16 +12,17 @@ import { add } from "three/tsl";
 const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomComposer: EffectComposer) => {
     const bloom = new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth, window.innerHeight),
-        0.6,   // strength (overall intensity)
-        0.5,   // radius   (spread)
-        -1.0,   // threshold (only pixels brighter than this bloom)
+        ctx.state.postEffectState.bloom.strength,   // strength (overall intensity)
+        ctx.state.postEffectState.bloom.radius,   // radius   (spread)
+        ctx.state.postEffectState.bloom.threshold,   // threshold (only pixels brighter than this bloom)
     );
     bloomComposer.addPass(bloom);
     bloomComposer.renderToScreen = false;
     const mixPass = new ShaderPass(new THREE.ShaderMaterial({
         uniforms: {
             baseTexture: { value: null },
-            bloomTexture: { value: bloomComposer.renderTarget2.texture }
+            bloomTexture: { value: bloomComposer.renderTarget2.texture },
+            uStrength: {value: 0.3}
         },
         vertexShader,
         fragmentShader,
@@ -92,8 +93,8 @@ const addGrayScale = (ctx: SceneContext, finalComposer: EffectComposer) => {
 
 export default function makePostEffectSystem(ctx: SceneContext) {
     ctx.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    ctx.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    ctx.renderer.toneMappingExposure = 1.0;
+    ctx.renderer.toneMapping = THREE.CineonToneMapping;
+    ctx.renderer.toneMappingExposure = 0.8;
 
     const finalComposer = ctx.composers.finalComposer;
     const bloomComposer = ctx.composers.bloomComposer;

@@ -36,8 +36,10 @@ export function makeState(): AppState {
 
     const _postEffectState = {
         bloom: {
-            strength: 1.5,
-            layer:1
+            strength: 0.6,
+            layer:1,
+            radius:0.5,
+            threshold:0.8,
         }
     }
 

@@ -38,6 +38,11 @@ void main() {
     // color = color+directionalLights[0].color*brightness;
     // color = color + vec3(1.0) * 0.3;
 
+    //lighten the piano keys, can be fixed in texture later
+    if(color.r > 0.2) {
+        color = color + vec3(1.0) * 0.3;
+    }
+
     float shadowFactor = 1.0;
     #if NUM_DIR_LIGHTS > 0
     shadowFactor *= getShadow(directionalShadowMap[0], directionalLightShadows[0].shadowMapSize, directionalLightShadows[0].shadowIntensity, directionalLightShadows[0].shadowBias, directionalLightShadows[0].shadowRadius, vDirectionalShadowCoord[0]);
