@@ -114,12 +114,12 @@ export default function makePostEffectSystem(ctx: SceneContext) {
             // disable fog and set background to black for bloom pass
             ctx.scene.fog = null;
             ctx.scene.background = new THREE.Color(0x000000);
-            // ctx.scene.traverse(nonBloom);
-            ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer);
+            ctx.scene.traverse(nonBloom);
+            // ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer);
             bloomComposer.render();
-            // ctx.scene.traverse(restoreMaterial);
+            ctx.scene.traverse(restoreMaterial);
             ctx.scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
-            ctx.camera.layers.set(0);
+            // ctx.camera.layers.set(0);
             finalComposer.render();
 
             // testComposer.render();
