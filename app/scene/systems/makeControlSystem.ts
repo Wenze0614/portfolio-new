@@ -83,7 +83,7 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
     camera.position.y = baseY + yOffset + groundY;
 
 
-    const stepInterval = 4.0; // seconds between steps
+    const stepInterval = 2.0; // seconds between steps
     console.log("timeSinceLastStep: ", controlState.timeSinceLastStep);
     if(isMoving && controlState.walkTime > 0.8 &&  controlState.timeSinceLastStep > stepInterval) {
         if(groundY < 0.1) {

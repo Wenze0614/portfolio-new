@@ -47,15 +47,17 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
                 sound.setVolume(0.75);
                 sound.play();
             })
-            await loadSound("grassStep", '/audio/walk_grass.wav')
+            await loadSound("grassStep", '/audio/walk_grass_2_trim.mp3')
             await loadSound("terrainStep", '/audio/walk_terrain.mp3')
         },
         update(dt: number) { },
         dispose() { },
         play(name: "grassStep" | "terrainStep") {
             currentStepSound = sounds[name];
+            currentStepSound.setVolume(0.4);
             if (!currentStepSound || currentStepSound.isPlaying) return;
             currentStepSound.play();
+
             // currentStepSound.setLoop(true);
         },
         stop() {
