@@ -122,7 +122,7 @@ export default function makeEnvSystem(ctx: SceneContext) {
                     
             });
         },
-        update() { },
+        update(dt:number) { },
         dispose() { }
     }
 }

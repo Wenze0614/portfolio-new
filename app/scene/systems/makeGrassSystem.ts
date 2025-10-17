@@ -199,7 +199,7 @@ export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Text
             (this as any)._onResize = onResize;
             window.addEventListener('resize', onResize);
         },
-        update(ctx: SceneContext, dt: number) {
+        update(dt: number) {
             // tick(dt);
             grassUniforms.time.value = dt;
             grassUniforms.fogTime.value = dt;

@@ -2,8 +2,9 @@ import { GUISystem, SceneContext, System } from "../../core/types";
 import * as THREE from "three";
 import vertexShader from '../../shaders/pianoShaders/vertex.vert';
 import fragmentShader from '../../shaders/pianoShaders/fragment.frag';
+import { AudioSystem } from "../makeAudioSystem";
 
-export default function makePianoSystem(ctx: SceneContext): System {
+export default function makePianoSystem(ctx: SceneContext, audioSys:AudioSystem): System {
     const pianoTexture = ctx.loaders.texture.load('/textures/piano_texture.jpg');
     pianoTexture.flipY = false;
     pianoTexture.colorSpace = THREE.SRGBColorSpace;
@@ -42,6 +43,7 @@ export default function makePianoSystem(ctx: SceneContext): System {
                     // piano.receiveShadow = true;
                     ctx.scene.add(piano);
                     meshs.push(piano);
+                    audioSys.playPiano("lune", piano);
                 } else {
                     console.error("piano not found in piano.glb");
                 }
@@ -49,7 +51,7 @@ export default function makePianoSystem(ctx: SceneContext): System {
                 guiSystem.updateMeshes(meshs);
             });
         },
-        update() { },
+        update(dt:number) { },
         dispose() { }
     }
 }

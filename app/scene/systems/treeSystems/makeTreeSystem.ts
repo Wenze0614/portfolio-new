@@ -84,7 +84,13 @@ function createTreeTransformMatrix(treeData: any[]): THREE.Matrix4[] {
     return matrices;
 }
 
-export default function makeTreeSystem(ctx: SceneContext) {
+export interface TreeSystem {
+    init(ctx: SceneContext): void;
+    update(dt: number): void;
+    dispose(): void;
+}
+
+export default function makeTreeSystem(ctx: SceneContext): TreeSystem {
     //makeFoliageSystem(ctx);
     const foliageTexture = ctx.loaders.texture.load('/textures/trees/foliage-2.png');
     const trunkTexture = ctx.loaders.texture.load('/textures/trees/tree_trunk_baseColor.png');
@@ -200,9 +206,9 @@ export default function makeTreeSystem(ctx: SceneContext) {
 
             });
         },
-        update(ctx: SceneContext, dt: number) {
+        update(dt: number) {
             treeTrunkMat.uniforms.fogTime.value = dt;
-            if(foliageSys) foliageSys.update(ctx, dt);
+            if(foliageSys) foliageSys.update(dt);
         },
         dispose() { }
     }

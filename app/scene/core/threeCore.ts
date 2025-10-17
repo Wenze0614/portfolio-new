@@ -31,6 +31,9 @@ export function setupThreeCore(
     // camera.layers.enable(1); // also render layer 1
     scene.add(camera);
 
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
@@ -74,5 +77,5 @@ export function setupThreeCore(
         renderer.dispose();
     }
 
-    return { scene, camera, renderer, composers, clock, state, loaders, disposeCore };
+    return { scene, camera, listener,  renderer, composers, clock, state, loaders, disposeCore };
 }

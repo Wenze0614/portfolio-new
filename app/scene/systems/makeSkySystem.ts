@@ -81,7 +81,7 @@ export function makeSkySystem(ctx: SceneContext): System {
         init() {
             // Initialization logic if needed
         },
-        update(ctx: SceneContext, dt?: number) {
+        update( dt: number) {
             //skySphere.rotation.y = 0.0001 * (dt || 0); // Slow rotation for dynamic effect
         },
         dispose() {

@@ -30,7 +30,7 @@ export default function makePokeBallSystem(ctx: SceneContext):System{
                 }
             });
         },
-        update(ctx: SceneContext, dt: number) { },
+        update( dt: number) { },
         dispose() { }
     }
 }

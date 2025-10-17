@@ -67,7 +67,7 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
             // ctx.scene.add(sun2);
             // ctx.scene.add(sun2Helper)
         },
-        update(ctx: SceneContext) {
+        update(dt: number) {
             // if(ctx.state.controlState.controlType === CONTROL_TYPE.Walk) fitDirLightToCamera(sun1, ctx.camera);
             // sun1Helper.update();
             // shadowCameraHelper.update();

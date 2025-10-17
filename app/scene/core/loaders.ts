@@ -9,5 +9,7 @@ export function makeLoaders() {
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath('/draco/');
   gltf.setDRACOLoader(dracoLoader);
-  return { texture, gltf };
+
+  const audio = new THREE.AudioLoader();
+  return { texture, gltf, audio };
 }

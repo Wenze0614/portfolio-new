@@ -10,6 +10,7 @@ export function makeState(): AppState {
         move: { forward: false, backward: false, left: false, right: false, run: false },
         direction: new THREE.Vector3(),
         walkTime: 0,
+        timeSinceLastStep: 0,
         speed: 0.06,
         bobFrequency: 1.5,
         bobAmplitude: 0.02,
@@ -43,21 +44,28 @@ export function makeState(): AppState {
         }
     }
 
+    const _walkStateDefaults: PLockState = {
+        controlType: CONTROL_TYPE.Walk,
+        move: { forward: false, backward: false, left: false, right: false, run: false },
+        direction: new THREE.Vector3(),
+        walkTime:  0,
+        timeSinceLastStep:  0,
+        speed: 0.03,
+        bobFrequency: 1.5,
+        bobAmplitude: 0.02,
+        baseY: 1.6,
+    }
+
+    const _OrbitStateDefaults: OrbitState = {
+        controlType: CONTROL_TYPE.Orbit,
+    }
+
     function setControlType(t: CONTROL_TYPE, options?: Partial<PLockState>) {
         if (t === _controlState.controlType) return;
         _controlState = t === CONTROL_TYPE.Walk
-            ? {
-                controlType: CONTROL_TYPE.Walk,
-                move: { forward: false, backward: false, left: false, right: false, run: false },
-                direction: new THREE.Vector3(),
-                walkTime: options?.walkTime ?? 0,
-                speed: options?.speed ?? 0.03,
-                bobFrequency: options?.bobFrequency ?? 1.5,
-                bobAmplitude: options?.bobAmplitude ?? 0.02,
-                baseY: options?.baseY ?? 1.6,
-            }
-            : { controlType: CONTROL_TYPE.Orbit } as OrbitState;
+            ? _walkStateDefaults
+            : _OrbitStateDefaults;
     }
 
-    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() {return _windState}, get fogState() {return _fogState}, get postEffectState() {return _postEffectState},isFullScreen, };
+    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() {return _windState}, get fogState() {return _fogState}, get postEffectState() {return _postEffectState},isFullScreen, get walkStateDefaults() { return _walkStateDefaults; } };
 }

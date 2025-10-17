@@ -44,9 +44,6 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
                 materials[obj.uuid] = obj.material;
                 obj.material = darkMaterial;
             }
-        } else {
-            console.log("find bloom obj: ", obj);
-            console.log("obj layers: ", obj.layers);
         }
     };
     const restoreMaterial = (obj: THREE.Object3D) => {
@@ -93,7 +90,12 @@ const addGrayScale = (ctx: SceneContext, finalComposer: EffectComposer) => {
     finalComposer.addPass(grayPass);
 }
 
-export default function makePostEffectSystem(ctx: SceneContext) {
+export interface ComposerSystem {
+    init(): EffectComposer;
+    update(dt:number): void;
+    dispose(): void;
+}
+export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem {
     ctx.renderer.outputColorSpace = THREE.SRGBColorSpace;
     ctx.renderer.toneMapping = THREE.CineonToneMapping;
     ctx.renderer.toneMappingExposure = 0.8;
@@ -110,7 +112,7 @@ export default function makePostEffectSystem(ctx: SceneContext) {
         init() {
             return finalComposer;
         },
-        update() {
+        update(dt: number) {
             // disable fog and set background to black for bloom pass
             ctx.scene.fog = null;
             ctx.scene.background = new THREE.Color(0x000000);

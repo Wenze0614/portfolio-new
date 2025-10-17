@@ -88,7 +88,7 @@ export default function makeGUISystem(ctx: SceneContext): GUISystem {
                 }
             })
         },
-        update(ctx: SceneContext) { },
+        update(dt:number) { },
         dispose() { }
 
     }
