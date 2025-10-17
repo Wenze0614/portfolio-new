@@ -41,7 +41,7 @@ function createOrbitControl(controlState: OrbitState, { scene, camera, renderer 
     const orbitControl = new OrbitControls(camera, renderer.domElement);
     // orbitControl.enabled = true;
     // orbitControl.enableDamping = true;
-    orbitControl.target.set(0, 1.6, -1.6);
+    orbitControl.target.set(-35, 1.6, 50);
     orbitControl.update();
     return orbitControl;
 }

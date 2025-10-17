@@ -39,8 +39,8 @@ export function makeState(): AppState {
         bloom: {
             strength: 0.6,
             layer:1,
-            radius:0.6,
-            threshold:0.8,
+            radius:0.5,
+            threshold:0.6,
         }
     }
 

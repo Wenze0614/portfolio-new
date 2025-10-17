@@ -23,7 +23,7 @@ export default function makePokeBallSystem(ctx: SceneContext):System{
                     // }
                     pokeball.material = pokeballMat;
                     pokeball.name = "pokeball";
-                    pokeball.layers.enable(ctx.state.postEffectState.bloom.layer);
+                    // pokeball.layers.enable(ctx.state.postEffectState.bloom.layer);
                     ctx.scene.add(pokeball);
                     meshs.push(pokeball);
                     guiSystem.updateMeshes(meshs);

@@ -11,7 +11,7 @@ export default function makeFireflySystem(ctx: SceneContext) {
     const fireflyMaterial = new THREE.ShaderMaterial({
         uniforms:{
             uPixelRatio: {value: Math.min(2, window.devicePixelRatio)},
-            uSize: {value: 200.0},
+            uSize: {value: 400.0},
             uTime: {value: 0},
         },
         vertexShader,
@@ -34,7 +34,7 @@ export default function makeFireflySystem(ctx: SceneContext) {
 
             const fireflyPoints = new THREE.Points(fireflyGeometry, fireflyMaterial);
             fireflyPoints.frustumCulled = false;
-            fireflyPoints.layers.enable(ctx.state.postEffectState.bloom.layer);
+            // fireflyPoints.layers.enable(ctx.state.postEffectState.bloom.layer);
             ctx.scene.add(fireflyPoints);
         },
         update(dt:number) {

@@ -26,6 +26,7 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
         },
         vertexShader,
         fragmentShader,
+        // blending: THREE.AdditiveBlending,
     }), "baseTexture");
 
     finalComposer.addPass(mixPass);

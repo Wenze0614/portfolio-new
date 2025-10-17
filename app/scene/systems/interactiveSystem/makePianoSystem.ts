@@ -38,7 +38,7 @@ export default function makePianoSystem(ctx: SceneContext, audioSys:AudioSystem)
                     piano.scale.set(1.2, 1.2, 1.2);
                     piano.position.copy(opts.position);
                     piano.rotation.y = -Math.PI / 2;
-                    piano.layers.enable(ctx.state.postEffectState.bloom.layer);
+                    // piano.layers.enable(ctx.state.postEffectState.bloom.layer);
                     // piano.castShadow = true;
                     // piano.receiveShadow = true;
                     ctx.scene.add(piano);

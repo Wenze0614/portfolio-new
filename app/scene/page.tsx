@@ -26,6 +26,7 @@ import makeInteractiveSystem, { InteractiveSystem } from "./systems/interactiveS
 import makeAudioSystem, { AudioSystem } from "./systems/makeAudioSystem";
 import { ControlSystem, GUISystem, LightSystem, System } from "./core/types";
 import { update } from "three/examples/jsm/libs/tween.module.js";
+import makeSignSystem from "./systems/makeSignSystem";
 
 
 export default function Page() {
@@ -45,6 +46,7 @@ export default function Page() {
     const terrainSysRef = useRef<System>(null);
     const treeCardSysRef = useRef<TreeCardsSystem>(null);
     const skySysRef = useRef<System>(null);
+    const signSysRef = useRef<System>(null);
 
 
 
@@ -131,6 +133,8 @@ export default function Page() {
             treeCardSystem.init(ctx);
             treeCardSysRef.current = treeCardSystem;
 
+            signSysRef.current = makeSignSystem(ctx);
+
             const testCubeMat = new THREE.MeshToonMaterial({ color: 'white' });
             // testCubeMat.onBeforeCompile = (shader) => {
             //     modifyShader(shader);
@@ -214,6 +218,7 @@ export default function Page() {
             updateSys(treeCardSysRef);
             updateSys(interactiveSysRef);
             updateSys(composerSysRef);
+            updateSys(signSysRef);
             // controlSysRef.current.update(ctx, timer.getElapsed());
             // lightSysRef.current.update(ctx, timer.getElapsed());
             // testCube.rotation.y += 0.01;
