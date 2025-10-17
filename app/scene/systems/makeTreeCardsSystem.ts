@@ -4,7 +4,13 @@ import vertexShader from '../shaders/treeCardShaders/vertex.vert';
 import fragmentShader from '../shaders/treeCardShaders/fragment.frag';
 
 const COUNT = 400;
-export default function makeTreeCardsSystem(ctx: SceneContext) {
+
+export interface TreeCardsSystem {
+    init(ctx: SceneContext): void;
+    update(dt: number): void;
+    dispose(): void;
+}
+export default function makeTreeCardsSystem(ctx: SceneContext): TreeCardsSystem {
     const plane = new THREE.PlaneGeometry(1, 1);
     const treeBaseColor = ctx.loaders.texture.load('/textures/treeCards/tree-1/tree_1_color_eevee.png');
     const treeNormal = ctx.loaders.texture.load('/textures/treeCards/tree-1/tree_1_normal.png');
@@ -46,7 +52,7 @@ export default function makeTreeCardsSystem(ctx: SceneContext) {
         init(ctx: SceneContext) {
             ctx.scene.add(treeCardIM);
         },
-        update(dt:number) {
+        update( dt: number) {
             treeCardUniforms.fogTime.value = dt;
          },
         dispose() { }

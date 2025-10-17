@@ -8,11 +8,12 @@ export interface AudioSystem {
     dispose(): void;
     play(name: string): void;
     stop(): void;
+    playPiano(name: string, mesh: THREE.Mesh):void;
     // isStepPlaying: () => boolean;
 }
 
 export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
-    const sound = new THREE.Audio(ctx.listener);
+    const envSound = new THREE.Audio(ctx.listener);
     const audioLoader = ctx.loaders.audio;
 
     // const listener = new THREE.AudioListener();
@@ -27,34 +28,46 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
     });
 
     const sounds: Record<string, THREE.Audio> = {};
+    const pianoSounds: Record<string, THREE.PositionalAudio> = {};
     let currentStepSound: THREE.Audio | null = null;
+    let currentPianoSound: THREE.PositionalAudio | null = null;
 
-    async function loadSound(name: string, url: string, loop = false, volume = 1) {
+    async function loadSound(name: string, url: string, loop = false, volume = 1, piano = false) {
         const buffer = await audioLoader.loadAsync(url);
-        const sound = new THREE.Audio(ctx.listener);
+        const sound = piano ? new THREE.PositionalAudio(ctx.listener) : new THREE.Audio(ctx.listener);
         sound.setBuffer(buffer);
         sound.setLoop(loop);
         sound.setVolume(volume);
-        sounds[name] = sound;
+        if(piano) {
+            pianoSounds[name] = sound as THREE.PositionalAudio;
+        } else{
+            sounds[name] = sound as THREE.Audio;
+        }
         return sound;
     }
     return {
         async init() {
             audioLoader.load('/audio/env.wav', (buffer) => {
                 console.log('audio loaded: ', buffer);
-                sound.setBuffer(buffer);
-                sound.setLoop(true);
-                sound.setVolume(0.75);
-                sound.play();
+                envSound.setBuffer(buffer);
+                envSound.setLoop(true);
+                envSound.setVolume(0.75);
+                envSound.play();
             })
             await loadSound("grassStep", '/audio/walk_grass_2_trim.mp3')
             await loadSound("terrainStep", '/audio/walk_terrain.mp3')
+            await loadSound("lune", "/audio/lune.mp3", false, 1, true)
+            console.log("sounds loaded: ", sounds);
+            console.log("piano sounds loaded: ", pianoSounds);
         },
         update(dt: number) { },
         dispose() { },
         play(name: "grassStep" | "terrainStep") {
             currentStepSound = sounds[name];
             currentStepSound.setVolume(0.4);
+            if(name === "terrainStep") {
+                currentStepSound.setVolume(0.8); //todo: need to update volume later
+            }
             if (!currentStepSound || currentStepSound.isPlaying) return;
             currentStepSound.play();
 
@@ -65,6 +78,16 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
                 currentStepSound.stop();
                 currentStepSound = null;
             }
+        },
+        playPiano(name: string, mesh: THREE.Mesh) {
+            currentPianoSound = pianoSounds[name];
+            currentPianoSound.setVolume(1.2);
+            console.log('pianoSounds: ', pianoSounds);
+            console.log("play piano sound: ", currentPianoSound);
+            if (!currentPianoSound || currentPianoSound.isPlaying) return;
+            mesh.add(currentPianoSound);
+            currentPianoSound.setRefDistance(2);
+            currentPianoSound.play();
         }
 
     }

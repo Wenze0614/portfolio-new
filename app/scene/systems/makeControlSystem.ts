@@ -84,7 +84,7 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
 
 
     const stepInterval = 2.0; // seconds between steps
-    console.log("timeSinceLastStep: ", controlState.timeSinceLastStep);
+    // console.log("timeSinceLastStep: ", controlState.timeSinceLastStep);
     if(isMoving && controlState.walkTime > 0.8 &&  controlState.timeSinceLastStep > stepInterval) {
         if(groundY < 0.1) {
             console.log("play step sound");
@@ -127,7 +127,7 @@ export function makeControlsSystem(ctx: SceneContext, audioSys:AudioSystem): Con
         //     heightMapRef.current = await ctx.loaders.texture.loadAsync('/textures/terrain_height.jpg');
         // }
         const heightMap = await ctx.loaders.texture.loadAsync('/textures/terrain_height_3.jpg');
-        console.log('heightmap width: ', heightMap.image)
+        // console.log('heightmap width: ', heightMap.image)
         const terrainMin = new THREE.Vector2(-terrainWidth * 0.5, -terrainHeight * 0.5);
         const terrainMax = new THREE.Vector2(terrainWidth * 0.5, terrainHeight * 0.5);
         heightSampler = makeHeightSampler(heightMap, terrainMin, terrainMax, { flipV: true });
@@ -162,7 +162,7 @@ export function makeControlsSystem(ctx: SceneContext, audioSys:AudioSystem): Con
                 orbit?.dispose();
             };
         },
-        update(ctx: SceneContext) {
+        update(dt:number) {
             ctx.state.controlState.controlType === 'Walk'
                 ? updatePointerLockControls(ctx.state.controlState as PLockState, plock!, ctx, heightSampler, audioSys)
                 : updateOrbitControls(orbit!);

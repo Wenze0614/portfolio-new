@@ -156,10 +156,10 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
             // largeTerrain.position.y = -0.3;
             // ctx.scene.add(largeTerrain);
         },
-        update(ctx: SceneContext, dt: number) {
+        update(dt: number) {
             terrainMat.uniforms.time.value = dt;
             if (grassSystem) {
-                grassSystem.update(ctx, dt);
+                grassSystem.update(dt);
             }
         },
         dispose() { }
