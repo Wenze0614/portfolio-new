@@ -8,12 +8,6 @@ import { AudioSystem } from './makeAudioSystem';
 
 import nipplejs from 'nipplejs';
 
-const joystick = nipplejs.create({
-    zone: document.body,
-    mode: 'static',
-    position: { left: '20%', bottom: '20%' }
-});
-
 const onKeyDown = (event: KeyboardEvent, controlState: PLockState) => {
     switch (event.code) {
         case 'KeyW': controlState.move.forward = true; break;
@@ -34,58 +28,160 @@ const onKeyUp = (event: KeyboardEvent, controlState: PLockState) => {
     }
 };
 
-function addTouchLook(pControl: PointerLockControls, domElement: HTMLElement) {
-    let startX = 0;
-    let startY = 0;
-    let isDragging = false;
+// function addTouchLook(pControl: PointerLockControls, domElement: HTMLElement) {
+//     let startX = 0;
+//     let startY = 0;
+//     let isDragging = false;
 
-    // optional: vertical rotation clamp
-    const maxPitch = Math.PI / 2 - 0.1; // ~89°
-    const minPitch = -Math.PI / 2 + 0.1;
+//     // optional: vertical rotation clamp
+//     const maxPitch = Math.PI / 2 - 0.1; // ~89°
+//     const minPitch = -Math.PI / 2 + 0.1;
 
-    // these refer to the internal objects in PointerLockControls
-    const pitchObject = pControl.getObject().children[0]; // camera holder
-    const yawObject = pControl.getObject();
+//     // these refer to the internal objects in PointerLockControls
+//     const pitchObject = pControl.getObject().children[0]; // camera holder
+//     const yawObject = pControl.getObject();
 
-    domElement.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) {
-            isDragging = true;
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-        }
+//     domElement.addEventListener('touchstart', (e) => {
+//         if (e.touches.length === 1) {
+//             isDragging = true;
+//             startX = e.touches[0].clientX;
+//             startY = e.touches[0].clientY;
+//         }
+//     });
+
+//     domElement.addEventListener('touchmove', (e) => {
+//         if (!isDragging) return;
+
+//         const touch = e.touches[0];
+//         const dx = (touch.clientX - startX) * 0.0025; // sensitivity
+//         const dy = (touch.clientY - startY) * 0.0025;
+
+//         startX = touch.clientX;
+//         startY = touch.clientY;
+
+//         // apply yaw (left/right rotation)
+//         yawObject.rotation.y -= dx;
+
+//         // apply pitch (up/down rotation)
+//         pitchObject.rotation.x -= dy;
+//         pitchObject.rotation.x = Math.max(
+//             minPitch,
+//             Math.min(maxPitch, pitchObject.rotation.x)
+//         );
+//     });
+
+//     domElement.addEventListener('touchend', () => {
+//         isDragging = false;
+//     });
+// }
+
+async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext, controlState: PLockState) {
+    // Guard SSR
+    if (typeof window === 'undefined') return;
+    if (!/Mobi|Android|iPhone/i.test(navigator.userAgent)) return;
+
+    // dynamic import (client only)
+    const { default: nipplejs } = await import('nipplejs');
+
+    // create joystick
+    const joystick = nipplejs.create({
+        zone: ctx.renderer.domElement,       // or a dedicated overlay div
+        mode: 'static',
+        position: { left: '18%', bottom: '20%' },
+        color: 'white',
+        size: 120,
     });
 
-    domElement.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
+    const moveHandler = (_evt: any, data: any) => {
+        if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
+        const { x, y } = data.vector; // [-1..1]
+        controlState.move.forward = (y < -0.3);
+        controlState.move.backward = (y > 0.3);
+        controlState.move.left = (x < -0.3);
+        controlState.move.right = (x > 0.3);
+    };
+    const endHandler = () => {
+        if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
+        controlState.move.forward = controlState.move.backward =
+            controlState.move.left = controlState.move.right = false;
+    };
 
-        const touch = e.touches[0];
-        const dx = (touch.clientX - startX) * 0.0025; // sensitivity
-        const dy = (touch.clientY - startY) * 0.0025;
+    joystick.on('move', moveHandler);
+    joystick.on('end', endHandler);
 
-        startX = touch.clientX;
-        startY = touch.clientY;
+    // drag-to-look (touch) — emulate pointer lock mouse deltas
+    const pitchObject = plock.getObject().children[0] as THREE.Object3D; // camera holder
+    const yawObject = plock.getObject();
 
-        // apply yaw (left/right rotation)
+    let startX = 0, startY = 0, dragging = false;
+    const minPitch = -Math.PI / 2 + 0.1, maxPitch = Math.PI / 2 - 0.1;
+    const sens = 0.0025;
+
+    const el = ctx.renderer.domElement;
+
+    const onStart = (e: TouchEvent) => {
+        if (e.touches.length !== 1) return;
+        dragging = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    };
+    const onMove = (e: TouchEvent) => {
+        if (!dragging) return;
+        const t = e.touches[0];
+        const dx = (t.clientX - startX) * sens;
+        const dy = (t.clientY - startY) * sens;
+        startX = t.clientX;
+        startY = t.clientY;
+
         yawObject.rotation.y -= dx;
+        pitchObject.rotation.x = THREE.MathUtils.clamp(pitchObject.rotation.x - dy, minPitch, maxPitch);
+    };
+    const onEnd = () => { dragging = false; };
 
-        // apply pitch (up/down rotation)
-        pitchObject.rotation.x -= dy;
-        pitchObject.rotation.x = Math.max(
-            minPitch,
-            Math.min(maxPitch, pitchObject.rotation.x)
-        );
-    });
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: true });
+    el.addEventListener('touchend', onEnd, { passive: true });
 
-    domElement.addEventListener('touchend', () => {
-        isDragging = false;
-    });
+    // Return a disposer so your system can clean up
+    return () => {
+        try {
+            joystick.off('move', moveHandler);
+            joystick.off('end', endHandler);
+            joystick.destroy();
+        } catch { }
+        el.removeEventListener('touchstart', onStart as any);
+        el.removeEventListener('touchmove', onMove as any);
+        el.removeEventListener('touchend', onEnd as any);
+    };
 }
+function createPointerLockControls(controlState: PLockState, ctx: SceneContext) {
 
-function createPointerLockControls(controlState: PLockState, { scene, camera, renderer }: SceneContext) {
-    const walkControl = new PointerLockControls(camera, renderer.domElement);
-    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
-        addTouchLook(walkControl, renderer.domElement);
-    }
+
+    const walkControl = new PointerLockControls(ctx.camera, ctx.renderer.domElement);
+
+    // if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+    //     const joystick = nipplejs.create({
+    //         zone: ctx.renderer.domElement,
+    //         mode: 'static',
+    //         position: { left: '20%', bottom: '20%' }
+    //     });
+    //     joystick.on('move', (evt, data) => {
+    //         const { x, y } = data.vector; // values in [-1..1]
+    //         if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
+    //         ctx.state.controlState.move.forward = (y < -0.3);
+    //         ctx.state.controlState.move.backward = (y > 0.3);
+    //         ctx.state.controlState.move.left = (x < -0.3);
+    //         ctx.state.controlState.move.right = (x > 0.3);
+    //     });
+    //     joystick.on('end', () => {
+    //         if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
+    //         ctx.state.controlState.move.forward = false;
+    //         ctx.state.controlState.move.backward = false;
+    //         ctx.state.controlState.move.left = false;
+    //         ctx.state.controlState.move.right = false;
+    //     });
+    //     addTouchLook(walkControl, ctx.renderer.domElement);
+    // }
 
     // document.addEventListener('click', (e) => {
     //     if (e.target !== renderer.domElement) return;
@@ -165,6 +261,7 @@ const updateOrbitControls = (oControl: OrbitControls) => {
 export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): ControlSystem {
     let orbit: OrbitControls | null = null;
     let plock: PointerLockControls | null = null;
+    let disposeMobileControls: (() => void) | undefined;
 
     // click to lock when orbit is off
     const clickToLock = () => {
@@ -195,28 +292,15 @@ export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): Co
     document.addEventListener('keydown', (e) => onKeyDown(e, ctx.state.controlState as PLockState));
     document.addEventListener('keyup', (e) => onKeyUp(e, ctx.state.controlState as PLockState));
 
-    joystick.on('move', (evt, data) => {
-        const { x, y } = data.vector; // values in [-1..1]
-        if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
-        ctx.state.controlState.move.forward = (y < -0.3);
-        ctx.state.controlState.move.backward = (y > 0.3);
-        ctx.state.controlState.move.left = (x < -0.3);
-        ctx.state.controlState.move.right = (x > 0.3);
-    });
-    joystick.on('end', () => {
-        if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
-        ctx.state.controlState.move.forward = false;
-        ctx.state.controlState.move.backward = false;
-        ctx.state.controlState.move.left = false;
-        ctx.state.controlState.move.right = false;
-    });
 
     return {
-        init(ctx: SceneContext) {
+        async init(ctx: SceneContext) {
             plock = createPointerLockControls(ctx.state.controlState as PLockState, ctx);
             orbit = createOrbitControl(ctx.state.controlState as OrbitState, ctx);
             orbit.enableDamping = true;
             orbit.enabled = false;
+
+            disposeMobileControls = await setupMobileControls(plock, ctx, ctx.state.controlState as PLockState);
 
             switch (ctx.state.controlState.controlType) {
                 case CONTROL_TYPE.Walk:
