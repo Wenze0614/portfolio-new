@@ -1,6 +1,6 @@
 #include <common>
 #include <shadowmap_pars_vertex>
-#include <fog_pars_vertex>
+// #include <fog_pars_vertex>
 
 varying vec3 vPosWS;
 varying vec2 vUv;
@@ -14,12 +14,12 @@ void main() {
   vPosWS = worldPosition.xyz;
 
   vec3 transformedNormal = normalize(mat3(modelViewMatrix)*normal);
-  vNormalWS = normalize(mat3(normalMatrix)*normal);
+  vNormalWS = normalize(mat3(transpose(inverse(modelMatrix)))*normal);
   
   gl_Position = projectionMatrix*mvPos;
 
   // Hand coords to shadow system
   #include <shadowmap_vertex>
-  #include <fog_vertex>
+  // #include <fog_vertex>
 
 }

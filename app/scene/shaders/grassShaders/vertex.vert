@@ -262,7 +262,7 @@ void main() {
   grassLocalNormal = normalize(grassLocalNormal);
 
   vec3 transformedNormal = normalize(mat3(modelViewMatrix)*grassLocalNormal);
-  vNormalWS = normalize(mat3(normalMatrix)*grassLocalNormal);
+  vNormalWS = normalize(mat3(transpose(inverse(modelMatrix)))*grassLocalNormal);
 
   vGrassHeightPercent = heightPercentage;
 

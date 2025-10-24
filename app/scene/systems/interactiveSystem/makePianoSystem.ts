@@ -1,57 +1,120 @@
-import { GUISystem, SceneContext, System } from "../../core/types";
+import { GUISystem, SceneContext, ScreenSystem, System } from "../../core/types";
 import * as THREE from "three";
 import vertexShader from '../../shaders/pianoShaders/vertex.vert';
 import fragmentShader from '../../shaders/pianoShaders/fragment.frag';
 import { AudioSystem } from "../makeAudioSystem";
+import makeFloatingScreenSystem from "./makeFloatingScreenSystem";
+import barVertexShader from '../../shaders/barShaders/vertex.vert';
+import barFragmentShader from '../../shaders/barShaders/fragment.frag';
 
-export default function makePianoSystem(ctx: SceneContext, audioSys:AudioSystem): System {
+export default function makePianoSystem(ctx: SceneContext, audioSys: AudioSystem): System {
     const pianoTexture = ctx.loaders.texture.load('/textures/piano_texture.jpg');
     pianoTexture.flipY = false;
     pianoTexture.colorSpace = THREE.SRGBColorSpace;
     pianoTexture.needsUpdate = true;
 
+    const barTexture = ctx.loaders.texture.load('/textures/bar.png');
+    barTexture.flipY = false;
+    barTexture.colorSpace = THREE.SRGBColorSpace;
+
+    const toonMatcap = ctx.loaders.texture.load('/textures/green_metal_rust.png');
+    toonMatcap.colorSpace = THREE.SRGBColorSpace; // if the image was saved in sRGB
+    toonMatcap.wrapS = toonMatcap.wrapT = THREE.ClampToEdgeWrapping;
+    toonMatcap.minFilter = THREE.LinearFilter;
+    toonMatcap.magFilter = THREE.LinearFilter;
+    toonMatcap.generateMipmaps = false;
+
     const customUniforms = {
         pianoTexture: { value: pianoTexture },
     }
+
+    const customBarUniforms = {
+        barTexture: { value: barTexture },
+        toonMatcap: { value: toonMatcap },
+    }
     const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
     const pianoUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
+    const barUniforms = THREE.UniformsUtils.merge([baseUniforms, customBarUniforms]);
+    let screenSys: ScreenSystem;
 
 
     return {
         init(ctx: SceneContext, meshs: THREE.Mesh[], guiSystem: GUISystem, opts: { position: THREE.Vector3 }) {
-            ctx.loaders.gltf.load('/models/piano.glb', (gltf) => {
+
+            ctx.loaders.gltf.load("/models/bar.glb", (gltf) => {
                 const model = gltf.scene;
-                console.log("piano gltf: ", gltf);
-                const piano = model.getObjectByName('keyboard-ready-singleMat');
-                if (piano && piano instanceof THREE.Mesh) {
-                    piano.material = new THREE.ShaderMaterial({
-                        uniforms: pianoUniforms,
-                        vertexShader,
-                        fragmentShader,
-                        lights: true,
-                    })
-                    // piano.material = new THREE.MeshBasicMaterial({
-                    //     map: pianoTexture,
-                    // })
-                    piano.castShadow = true;
-                    piano.receiveShadow = true;
-                    piano.scale.set(1.2, 1.2, 1.2);
-                    piano.position.copy(opts.position);
-                    piano.rotation.y = -Math.PI / 2;
-                    // piano.layers.enable(ctx.state.postEffectState.bloom.layer);
-                    // piano.castShadow = true;
-                    // piano.receiveShadow = true;
-                    ctx.scene.add(piano);
-                    meshs.push(piano);
-                    audioSys.playPiano("lune", piano);
-                } else {
-                    console.error("piano not found in piano.glb");
+                ctx.scene.add(model);
+                model.rotateY(-Math.PI/4);
+                model.position.copy(opts.position);
+                // model.position.copy(piano.position);
+                const bar = model.getObjectByName("bar");
+                const neon1 = model.getObjectByName("neon1");
+                const neon2 = model.getObjectByName("neon2");
+                const piano = model.getObjectByName("piano");
+                console.log("piano model: ", piano);
+                const neonMaterial = new THREE.MeshBasicMaterial({ color: "#E7D8B1" });
+                if (neon1 && neon1 instanceof THREE.Mesh) {
+                    // ctx.scene.add(neon1);
+                    neon1.material = neonMaterial;
+                    neon1.layers.enable(ctx.state.postEffectState.bloom.layer);
                 }
-                console.log("piano model loaded:", model);
+                if (neon2 && neon2 instanceof THREE.Mesh) {
+                    // ctx.scene.add(neon2);
+                    neon2.material = neonMaterial;
+                    neon2.layers.enable(ctx.state.postEffectState.bloom.layer);
+                }
+
+                if (bar && bar instanceof THREE.Mesh) {
+                    bar.material = new THREE.ShaderMaterial({
+                        uniforms: barUniforms,
+                        vertexShader: barVertexShader,
+                        fragmentShader: barFragmentShader,
+                        lights: true,
+                        transparent: true,
+                    })
+                    // bar.castShadow = true;
+                    // bar.receiveShadow = true;
+                }
+
+                if (piano && piano instanceof THREE.Mesh) {
+                    piano.material = new THREE.MeshBasicMaterial({map: pianoTexture});
+                }
+
+                // if (piano && piano instanceof THREE.Mesh) {
+                //     piano.material = new THREE.ShaderMaterial({
+                //         uniforms: pianoUniforms,
+                //         vertexShader,
+                //         fragmentShader,
+                //         // lights: true,
+                //     })
+                //     // piano.material = new THREE.MeshBasicMaterial({
+                //     //     map: pianoTexture,
+                //     // })
+                //     // piano.castShadow = true;
+                //     // piano.receiveShadow = true;
+                //     // piano.scale.set(1.2, 1.2, 1.2);
+                //     // piano.rotation.y = -Math.PI / 2;
+                //     // piano.layers.enable(ctx.state.postEffectState.bloom.layer);
+                //     // piano.castShadow = true;
+                //     // piano.receiveShadow = true;
+                //     // ctx.scene.add(piano);
+                //     meshs.push(piano);
+                //     audioSys.playPiano("lune", piano);
+                //     // screenSys = makeFloatingScreenSystem(ctx);
+                //     // screenSys.setPosition(piano.position.clone());
+
+                // } else {
+                //     console.error("piano not found in piano.glb");
+                // }
                 guiSystem.updateMeshes(meshs);
-            });
+            })
+
         },
-        update(dt:number) { },
+        update(dt: number) {
+            // if (screenSys) {
+            //     screenSys.update(dt);
+            // }
+        },
         dispose() { }
     }
 }

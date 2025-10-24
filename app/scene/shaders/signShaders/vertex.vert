@@ -14,7 +14,7 @@ void main() {
   vPosWS = worldPosition.xyz;
 
   vec3 transformedNormal = normalize(mat3(modelViewMatrix)*normal);
-  vNormalWS = normalize(mat3(normalMatrix)*normal);
+  vNormalWS = normalize(mat3(transpose(inverse(modelMatrix)))*normal);
   
   gl_Position = projectionMatrix*mvPos;               
   #include <shadowmap_vertex>

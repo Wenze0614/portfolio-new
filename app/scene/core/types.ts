@@ -31,6 +31,10 @@ export interface LightSystem extends System {
     addComposer: (composer: EffectComposer) => void;
 }
 
+export interface ScreenSystem extends System {
+    setPosition: (position: THREE.Vector3) => void;
+}
+
 export enum CONTROL_TYPE {
     Walk = "Walk",
     Orbit = "Orbit",

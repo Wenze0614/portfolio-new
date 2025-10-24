@@ -29,6 +29,7 @@ export default function makeInteractiveSystem(ctx: SceneContext, audioSys:AudioS
         update(dt: number) {
             fireflySys1.update(dt);
             fireflySys2.update(dt);
+            pianoSystem.update(dt);
         },
         dispose() {
             //clean up event listeners or other resources here

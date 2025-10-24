@@ -162,7 +162,7 @@ void main() {
     if(ndl<0.0) {
         n = -n;
     }
-    vNormalWS = normalize(mat3(modelMatrix)*mat3(treeTransformMatrix)*(mix(spherePosition, n, ndl*0.25)));
+    vNormalWS = normalize(mat3(transpose(inverse(modelMatrix)))*mat3(treeTransformMatrix)*(mix(spherePosition, n, ndl*0.25)));
     vec3 transformedNormal = normalize(mat3(modelViewMatrix)*mat3(treeTransformMatrix)*(mix(spherePosition, n, ndl*0.25)));
 
     // sampling shadow from terrain shadow map instead of from foliage itself to avoid self-shadowing artifacts

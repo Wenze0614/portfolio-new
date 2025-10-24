@@ -55,7 +55,7 @@ void main() {
   vec4 mvPos = modelViewMatrix*vec4(displaced, 1.0);
   vec4 worldPosition = modelMatrix*vec4(displaced, 1.0);
   vPosWS = worldPosition.xyz;
-  vNormalWS = normalize(mat3(normalMatrix)*nOS);
+  vNormalWS = normalize(mat3(transpose(inverse(modelMatrix)))*nOS);
   
   gl_Position = projectionMatrix*mvPos;
 
