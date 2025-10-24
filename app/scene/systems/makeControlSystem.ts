@@ -6,6 +6,14 @@ import * as THREE from 'three';
 import { useRef } from 'react';
 import { AudioSystem } from './makeAudioSystem';
 
+import nipplejs from 'nipplejs';
+
+const joystick = nipplejs.create({
+    zone: document.body,
+    mode: 'static',
+    position: { left: '20%', bottom: '20%' }
+});
+
 const onKeyDown = (event: KeyboardEvent, controlState: PLockState) => {
     switch (event.code) {
         case 'KeyW': controlState.move.forward = true; break;
@@ -26,8 +34,59 @@ const onKeyUp = (event: KeyboardEvent, controlState: PLockState) => {
     }
 };
 
+function addTouchLook(pControl: PointerLockControls, domElement: HTMLElement) {
+    let startX = 0;
+    let startY = 0;
+    let isDragging = false;
+
+    // optional: vertical rotation clamp
+    const maxPitch = Math.PI / 2 - 0.1; // ~89°
+    const minPitch = -Math.PI / 2 + 0.1;
+
+    // these refer to the internal objects in PointerLockControls
+    const pitchObject = pControl.getObject().children[0]; // camera holder
+    const yawObject = pControl.getObject();
+
+    domElement.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }
+    });
+
+    domElement.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+
+        const touch = e.touches[0];
+        const dx = (touch.clientX - startX) * 0.0025; // sensitivity
+        const dy = (touch.clientY - startY) * 0.0025;
+
+        startX = touch.clientX;
+        startY = touch.clientY;
+
+        // apply yaw (left/right rotation)
+        yawObject.rotation.y -= dx;
+
+        // apply pitch (up/down rotation)
+        pitchObject.rotation.x -= dy;
+        pitchObject.rotation.x = Math.max(
+            minPitch,
+            Math.min(maxPitch, pitchObject.rotation.x)
+        );
+    });
+
+    domElement.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+}
+
 function createPointerLockControls(controlState: PLockState, { scene, camera, renderer }: SceneContext) {
     const walkControl = new PointerLockControls(camera, renderer.domElement);
+    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+        addTouchLook(walkControl, renderer.domElement);
+    }
+
     // document.addEventListener('click', (e) => {
     //     if (e.target !== renderer.domElement) return;
     //     if (!walkControl.isLocked) walkControl.lock();
@@ -85,8 +144,8 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
 
     const stepInterval = 2.0; // seconds between steps
     // console.log("timeSinceLastStep: ", controlState.timeSinceLastStep);
-    if(isMoving && controlState.walkTime > 0.8 &&  controlState.timeSinceLastStep > stepInterval) {
-        if(groundY < 0.1) {
+    if (isMoving && controlState.walkTime > 0.8 && controlState.timeSinceLastStep > stepInterval) {
+        if (groundY < 0.1) {
             console.log("play step sound");
             audioSys.play("terrainStep");
             controlState.timeSinceLastStep = 0;
@@ -103,7 +162,7 @@ const updateOrbitControls = (oControl: OrbitControls) => {
     oControl.update();
 }
 
-export function makeControlsSystem(ctx: SceneContext, audioSys:AudioSystem): ControlSystem {
+export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): ControlSystem {
     let orbit: OrbitControls | null = null;
     let plock: PointerLockControls | null = null;
 
@@ -118,7 +177,7 @@ export function makeControlsSystem(ctx: SceneContext, audioSys:AudioSystem): Con
     const terrainHeight = ctx.state.terrainState.terrainLength;
     //const heightMapRef = useRef<THREE.Texture | null>(null);
 
-    let heightSampler:{
+    let heightSampler: {
         heightAtXZ(x: number, z: number, heightScale: number, heightOffset: number): number;
     }
 
@@ -135,6 +194,22 @@ export function makeControlsSystem(ctx: SceneContext, audioSys:AudioSystem): Con
 
     document.addEventListener('keydown', (e) => onKeyDown(e, ctx.state.controlState as PLockState));
     document.addEventListener('keyup', (e) => onKeyUp(e, ctx.state.controlState as PLockState));
+
+    joystick.on('move', (evt, data) => {
+        const { x, y } = data.vector; // values in [-1..1]
+        if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
+        ctx.state.controlState.move.forward = (y < -0.3);
+        ctx.state.controlState.move.backward = (y > 0.3);
+        ctx.state.controlState.move.left = (x < -0.3);
+        ctx.state.controlState.move.right = (x > 0.3);
+    });
+    joystick.on('end', () => {
+        if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
+        ctx.state.controlState.move.forward = false;
+        ctx.state.controlState.move.backward = false;
+        ctx.state.controlState.move.left = false;
+        ctx.state.controlState.move.right = false;
+    });
 
     return {
         init(ctx: SceneContext) {
@@ -162,7 +237,7 @@ export function makeControlsSystem(ctx: SceneContext, audioSys:AudioSystem): Con
                 orbit?.dispose();
             };
         },
-        update(dt:number) {
+        update(dt: number) {
             ctx.state.controlState.controlType === 'Walk'
                 ? updatePointerLockControls(ctx.state.controlState as PLockState, plock!, ctx, heightSampler, audioSys)
                 : updateOrbitControls(orbit!);
