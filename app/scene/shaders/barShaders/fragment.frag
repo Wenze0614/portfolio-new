@@ -109,7 +109,7 @@ void main() {
 
 // Apply to your albedo/base color
 // (assumes 'color' currently holds your sampled albedo)
-    // color = color + irradiance * 0.3;  // or: color = color * (ambient + irradiance);
+    color = color + irradiance * 0.3;  // or: color = color * (ambient + irradiance);
     alpha = 1.0 - smoothstep(4.3, 5.0, vPosWS.y);
 
     gl_FragColor = vec4(color, alpha);

@@ -191,6 +191,7 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
             // disable fog and set background to black for bloom pass
             ctx.scene.fog = null;
             ctx.scene.background = new THREE.Color(0x000000);
+            ctx.camera.layers.disable(3); //disable unwanter occluder for bloom
             ctx.scene.traverse(nonBloom);
             // // ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer); //this method does not work with occluders
             bloomComposer.render();
@@ -198,8 +199,8 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
             ctx.scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
 
             mixMat.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
-            // mixMat.uniforms.hasBloom.value = true;
-            // ctx.camera.layers.set(0);
+            mixMat.uniforms.hasBloom.value = true;
+            ctx.camera.layers.enable(3);
             finalComposer.render();
 
             // testComposer.render();

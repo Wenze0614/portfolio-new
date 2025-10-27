@@ -33,8 +33,9 @@ export default function makeFireflySystem(ctx: SceneContext) {
             fireflyGeometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
 
             const fireflyPoints = new THREE.Points(fireflyGeometry, fireflyMaterial);
+            fireflyPoints.name = "fireflyPoints";
             fireflyPoints.frustumCulled = false;
-            // fireflyPoints.layers.enable(ctx.state.postEffectState.bloom.layer);
+            fireflyPoints.layers.set(3);
             ctx.scene.add(fireflyPoints);
         },
         update(dt:number) {
