@@ -1,8 +1,8 @@
-import { SceneContext, System, TEXTURE_NAME } from "../core/types";
+import { SceneContext, System, TEXTURE_NAME } from "../../core/types";
 import * as THREE from "three";
 import makeGrassSystem from "./makeGrassSystem";
-import vertexShader from "../shaders/terrainShaders/vertex.vert";
-import fragmentShader from "../shaders/terrainShaders/fragment.frag";
+import vertexShader from "../../shaders/terrainShaders/vertex.vert";
+import fragmentShader from "../../shaders/terrainShaders/fragment.frag";
 
 
 export default function makeTerrainSystem(ctx: SceneContext): System {

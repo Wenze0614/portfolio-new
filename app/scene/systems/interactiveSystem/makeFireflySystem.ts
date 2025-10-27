@@ -1,7 +1,7 @@
-import { SceneContext } from "../core/types";
+import { SceneContext } from "../../core/types";
 import * as THREE from "three";
-import vertexShader from '../shaders/fireflyShaders/vertex.vert';
-import fragmentShader from '../shaders/fireflyShaders/fragment.frag';
+import vertexShader from '../../shaders/fireflyShaders/vertex.vert';
+import fragmentShader from '../../shaders/fireflyShaders/fragment.frag';
 
 export default function makeFireflySystem(ctx: SceneContext) {
     const fireflyCount = 50;

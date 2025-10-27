@@ -11,7 +11,7 @@ import { makeControlsSystem } from "./systems/makeControlSystem";
 import makeGUISystem from "./systems/makeGUISystem";
 import makeLightSystem from "./systems/makeLightSystem";
 import { makeStats } from "./utils/makeStats";
-import makeTerrainSystem from "./systems/makeTerrainSystem";
+import makeTerrainSystem from "./systems/terrainSystems/makeTerrainSystem";
 import { makeSkySystem } from "./systems/makeSkySystem";
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import test from "node:test";
@@ -19,7 +19,7 @@ import makeTreeSystem, { TreeSystem } from "./systems/treeSystems/makeTreeSystem
 import makeFoliageSystem from "./systems/treeSystems/makeFoliageSystem";
 import makePostEffectSystem, { ComposerSystem } from "./systems/makePostEffectSystem";
 import makeTreeCardsSystem, { TreeCardsSystem } from "./systems/makeTreeCardsSystem";
-import makeEnvSystem from "./systems/makeEnvSystem";
+import makeEnvSystem from "./systems/terrainSystems/makeEnvSystem";
 import makeFogSystem from "./systems/makeFogSystem";
 import modifyShader from "./utils/modifyShader";
 import makeInteractiveSystem, { InteractiveSystem } from "./systems/interactiveSystem/makeInteractiveSystem";

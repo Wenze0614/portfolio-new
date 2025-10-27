@@ -7,7 +7,7 @@ import makeFloatingScreenSystem from "./makeFloatingScreenSystem";
 import barVertexShader from '../../shaders/barShaders/vertex.vert';
 import barFragmentShader from '../../shaders/barShaders/fragment.frag';
 
-export default function makePianoSystem(ctx: SceneContext, audioSys: AudioSystem): System {
+export default function makeMusicBar(ctx: SceneContext, audioSys: AudioSystem): System {
     const pianoTexture = ctx.state.getTexture(TEXTURE_NAME.PIANO_TEXTURE);
 
     const barTexture = ctx.state.getTexture(TEXTURE_NAME.BAR_TEXTURE);

@@ -54,7 +54,7 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     pianoTexture.needsUpdate = true;
     ctx.state.setTexture(TEXTURE_NAME.PIANO_TEXTURE, pianoTexture);
 
-    const barTexture = await ctx.loaders.texture.loadAsync('/textures/bar.png');
+    const barTexture = await ctx.loaders.texture.loadAsync('/textures/bar.jpg');
     barTexture.flipY = false;
     barTexture.colorSpace = THREE.SRGBColorSpace;
     barTexture.name = "barTexture";

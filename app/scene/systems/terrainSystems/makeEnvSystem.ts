@@ -1,4 +1,4 @@
-import { GUISystem, SceneContext, TEXTURE_NAME } from "../core/types";
+import { GUISystem, SceneContext, TEXTURE_NAME } from "../../core/types";
 import * as THREE from "three";
 
 export default function makeEnvSystem(ctx: SceneContext) {

@@ -1,6 +1,6 @@
-import { SceneContext, System, TEXTURE_NAME } from "../core/types";
-import vertexShader from "../shaders/grassShaders/vertex.vert";
-import fragmentShader from "../shaders/grassShaders/fragment.frag";
+import { SceneContext, System, TEXTURE_NAME } from "../../core/types";
+import vertexShader from "../../shaders/grassShaders/vertex.vert";
+import fragmentShader from "../../shaders/grassShaders/fragment.frag";
 import * as THREE from "three";
 
 // define near and far distance for LOD
