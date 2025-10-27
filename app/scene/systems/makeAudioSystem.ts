@@ -48,7 +48,7 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
     return {
         async init() {
             audioLoader.load('/audio/env.wav', (buffer) => {
-                console.log('audio loaded: ', buffer);
+                //console.log('audio loaded: ', buffer);
                 envSound.setBuffer(buffer);
                 envSound.setLoop(true);
                 envSound.setVolume(0.75);
@@ -57,8 +57,8 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
             await loadSound("grassStep", '/audio/walk_grass_2_trim.mp3')
             await loadSound("terrainStep", '/audio/walk_terrain.mp3')
             await loadSound("lune", "/audio/lune.mp3", false, 1, true)
-            console.log("sounds loaded: ", sounds);
-            console.log("piano sounds loaded: ", pianoSounds);
+            //console.log("sounds loaded: ", sounds);
+            //console.log("piano sounds loaded: ", pianoSounds);
         },
         update(dt: number) { },
         dispose() { },
@@ -82,8 +82,8 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
         playPiano(name: string, mesh: THREE.Mesh) {
             currentPianoSound = pianoSounds[name];
             currentPianoSound.setVolume(1.2);
-            console.log('pianoSounds: ', pianoSounds);
-            console.log("play piano sound: ", currentPianoSound);
+            //console.log('pianoSounds: ', pianoSounds);
+            //console.log("play piano sound: ", currentPianoSound);
             if (!currentPianoSound || currentPianoSound.isPlaying) return;
             mesh.add(currentPianoSound);
             currentPianoSound.setRefDistance(2);

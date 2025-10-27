@@ -1,4 +1,4 @@
-import { SceneContext } from "../core/types";
+import { SceneContext, TEXTURE_NAME } from "../core/types";
 import * as THREE from "three";
 
 const _NOISE_GLSL = `
@@ -42,7 +42,7 @@ float FBM(vec3 p) {
 }
 `;
 
-export default function makeFogSystem(ctx: SceneContext) {
+export default async function makeFogSystem(ctx: SceneContext) {
 
     //overwrite fog shaders
     THREE.ShaderChunk.fog_fragment = `
@@ -96,7 +96,7 @@ export default function makeFogSystem(ctx: SceneContext) {
       varying vec3 vWorldPosition;
     #endif`;
 
-    const noiseTexture = ctx.loaders.texture.load('/textures/noise.png');
+    const noiseTexture = ctx.state.getTexture(TEXTURE_NAME.FOG_NOISE_TEXTURE);
 
     const customFogUniforms = {
         fogTime: { value: 0.0 },

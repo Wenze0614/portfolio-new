@@ -1,4 +1,4 @@
-import { SceneContext, System } from "../core/types";
+import { SceneContext, System, TEXTURE_NAME } from "../core/types";
 import * as THREE from "three";
 import makeGrassSystem from "./makeGrassSystem";
 import vertexShader from "../shaders/terrainShaders/vertex.vert";
@@ -8,39 +8,14 @@ import fragmentShader from "../shaders/terrainShaders/fragment.frag";
 export default function makeTerrainSystem(ctx: SceneContext): System {
     let grassSystem: System;
 
-    // const terrainTexture = ctx.loaders.texture.load('/textures/terrain_6.jpg');
-    const terrainTexture = ctx.loaders.texture.load('/textures/terrain.TIF');
-    // terrainTexture.flipY = false;
-    terrainTexture.wrapS = terrainTexture.wrapT = THREE.MirroredRepeatWrapping; // or RepeatWrapping if you tile
-    // terrainTexture.anisotropy = ctx.renderer.capabilities.getMaxAnisotropy?.() || 1;
-    terrainTexture.needsUpdate = true;
-
-    const grassTexture = ctx.loaders.texture.load('/textures/greenTexture3.png');
-    grassTexture.wrapS = THREE.MirroredRepeatWrapping;
-    grassTexture.wrapT = THREE.MirroredRepeatWrapping;
-    grassTexture.repeat.set(1, 1);
+    const terrainTexture = ctx.state.getTexture(TEXTURE_NAME.TERRAIN_TEXTURE);
+ 
+    const grassTexture = ctx.state.getTexture(TEXTURE_NAME.GRASS_TEXTURE);
 
     // load heightmap as DATA (linear), not sRGB
-    const heightMap = ctx.loaders.texture.load('/textures/terrain_height_3.jpg');
-    // heightMap.flipY = false;
-    heightMap.colorSpace = THREE.NoColorSpace;
-    heightMap.wrapS = heightMap.wrapT = THREE.RepeatWrapping;
-    heightMap.minFilter = THREE.LinearFilter;
-    heightMap.magFilter = THREE.LinearFilter;
+    const heightMap = ctx.state.getTexture(TEXTURE_NAME.TERRAIN_HEIGHT_MAP);
 
-    const windNoise = ctx.loaders.texture.load('/textures/wind-noise-1.png');
-    windNoise.wrapS = THREE.MirroredRepeatWrapping;
-    windNoise.wrapT = THREE.MirroredRepeatWrapping;
-    windNoise.repeat.set(1, 1);
-    windNoise.minFilter = THREE.LinearFilter;
-    windNoise.magFilter = THREE.LinearFilter;
-    windNoise.colorSpace = THREE.NoColorSpace;
-    windNoise.generateMipmaps = false;
-    windNoise.needsUpdate = true;
-
-    const grassMask = ctx.loaders.texture.load('/textures/terrain_height_3.jpg');
-    // grassMask.flipY = false;
-    grassMask.needsUpdate = true;
+    const windNoise = ctx.state.getTexture(TEXTURE_NAME.WIND_NOISE_TEXTURE);
 
     const W = ctx.state.terrainState.terrainWidth, L = ctx.state.terrainState.terrainLength;         // world size (x,z)
     // const RES_X = 256, RES_Z = 256; // vertices; start modest, increase if needed
@@ -63,10 +38,10 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
         uWindDirection: { value: ctx.state.windState.windDirection },
         windNoise: { value: windNoise },
         time: { value: 0 },
-        grassMask: { value: grassMask },
-        grassTexture:{value: grassTexture},
-        terrainTexture: {value:terrainTexture},
-        textureTileSize: {value: 25}
+        grassMask: { value: heightMap },
+        grassTexture: { value: grassTexture },
+        terrainTexture: { value: terrainTexture },
+        textureTileSize: { value: 25 }
     };
     const terrainUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
 
@@ -146,7 +121,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
             // });
             ctx.scene.add(terrainTileIM);
 
-            grassSystem = makeGrassSystem(ctx, heightMap, terrainTexture, windNoise, grassMask);
+            grassSystem = makeGrassSystem(ctx, heightMap, terrainTexture, windNoise, heightMap);
             grassSystem.init(ctx);
 
             // const largeTerrain  = new THREE.Mesh(

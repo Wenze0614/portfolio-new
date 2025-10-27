@@ -18,16 +18,17 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
     );
     bloomComposer.addPass(bloom);
     bloomComposer.renderToScreen = false;
-    const mixPass = new ShaderPass(new THREE.ShaderMaterial({
+    const mixMat = new THREE.ShaderMaterial({
         uniforms: {
             baseTexture: { value: null },
-            bloomTexture: { value: bloomComposer.renderTarget2.texture },
-            uStrength: { value: 0.6 }
+            bloomTexture: { value: null },
+            uStrength: { value: 0.6 },
+            hasBloom: { value: false },
         },
         vertexShader,
         fragmentShader,
-        // blending: THREE.AdditiveBlending,
-    }), "baseTexture");
+    });
+    const mixPass = new ShaderPass(mixMat, "baseTexture");
 
     finalComposer.addPass(mixPass);
 
@@ -55,7 +56,7 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
             }
         }
     }
-    return { nonBloom, restoreMaterial };
+    return { nonBloom, restoreMaterial, mixMat };
 }
 
 const addGrayScale = (ctx: SceneContext, finalComposer: EffectComposer) => {
@@ -93,7 +94,7 @@ const addGrayScale = (ctx: SceneContext, finalComposer: EffectComposer) => {
 
 export interface ComposerSystem {
     init(): EffectComposer;
-    update(dt:number): void;
+    update(dt: number): void;
     dispose(): void;
 }
 export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem {
@@ -104,10 +105,83 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
     const finalComposer = ctx.composers.finalComposer;
     const bloomComposer = ctx.composers.bloomComposer;
 
-    const { nonBloom, restoreMaterial } = addBloom(ctx, finalComposer, bloomComposer);
+    const { nonBloom, restoreMaterial, mixMat } = addBloom(ctx, finalComposer, bloomComposer);
 
     const testComposer = new EffectComposer(ctx.renderer);
     testComposer.addPass(new RenderPass(ctx.scene, ctx.camera));
+
+    // function* iterTexturesFromMaterial(mat: any) {
+    //     // direct map slots on standard materials
+    //     for (const k in mat) {
+    //         const v = (mat as any)[k];
+    //         if (v && v.isTexture) yield { label: k, tex: v, scope: 'material' };
+    //     }
+    //     // shader uniforms
+    //     if (mat.uniforms) {
+    //         for (const k in mat.uniforms) {
+    //             const v = mat.uniforms[k]?.value;
+    //             if (v && v.isTexture) yield { label: `uniform:${k}`, tex: v, scope: 'uniform' };
+    //         }
+    //     }
+    // }
+
+    // function listPendingTextures(scene: THREE.Scene, composer: any) {
+    //     const pending: any[] = [];
+
+    //     // scan scene materials
+    //     scene.traverse((obj: any) => {
+    //         const m = obj.material;
+    //         const mats = Array.isArray(m) ? m : m ? [m] : [];
+    //         mats.forEach((mat) => {
+    //             for (const t of iterTexturesFromMaterial(mat)) {
+    //                 const img: any = t.tex.image;
+    //                 const ok = !!img && (img.width || img.videoWidth || img.naturalWidth);
+    //                 if (!ok) pending.push({ from: obj.name || obj.type, ...t, texName: t.tex.name, uuid: t.tex.uuid });
+    //             }
+    //         });
+    //     });
+
+    //     // scan postprocessing passes
+    //     if (composer && composer.passes) {
+    //         composer.passes.forEach((pass: any) => {
+    //             const mats = [pass.material, pass.copyMaterial, pass.fsQuad?.material].filter(Boolean);
+    //             mats.forEach((mat: any) => {
+    //                 for (const t of iterTexturesFromMaterial(mat)) {
+    //                     const img: any = t.tex.image;
+    //                     const ok = !!img && (img.width || img.videoWidth || img.naturalWidth);
+    //                     if (!ok) pending.push({ from: pass.constructor?.name ?? 'Pass', ...t, texName: t.tex.name, uuid: t.tex.uuid });
+    //                 }
+    //             });
+    //         });
+    //     }
+
+    //     console.table(pending.map(p => ({
+    //         from: p.from,
+    //         slot: p.label,
+    //         texName: p.texName ?? '',
+    //         uuid: p.uuid,
+    //     })));
+
+    //     return pending;
+    // }
+    // listPendingTextures(ctx.scene, finalComposer);
+
+    // for debugging: warn if setting needsUpdate on a texture with no image
+    (function patchNeedsUpdateLog() {
+        const desc = Object.getOwnPropertyDescriptor(THREE.Texture.prototype, 'needsUpdate')!;
+        Object.defineProperty(THREE.Texture.prototype, 'needsUpdate', {
+          set(v: boolean) {
+            // @ts-ignore
+            if (v && (!this.image || !(this.image as any).width)) {
+              // @ts-ignore
+              console.warn('needsUpdate on texture with no image:', this.name || this.uuid, this);
+            }
+            // @ts-ignore
+            desc.set!.call(this, v);
+          },
+          get() { /* @ts-ignore */ return desc.get!.call(this); }
+        });
+      })();
 
     return {
         init() {
@@ -118,10 +192,13 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
             ctx.scene.fog = null;
             ctx.scene.background = new THREE.Color(0x000000);
             ctx.scene.traverse(nonBloom);
-            // ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer);
+            // // ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer); //this method does not work with occluders
             bloomComposer.render();
             ctx.scene.traverse(restoreMaterial);
             ctx.scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
+
+            mixMat.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
+            // mixMat.uniforms.hasBloom.value = true;
             // ctx.camera.layers.set(0);
             finalComposer.render();
 

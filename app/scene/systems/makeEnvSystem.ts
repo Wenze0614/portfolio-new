@@ -1,12 +1,12 @@
-import { GUISystem, SceneContext } from "../core/types";
+import { GUISystem, SceneContext, TEXTURE_NAME } from "../core/types";
 import * as THREE from "three";
 
 export default function makeEnvSystem(ctx: SceneContext) {
 
     return {
-        init(meshs:THREE.Mesh[], guiSystem: GUISystem) {
-            const envTexture = ctx.loaders.texture.load('/textures/greenTexture3.png');
-            const envTerrainTexture = ctx.loaders.texture.load('/textures/stone-texture.png');
+        async init(meshs:THREE.Mesh[], guiSystem: GUISystem) {
+            const envTexture = ctx.state.getTexture(TEXTURE_NAME.GRASS_TEXTURE);
+            envTexture.name = "envTexture";
 
             // ctx.loaders.gltf.load('/models/env.glb', (gltf) => {
             //     const model = gltf.scene;

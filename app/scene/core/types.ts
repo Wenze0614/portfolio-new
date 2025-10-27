@@ -95,6 +95,8 @@ export interface AppState {
     postEffectState:PostEffectState;
     isFullScreen: boolean;
     walkStateDefaults: PLockState;
+    setTexture(name: string, texture: THREE.Texture): void;
+    getTexture(name: string): THREE.Texture;
 }
 
 export interface SceneContext {
@@ -114,3 +116,19 @@ export interface SceneContext {
     };
     state: AppState; // your store/event bus
 }
+
+export enum TEXTURE_NAME {
+    GRASS_TEXTURE = "grassTexture",
+    ARCHIE_TEXTURE = "archieTexture",
+    TERRAIN_HEIGHT_MAP = "terrainHeightMap",
+    FOG_NOISE_TEXTURE = "fogNoiseTexture",
+    TERRAIN_TEXTURE = "terrainTexture",
+    WIND_NOISE_TEXTURE = "windNoiseTexture",
+    PIANO_TEXTURE = "pianoTexture",
+    BAR_TEXTURE = "barTexture",
+    POKEBALL_TEXTURE = "pokeballTexture",
+    FOLIAGE_TEXTURE = "foliageTexture",
+    TREEBARK_TEXTURE = "treebarkTexture",
+}
+
+export type TextureDict = Record<TEXTURE_NAME, THREE.Texture| undefined>;

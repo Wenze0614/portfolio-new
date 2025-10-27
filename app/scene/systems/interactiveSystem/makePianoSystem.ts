@@ -1,4 +1,4 @@
-import { GUISystem, SceneContext, ScreenSystem, System } from "../../core/types";
+import { GUISystem, SceneContext, ScreenSystem, System, TEXTURE_NAME } from "../../core/types";
 import * as THREE from "three";
 import vertexShader from '../../shaders/pianoShaders/vertex.vert';
 import fragmentShader from '../../shaders/pianoShaders/fragment.frag';
@@ -8,21 +8,9 @@ import barVertexShader from '../../shaders/barShaders/vertex.vert';
 import barFragmentShader from '../../shaders/barShaders/fragment.frag';
 
 export default function makePianoSystem(ctx: SceneContext, audioSys: AudioSystem): System {
-    const pianoTexture = ctx.loaders.texture.load('/textures/piano_texture.jpg');
-    pianoTexture.flipY = false;
-    pianoTexture.colorSpace = THREE.SRGBColorSpace;
-    pianoTexture.needsUpdate = true;
+    const pianoTexture = ctx.state.getTexture(TEXTURE_NAME.PIANO_TEXTURE);
 
-    const barTexture = ctx.loaders.texture.load('/textures/bar.png');
-    barTexture.flipY = false;
-    barTexture.colorSpace = THREE.SRGBColorSpace;
-
-    const toonMatcap = ctx.loaders.texture.load('/textures/green_metal_rust.png');
-    toonMatcap.colorSpace = THREE.SRGBColorSpace; // if the image was saved in sRGB
-    toonMatcap.wrapS = toonMatcap.wrapT = THREE.ClampToEdgeWrapping;
-    toonMatcap.minFilter = THREE.LinearFilter;
-    toonMatcap.magFilter = THREE.LinearFilter;
-    toonMatcap.generateMipmaps = false;
+    const barTexture = ctx.state.getTexture(TEXTURE_NAME.BAR_TEXTURE);
 
     const customUniforms = {
         pianoTexture: { value: pianoTexture },
@@ -30,7 +18,7 @@ export default function makePianoSystem(ctx: SceneContext, audioSys: AudioSystem
 
     const customBarUniforms = {
         barTexture: { value: barTexture },
-        toonMatcap: { value: toonMatcap },
+        // toonMatcap: { value: toonMatcap },
     }
     const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
     const pianoUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
@@ -44,7 +32,7 @@ export default function makePianoSystem(ctx: SceneContext, audioSys: AudioSystem
             ctx.loaders.gltf.load("/models/bar.glb", (gltf) => {
                 const model = gltf.scene;
                 ctx.scene.add(model);
-                model.rotateY(-Math.PI/4);
+                model.rotateY(-Math.PI / 4);
                 model.position.copy(opts.position);
                 // model.position.copy(piano.position);
                 const bar = model.getObjectByName("bar");
@@ -77,7 +65,7 @@ export default function makePianoSystem(ctx: SceneContext, audioSys: AudioSystem
                 }
 
                 if (piano && piano instanceof THREE.Mesh) {
-                    piano.material = new THREE.MeshBasicMaterial({map: pianoTexture});
+                    piano.material = new THREE.MeshBasicMaterial({ map: pianoTexture });
                 }
 
                 // if (piano && piano instanceof THREE.Mesh) {

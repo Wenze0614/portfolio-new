@@ -1,6 +1,6 @@
 // app/scene/core/state.ts
 import * as THREE from 'three';
-import { AppState, CONTROL_TYPE, PLockState, OrbitState, TerrainState } from './types';
+import { AppState, CONTROL_TYPE, PLockState, OrbitState, TerrainState, TextureDict, TEXTURE_NAME } from './types';
 
 export function makeState(): AppState {
     const isFullScreen = false; // placeholder, implement fullscreen logic as needed
@@ -18,8 +18,8 @@ export function makeState(): AppState {
     } as PLockState;
 
     const _terrainState: TerrainState = {
-        tileSize:25,
-        tileResolution:20,
+        tileSize: 25,
+        tileResolution: 20,
         terrainWidth: 200,
         terrainLength: 200,
         heightScale: 1.0,
@@ -28,7 +28,7 @@ export function makeState(): AppState {
 
     const _windState = {
         windSpeed: 1.0, // default wind speed
-        windDirection : new THREE.Vector2(1, 1).normalize(), // default wind direction
+        windDirection: new THREE.Vector2(1, 1).normalize(), // default wind direction
     };
 
     const _fogState = {
@@ -38,9 +38,9 @@ export function makeState(): AppState {
     const _postEffectState = {
         bloom: {
             strength: 0.6,
-            layer:1,
-            radius:0.5,
-            threshold:0.6,
+            layer: 1,
+            radius: 0.5,
+            threshold: 0.6,
         }
     }
 
@@ -48,8 +48,8 @@ export function makeState(): AppState {
         controlType: CONTROL_TYPE.Walk,
         move: { forward: false, backward: false, left: false, right: false, run: false },
         direction: new THREE.Vector3(),
-        walkTime:  0,
-        timeSinceLastStep:  0,
+        walkTime: 0,
+        timeSinceLastStep: 0,
         speed: 0.03,
         bobFrequency: 1.5,
         bobAmplitude: 0.02,
@@ -67,5 +67,32 @@ export function makeState(): AppState {
             : _OrbitStateDefaults;
     }
 
-    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() {return _windState}, get fogState() {return _fogState}, get postEffectState() {return _postEffectState},isFullScreen, get walkStateDefaults() { return _walkStateDefaults; } };
+    const textures: TextureDict = {
+        grassTexture: undefined,
+        archieTexture: undefined,
+        terrainHeightMap: undefined,
+        fogNoiseTexture: undefined,
+        terrainTexture: undefined,
+        windNoiseTexture: undefined,
+        pianoTexture: undefined,
+        barTexture: undefined,
+        pokeballTexture: undefined,
+        foliageTexture: undefined,
+        treebarkTexture: undefined,
+    };
+    function setTexture(name: TEXTURE_NAME, texture: THREE.Texture) {
+        textures[name] = texture;
+    }
+
+    const placeHolderTexture = new THREE.DataTexture(new Uint8Array([255,255,255,255]),1,1); //placeholder white texture
+    function getTexture(name: TEXTURE_NAME): THREE.Texture {
+        if(textures[name] === undefined) {
+            console.warn(`Texture ${name} not found in state.`);
+            return placeHolderTexture;
+        }
+        return textures[name];
+    }
+
+
+    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() { return _windState }, get fogState() { return _fogState }, get postEffectState() { return _postEffectState }, isFullScreen, get walkStateDefaults() { return _walkStateDefaults; }, setTexture, getTexture  };
 }

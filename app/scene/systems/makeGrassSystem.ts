@@ -1,4 +1,4 @@
-import { SceneContext, System } from "../core/types";
+import { SceneContext, System, TEXTURE_NAME } from "../core/types";
 import vertexShader from "../shaders/grassShaders/vertex.vert";
 import fragmentShader from "../shaders/grassShaders/fragment.frag";
 import * as THREE from "three";
@@ -68,10 +68,7 @@ type LODKey = 'HIGH' | 'MED' | 'LOW';
 export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Texture, terrainTexture: THREE.Texture, windNoise: THREE.Texture, grassMask: THREE.Texture): System {
     const GRASS_PATCH_SIZE = ctx.state.terrainState.tileSize; // size of each grass patch tile
     
-    const grassTexture = ctx.loaders.texture.load('/textures/greenTexture3.png');
-    grassTexture.wrapS = THREE.RepeatWrapping;
-    grassTexture.wrapT = THREE.RepeatWrapping;
-    grassTexture.repeat.set(1, 1);
+    const grassTexture = ctx.state.getTexture(TEXTURE_NAME.GRASS_TEXTURE);
 
     const terrainWidth = ctx.state.terrainState.terrainWidth;
     const terrainHeight = ctx.state.terrainState.terrainLength;

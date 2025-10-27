@@ -24,9 +24,9 @@ import makeFogSystem from "./systems/makeFogSystem";
 import modifyShader from "./utils/modifyShader";
 import makeInteractiveSystem, { InteractiveSystem } from "./systems/interactiveSystem/makeInteractiveSystem";
 import makeAudioSystem, { AudioSystem } from "./systems/makeAudioSystem";
-import { ControlSystem, GUISystem, LightSystem, System } from "./core/types";
-import { update } from "three/examples/jsm/libs/tween.module.js";
+import { ControlSystem, GUISystem, LightSystem, System, TEXTURE_NAME } from "./core/types";
 import makeSignSystem from "./systems/makeSignSystem";
+import makeTextureLoaderSys from "./systems/makeTextureLoaderSys";
 
 
 export default function Page() {
@@ -65,6 +65,13 @@ export default function Page() {
     const orbitGroups: { planet: THREE.Object3D, radius: number, speed: number, spinRate: number }[] = [];
 
 
+    // const _origLoad = FileLoader.prototype.load;
+    // FileLoader.prototype.load = function (url, ...rest) {
+    //     if (typeof url === 'string' && url.startsWith('blob:')) {
+    //         console.warn('[Three] FileLoader got blob URL:', url, this);
+    //     }
+    //     return _origLoad.call(this, url, ...rest);
+    // };
 
 
     useEffect(() => {
@@ -79,6 +86,7 @@ export default function Page() {
         let myMixer: THREE.AnimationMixer;
         // #endregion
         (async () => {
+            await makeTextureLoaderSys(ctx);
             makeFogSystem(ctx);
             scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
 
@@ -129,9 +137,9 @@ export default function Page() {
             treeSysRef.current = treeSystem;
 
             //add tree cards for background
-            const treeCardSystem = makeTreeCardsSystem(ctx);
-            treeCardSystem.init(ctx);
-            treeCardSysRef.current = treeCardSystem;
+            // const treeCardSystem = makeTreeCardsSystem(ctx);
+            // treeCardSystem.init(ctx);
+            // treeCardSysRef.current = treeCardSystem;
 
             signSysRef.current = makeSignSystem(ctx);
 
@@ -149,37 +157,35 @@ export default function Page() {
             testCube.name = "test cube";
             meshs.push(testCube);
 
-        ctx.loaders.gltf.load('/models/archie.glb', (gltf) => {
-            console.log("archie gltf: ", gltf);
-            const model = gltf.scene;
-            model.scale.set(0.02, 0.02, 0.02);
-            model.position.set(0, 0.2, 0);
-            scene.add(model);
-            const archie = model.getObjectByName('archie');
-            const archieTexture = ctx.loaders.texture.load('/textures/maya_baseColor.png');
-            archieTexture.flipY = false;
-            archieTexture.colorSpace = THREE.SRGBColorSpace;
-            if (archie && archie instanceof THREE.Mesh) {
-                archie.material = new THREE.MeshBasicMaterial({
-                    map: archieTexture,
-                });
-                // ctx.scene.add(archie);
-                // archie.position.set(0, 0.2, 0);
-            }
-            const mixer = new THREE.AnimationMixer(model);
-            const clips = gltf.animations;
+            ctx.loaders.gltf.load('/models/archie.glb', async (gltf) => {
+                const model = gltf.scene;
+                model.scale.set(0.02, 0.02, 0.02);
+                model.position.set(0, 0.2, 0);
+                scene.add(model);
+                const archie = model.getObjectByName('archie');
+                const archieTexture = ctx.state.getTexture(TEXTURE_NAME.ARCHIE_TEXTURE);
 
-            // pick the first animation (or by name)
-            const idle = THREE.AnimationClip.findByName(clips, 'Idle');
-            if (idle) {
-                const action = mixer.clipAction(idle);
-                action.reset().play();
-            } else {
-                console.warn("Idle animation not found on archie");
-            }
-            // store mixer for update loop
-            myMixer = mixer;
-        })
+                if (archie && archie instanceof THREE.Mesh) {
+                    archie.material = new THREE.MeshBasicMaterial({
+                        map: archieTexture,
+                    });
+                    // ctx.scene.add(archie);
+                    // archie.position.set(0, 0.2, 0);
+                }
+                const mixer = new THREE.AnimationMixer(model);
+                const clips = gltf.animations;
+
+                // pick the first animation (or by name)
+                const idle = THREE.AnimationClip.findByName(clips, 'Idle');
+                if (idle) {
+                    const action = mixer.clipAction(idle);
+                    action.reset().play();
+                } else {
+                    console.warn("Idle animation not found on archie");
+                }
+                // store mixer for update loop
+                myMixer = mixer;
+            })
 
         })()
 
@@ -201,7 +207,7 @@ export default function Page() {
         const timer = new Timer();
         let angle = 0.0;
         const updateSys = (ref: RefObject<any>) => {
-            if(ref.current && ref.current.update) {
+            if (ref.current && ref.current.update) {
                 ref.current.update(timer.getElapsed());
             }
         }
@@ -215,7 +221,7 @@ export default function Page() {
             updateSys(skySysRef);
             updateSys(lightSysRef);
             updateSys(treeSysRef);
-            updateSys(treeCardSysRef);
+            // updateSys(treeCardSysRef);
             updateSys(interactiveSysRef);
             updateSys(composerSysRef);
             updateSys(signSysRef);

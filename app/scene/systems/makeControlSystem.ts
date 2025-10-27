@@ -1,5 +1,5 @@
 // app/scene/systems/makeControlsSystem.ts
-import { System, SceneContext, PLockState, OrbitState, CONTROL_TYPE, ControlSystem } from '../core/types';
+import { System, SceneContext, PLockState, OrbitState, CONTROL_TYPE, ControlSystem, TEXTURE_NAME } from '../core/types';
 import { OrbitControls, PointerLockControls } from 'three/examples/jsm/Addons.js';
 import { makeHeightSampler } from '../utils/makeHeightSampler';
 import * as THREE from 'three';
@@ -8,7 +8,8 @@ import { AudioSystem } from './makeAudioSystem';
 
 import nipplejs from 'nipplejs';
 
-const onKeyDown = (event: KeyboardEvent, controlState: PLockState) => {
+const onKeyDown = (event: KeyboardEvent, controlState: PLockState, ctx: SceneContext) => {
+    if(ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
     switch (event.code) {
         case 'KeyW': controlState.move.forward = true; break;
         case 'KeyS': controlState.move.backward = true; break;
@@ -18,7 +19,8 @@ const onKeyDown = (event: KeyboardEvent, controlState: PLockState) => {
     }
 };
 
-const onKeyUp = (event: KeyboardEvent, controlState: PLockState) => {
+const onKeyUp = (event: KeyboardEvent, controlState: PLockState, ctx: SceneContext) => {
+    if(ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
     switch (event.code) {
         case 'KeyW': controlState.move.forward = false; break;
         case 'KeyS': controlState.move.backward = false; break;
@@ -75,6 +77,29 @@ const onKeyUp = (event: KeyboardEvent, controlState: PLockState) => {
 //     });
 // }
 
+function createJoystickZone(): HTMLElement {
+    let zone = document.getElementById('joystick-zone') as HTMLElement | null;
+    if (!zone) {
+        zone = document.createElement('div');
+        zone.id = 'joystick-zone';
+        Object.assign(zone.style, {
+            position: 'absolute',
+            left: '0',
+            bottom: '0',
+            width: '40vw',     // covers lower-left corner
+            height: '40vh',
+            touchAction: 'none',
+            zIndex: '10',      // on top of canvas for input
+        });
+        document.body.appendChild(zone);
+    }
+    return zone;
+}
+
+function pointInRect(x: number, y: number, rect: DOMRect) {
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+}
+
 async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext, controlState: PLockState) {
     // Guard SSR
     if (typeof window === 'undefined') return;
@@ -83,11 +108,13 @@ async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext
     // dynamic import (client only)
     const { default: nipplejs } = await import('nipplejs');
 
+    const zoneEl = createJoystickZone();
+
     // create joystick
     const joystick = nipplejs.create({
-        zone: ctx.renderer.domElement,       // or a dedicated overlay div
-        mode: 'static',
-        position: { left: '18%', bottom: '20%' },
+        zone: zoneEl,       // or a dedicated overlay div
+        mode: 'dynamic',
+        // position: { left: '25%', bottom: '25%' },
         color: 'white',
         size: 120,
     });
@@ -110,6 +137,7 @@ async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext
     joystick.on('end', endHandler);
 
     // drag-to-look (touch) — emulate pointer lock mouse deltas
+    //horizontal (yaw) and vertical (pitch) rotation
     const pitchObject = plock.getObject().children[0] as THREE.Object3D; // camera holder
     const yawObject = plock.getObject();
 
@@ -121,6 +149,8 @@ async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext
 
     const onStart = (e: TouchEvent) => {
         if (e.touches.length !== 1) return;
+        const joystickRect = zoneEl.getBoundingClientRect();
+        if (pointInRect(e.touches[0].clientX, e.touches[0].clientY, joystickRect)) return; // ignore if touching joystick area
         dragging = true;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
@@ -279,18 +309,15 @@ export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): Co
     }
 
     (async () => {
-        // if (!heightMapRef.current) {
-        //     heightMapRef.current = await ctx.loaders.texture.loadAsync('/textures/terrain_height.jpg');
-        // }
-        const heightMap = await ctx.loaders.texture.loadAsync('/textures/terrain_height_3.jpg');
+        const heightMap = ctx.state.getTexture(TEXTURE_NAME.TERRAIN_HEIGHT_MAP);
         // console.log('heightmap width: ', heightMap.image)
         const terrainMin = new THREE.Vector2(-terrainWidth * 0.5, -terrainHeight * 0.5);
         const terrainMax = new THREE.Vector2(terrainWidth * 0.5, terrainHeight * 0.5);
         heightSampler = makeHeightSampler(heightMap, terrainMin, terrainMax, { flipV: true });
     })()
 
-    document.addEventListener('keydown', (e) => onKeyDown(e, ctx.state.controlState as PLockState));
-    document.addEventListener('keyup', (e) => onKeyUp(e, ctx.state.controlState as PLockState));
+    document.addEventListener('keydown', (e) => onKeyDown(e, ctx.state.controlState as PLockState, ctx));
+    document.addEventListener('keyup', (e) => onKeyUp(e, ctx.state.controlState as PLockState, ctx));
 
 
     return {

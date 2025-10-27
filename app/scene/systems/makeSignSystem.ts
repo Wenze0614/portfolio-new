@@ -7,16 +7,16 @@ import { Line2, LineGeometry, LineMaterial } from "three/examples/jsm/Addons.js"
 
 
 export default function makeSignSystem(ctx: SceneContext): System {
-    const signTexture = ctx.loaders.texture.load("/textures/sign_1k.png");
-    signTexture.flipY = false;
-    // signTexture.colorSpace = THREE.SRGBColorSpace;
-    signTexture.magFilter = THREE.NearestFilter;
-    signTexture.minFilter = THREE.NearestFilter;
-    const customUniforms = {
-        signTexture: { value: signTexture },
-    }
-    const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
-    const signUniform = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
+    // const signTexture = ctx.loaders.texture.load("/textures/sign_1k.png");
+    // signTexture.flipY = false;
+    // // signTexture.colorSpace = THREE.SRGBColorSpace;
+    // signTexture.magFilter = THREE.NearestFilter;
+    // signTexture.minFilter = THREE.NearestFilter;
+    // const customUniforms = {
+    //     signTexture: { value: signTexture },
+    // }
+    // const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
+    // const signUniform = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
     // ctx.loaders.gltf.load("/models/sign.glb", (gltf) => {
     //     const model = gltf.scene;
     //     const sign = model.getObjectByName("sign");

@@ -1,4 +1,4 @@
-import { SceneContext } from "../../core/types";
+import { SceneContext, TEXTURE_NAME } from "../../core/types";
 import * as THREE from "three";
 import vertexShader from '../../shaders/foliageShaders/vertex.vert';
 import vertexDepth from '../../shaders/foliageShaders/vertexDepth.vert';
@@ -141,8 +141,7 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
     const foliageSpherePositions = foliageGuides.map((guide) => guide.position);
 
 
-    const foliageTexture = ctx.loaders.texture.load('/textures/trees/foliage-2.png');
-    foliageTexture.colorSpace = THREE.NoColorSpace;
+    const foliageTexture = ctx.state.getTexture(TEXTURE_NAME.FOLIAGE_TEXTURE);
 
     const { geo: foliageGeo, foliageSphereData } = createFoliageGeometry(foliageGuides, treeTransformMatrx, treeCount);
     const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
@@ -210,7 +209,7 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
         lights: true,
         fog: true,
     });
-    foliageMat.defines = { ...(foliageMat.defines || {}), USE_INSTANCING: 1, FOG_USE_NOISE:1 };
+    foliageMat.defines = { ...(foliageMat.defines || {}), USE_INSTANCING: 1, FOG_USE_NOISE: 1 };
     // foliageMat.defines.FOG_USE_NOISE = 1;
     //console.log("tree uniform: ", treeUniforms)
     const foliageMesh = new THREE.Mesh(foliageGeo, foliageMat);
@@ -246,9 +245,9 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
 
     return {
         init(ctx: SceneContext) { },
-        update(dt:number) {
+        update(dt: number) {
             foliageMat.uniforms.fogTime.value = dt;
-         },
+        },
         dispose() { },
         getFoliage() {
             return foliageMesh;

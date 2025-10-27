@@ -1,4 +1,4 @@
-import { SceneContext, System } from "../../core/types";
+import { SceneContext, System, TEXTURE_NAME } from "../../core/types";
 import * as THREE from "three";
 import makeFoliageSystem, { FoliageClumpsData } from "./makeFoliageSystem";
 import vertexShader from '../../shaders/treeTrunkShader/vertex.vert';
@@ -92,8 +92,8 @@ export interface TreeSystem {
 
 export default function makeTreeSystem(ctx: SceneContext): TreeSystem {
     //makeFoliageSystem(ctx);
-    const foliageTexture = ctx.loaders.texture.load('/textures/trees/foliage-2.png');
-    const trunkTexture = ctx.loaders.texture.load('/textures/trees/tree_trunk_baseColor.png');
+    // const foliageTexture = ctx.loaders.texture.load('/textures/trees/foliage-2.png');
+    const trunkTexture = ctx.state.getTexture(TEXTURE_NAME.TREEBARK_TEXTURE);
 
     const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
     const customUniforms = {
@@ -101,7 +101,7 @@ export default function makeTreeSystem(ctx: SceneContext): TreeSystem {
         resolution: { value: new THREE.Vector2(1, 1) },
         uWindSpeed: { value: ctx.state.windState.windSpeed },
         uWindDirection: { value: ctx.state.windState.windDirection },
-        uFoliageTexture: { value: foliageTexture },
+        // uFoliageTexture: { value: foliageTexture },
         uTrunkTexture: { value: trunkTexture },
     }
     const treeTrunkUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
@@ -143,7 +143,6 @@ export default function makeTreeSystem(ctx: SceneContext): TreeSystem {
                     if (obj.name.startsWith("guide")) {
                         //guides.push(obj as THREE.Mesh);
                         // ctx.scene.add(obj);
-                        console.log('obj scale: ', obj.scale);
                         const guide: FoliageClumpsData = {
                             position: obj.position.clone(),
                             clumpsNum: Math.round((obj.scale.x - 2) * 10),

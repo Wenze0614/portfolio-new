@@ -1,9 +1,7 @@
-import { SceneContext, System } from "../../core/types";
+import { SceneContext, System, TEXTURE_NAME } from "../../core/types";
 import * as THREE from "three";
 export default function makePokeBallSystem(ctx: SceneContext):System{
-    const pokeballTexture = ctx.loaders.texture.load('/textures/pokeball_BaseColor.png');
-    pokeballTexture.flipY = false;
-    pokeballTexture.colorSpace = THREE.SRGBColorSpace;
+    const pokeballTexture = ctx.state.getTexture(TEXTURE_NAME.POKEBALL_TEXTURE);
 
     return {
         init(ctx:SceneContext,meshs: THREE.Mesh[], guiSystem: any, opts: {position: THREE.Vector3}) {
