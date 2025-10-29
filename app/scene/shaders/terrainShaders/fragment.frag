@@ -103,5 +103,7 @@ void main() {
 
     gl_FragColor = vec4(color, 1.0);
 
+    #include <colorspace_fragment>
     #include <fog_fragment>
+
 }

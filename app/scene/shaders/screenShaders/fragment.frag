@@ -7,4 +7,5 @@ varying vec3 vNormalWS;
 void main(){
     vec4 screenMask = texture2D(screenTexture, vUv);
      gl_FragColor = vec4(screenMask.rgb, 1.0);
+     #include <colorspace_fragment>
 }

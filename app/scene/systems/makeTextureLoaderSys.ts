@@ -47,14 +47,14 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     windNoiseTexture.needsUpdate = true;
     ctx.state.setTexture(TEXTURE_NAME.WIND_NOISE_TEXTURE, windNoiseTexture);
 
-    const pianoTexture = await ctx.loaders.texture.loadAsync('/textures/piano_texture.jpg');
+    const pianoTexture = await ctx.loaders.texture.loadAsync('/textures/piano.jpg');
     pianoTexture.flipY = false;
     pianoTexture.colorSpace = THREE.SRGBColorSpace;
     pianoTexture.name = "pianoTexture";
     pianoTexture.needsUpdate = true;
     ctx.state.setTexture(TEXTURE_NAME.PIANO_TEXTURE, pianoTexture);
 
-    const barTexture = await ctx.loaders.texture.loadAsync('/textures/bar.jpg');
+    const barTexture = await ctx.loaders.texture.loadAsync('/textures/bar_2.jpg');
     barTexture.flipY = false;
     barTexture.colorSpace = THREE.SRGBColorSpace;
     barTexture.name = "barTexture";
@@ -79,4 +79,26 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     treebarkTexture.name = "treebarkTexture";
     treebarkTexture.needsUpdate = true;
     ctx.state.setTexture(TEXTURE_NAME.TREEBARK_TEXTURE, treebarkTexture);
+
+    const starTexture = await ctx.loaders.texture.loadAsync('/textures/star.png');
+    starTexture.name = "starTexture";
+    starTexture.colorSpace = THREE.SRGBColorSpace;
+    starTexture.needsUpdate = true;
+    ctx.state.setTexture(TEXTURE_NAME.STAR_TEXTURE, starTexture);
+
+    const video = document.createElement('video');
+    video.src = '/textures/singing.mp4';   // or .mov if your browser supports it
+    video.muted = true;                     // allow autoplay on mobile
+    video.loop = true;
+    video.playsInline = true;               // iOS
+    video.crossOrigin = 'anonymous';
+
+    window.addEventListener('pointerdown', () => video.play(), { once: true });
+    const tex = new THREE.VideoTexture(video);
+    tex.flipY = false;
+    tex.colorSpace = THREE.SRGBColorSpace;  // typical for UI/video
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.generateMipmaps = false;
+    ctx.state.setVideoTexture("singing1", tex);
 }

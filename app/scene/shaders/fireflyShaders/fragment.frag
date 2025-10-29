@@ -9,4 +9,5 @@ void main () {
     w *= abs(sin(uTime + vPosWS.x * 10.0));
     if(w<0.3) discard;
     gl_FragColor = vec4(1.0, 1.0, 0.8, w);
+    #include <colorspace_fragment>
 }

@@ -1,4 +1,4 @@
-import { GUISystem, SceneContext, ScreenSystem, System, TEXTURE_NAME } from "../../core/types";
+import { GUISystem, SceneContext, ScreenSystem, System, TEXTURE_NAME, VIDEOTEXTURE_NAME } from "../../core/types";
 import * as THREE from "three";
 import vertexShader from '../../shaders/pianoShaders/vertex.vert';
 import fragmentShader from '../../shaders/pianoShaders/fragment.frag';
@@ -11,6 +11,7 @@ export default function makeMusicBar(ctx: SceneContext, audioSys: AudioSystem): 
     const pianoTexture = ctx.state.getTexture(TEXTURE_NAME.PIANO_TEXTURE);
 
     const barTexture = ctx.state.getTexture(TEXTURE_NAME.BAR_TEXTURE);
+    const starTexture = ctx.state.getTexture(TEXTURE_NAME.STAR_TEXTURE);
 
     const customUniforms = {
         pianoTexture: { value: pianoTexture },
@@ -18,6 +19,8 @@ export default function makeMusicBar(ctx: SceneContext, audioSys: AudioSystem): 
 
     const customBarUniforms = {
         barTexture: { value: barTexture },
+        starTexture: { value: starTexture },
+        uTime: { value: 0 },
         // toonMatcap: { value: toonMatcap },
     }
     const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
@@ -34,11 +37,13 @@ export default function makeMusicBar(ctx: SceneContext, audioSys: AudioSystem): 
                 ctx.scene.add(model);
                 model.rotateY(-Math.PI / 4);
                 model.position.copy(opts.position);
+                model.scale.set(1.5, 1.2, 1.5);
                 // model.position.copy(piano.position);
                 const bar = model.getObjectByName("bar");
                 const neon1 = model.getObjectByName("neon1");
                 const neon2 = model.getObjectByName("neon2");
                 const piano = model.getObjectByName("piano");
+                const barScreen = model.getObjectByName("barScreen");
                 console.log("piano model: ", piano);
                 const neonMaterial = new THREE.MeshBasicMaterial({ color: "#E7D8B1" });
                 if (neon1 && neon1 instanceof THREE.Mesh) {
@@ -58,14 +63,23 @@ export default function makeMusicBar(ctx: SceneContext, audioSys: AudioSystem): 
                         vertexShader: barVertexShader,
                         fragmentShader: barFragmentShader,
                         lights: true,
-                        transparent: true,
+                        // transparent: true,
+                        // depthWrite: false,
+                        // blending: THREE.AdditiveBlending,
                     })
+                    //bar.layers.enable(ctx.state.postEffectState.bloom.layer);
                     // bar.castShadow = true;
                     // bar.receiveShadow = true;
                 }
 
                 if (piano && piano instanceof THREE.Mesh) {
                     piano.material = new THREE.MeshBasicMaterial({ map: pianoTexture });
+                    piano.material.needsUpdate = true;
+                }
+
+                if (barScreen && barScreen instanceof THREE.Mesh) {
+                    barScreen.material = new THREE.MeshBasicMaterial({ map: ctx.state.getVideoTexture(VIDEOTEXTURE_NAME.SINGING_1), transparent: true, opacity: 0.8 });
+                    barScreen.material.needsUpdate = true;
                 }
 
                 // if (piano && piano instanceof THREE.Mesh) {
@@ -99,6 +113,7 @@ export default function makeMusicBar(ctx: SceneContext, audioSys: AudioSystem): 
 
         },
         update(dt: number) {
+            barUniforms.uTime.value = dt;
             // if (screenSys) {
             //     screenSys.update(dt);
             // }

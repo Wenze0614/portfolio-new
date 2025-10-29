@@ -1,16 +1,21 @@
 #include <common>
 #include <packing>
 #include <lights_pars_begin>
+
+// #pragma glslify: utils = require('../includes/utils.glsl')
 // #include <shadowmap_pars_fragment>
 // #include <fog_pars_fragment>
 
 uniform sampler2D barTexture;
+uniform sampler2D starTexture;
 uniform sampler2D toonMatcap;
+uniform float uTime;
 
 varying vec3 vPosWS;
 varying vec2 vUv;
 varying vec3 vNormalWS;
 varying vec3 vNormalView;
+varying vec3 vNormal;
 
 int toonSteps = 3;
 
@@ -23,10 +28,15 @@ float toonQuantize(float x, int steps) {
     return clamp(q, 0.0, 1.0);
 }
 
+
+#pragma glslify: hologramShader = require('../includes/hologram.glsl')
+
 void main() {
 
-    vec4 textureColor = texture2D(barTexture, vUv);
+    vec4 textureColor = texture2D(barTexture, fract(vUv+vec2(uTime*0.005, uTime*0.003)));
     vec3 color = textureColor.rgb;
+
+    // vec4 holoColor = hologramShader(vPosWS, vNormalWS, uTime, cameraPosition);
     float alpha = textureColor.a;
 
       // View vector in view space is (0,0,1) toward the camera
@@ -109,10 +119,19 @@ void main() {
 
 // Apply to your albedo/base color
 // (assumes 'color' currently holds your sampled albedo)
-    color = color + irradiance * 0.3;  // or: color = color * (ambient + irradiance);
-    alpha = 1.0 - smoothstep(4.3, 5.0, vPosWS.y);
+    // if(color.r>0.3) {
+    //     // color = texture2D(starTexture, fract(vUv)).rgb * vec3(1.2);
+    // } else {
+    //     color = color+irradiance*0.4;  // or: color = color * (ambient + irradiance);
+    // }
+    color = color+irradiance*0.4;
+
+    // alpha = 1.0 - smoothstep(4.3, 5.0, vPosWS.y);
+    alpha = 1.0;
 
     gl_FragColor = vec4(color, alpha);
+    // gl_FragColor = holoColor;
 
+    #include <colorspace_fragment>
     // #include <fog_fragment>
 }

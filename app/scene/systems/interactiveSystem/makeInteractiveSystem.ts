@@ -15,7 +15,7 @@ export interface InteractiveSystem {
 export default function makeInteractiveSystem(ctx: SceneContext, audioSys:AudioSystem): InteractiveSystem {
     const pokeballPosition = new THREE.Vector3(-30, 3, 7);
     const pianoPosition = new THREE.Vector3(10, 0.2, 50);
-    const pianoSystem = makeMusicBar(ctx, audioSys)
+    const barSys = makeMusicBar(ctx, audioSys)
     const pokeBallSystem = makePokeBallSystem(ctx)
     const fireflySys1 = makeFireflySystem(ctx)
     fireflySys1.init(pianoPosition, 5);
@@ -23,14 +23,14 @@ export default function makeInteractiveSystem(ctx: SceneContext, audioSys:AudioS
     fireflySys2.init(pokeballPosition, 5);
     return {
         init(meshs: THREE.Mesh[], guiSystem: any) {
-            pianoSystem.init(ctx, meshs, guiSystem, {position: pianoPosition});
+            barSys.init(ctx, meshs, guiSystem, {position: pianoPosition});
             pokeBallSystem.init(ctx, meshs, guiSystem, {position: pokeballPosition});
 
         },
         update(dt: number) {
             fireflySys1.update(dt);
             fireflySys2.update(dt);
-            pianoSystem.update(dt);
+            barSys.update(dt);
         },
         dispose() {
             //clean up event listeners or other resources here

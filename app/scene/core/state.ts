@@ -1,6 +1,6 @@
 // app/scene/core/state.ts
 import * as THREE from 'three';
-import { AppState, CONTROL_TYPE, PLockState, OrbitState, TerrainState, TextureDict, TEXTURE_NAME } from './types';
+import { AppState, CONTROL_TYPE, PLockState, OrbitState, TerrainState, TextureDict, TEXTURE_NAME, VideoTextureDict, VIDEOTEXTURE_NAME } from './types';
 
 export function makeState(): AppState {
     const isFullScreen = false; // placeholder, implement fullscreen logic as needed
@@ -79,20 +79,37 @@ export function makeState(): AppState {
         pokeballTexture: undefined,
         foliageTexture: undefined,
         treebarkTexture: undefined,
+        starTexture: undefined,
     };
     function setTexture(name: TEXTURE_NAME, texture: THREE.Texture) {
         textures[name] = texture;
     }
 
-    const placeHolderTexture = new THREE.DataTexture(new Uint8Array([255,255,255,255]),1,1); //placeholder white texture
+    const placeHolderTexture = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); //placeholder white texture
     function getTexture(name: TEXTURE_NAME): THREE.Texture {
-        if(textures[name] === undefined) {
+        if (textures[name] === undefined) {
             console.warn(`Texture ${name} not found in state.`);
             return placeHolderTexture;
         }
         return textures[name];
     }
 
+    const videoTextures: VideoTextureDict = {
+        singing1: undefined,
+    }
 
-    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() { return _windState }, get fogState() { return _fogState }, get postEffectState() { return _postEffectState }, isFullScreen, get walkStateDefaults() { return _walkStateDefaults; }, setTexture, getTexture  };
-}
+    function setVideoTexture(name: VIDEOTEXTURE_NAME, texture: THREE.VideoTexture) {
+        videoTextures[name] = texture;
+    }
+
+    function getVideoTexture(name: VIDEOTEXTURE_NAME): THREE.VideoTexture {
+        if (videoTextures[name] === undefined) {
+            console.warn(`Video Texture ${name} not found in state.`);
+            return THREE.VideoTexture.prototype;
+        }
+        return videoTextures[name];
+    }
+
+
+    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() { return _windState }, get fogState() { return _fogState }, get postEffectState() { return _postEffectState }, isFullScreen, get walkStateDefaults() { return _walkStateDefaults; }, setTexture, getTexture, setVideoTexture, getVideoTexture };
+};

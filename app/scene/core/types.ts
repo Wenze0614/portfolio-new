@@ -97,6 +97,8 @@ export interface AppState {
     walkStateDefaults: PLockState;
     setTexture(name: string, texture: THREE.Texture): void;
     getTexture(name: string): THREE.Texture;
+    setVideoTexture(name: string, texture: THREE.VideoTexture): void;
+    getVideoTexture(name: string): THREE.VideoTexture;
 }
 
 export interface SceneContext {
@@ -129,6 +131,13 @@ export enum TEXTURE_NAME {
     POKEBALL_TEXTURE = "pokeballTexture",
     FOLIAGE_TEXTURE = "foliageTexture",
     TREEBARK_TEXTURE = "treebarkTexture",
+    STAR_TEXTURE = "starTexture",
+}
+
+export enum VIDEOTEXTURE_NAME {
+    SINGING_1 = "singing1",
 }
 
 export type TextureDict = Record<TEXTURE_NAME, THREE.Texture| undefined>;
+
+export type VideoTextureDict = Record<VIDEOTEXTURE_NAME, THREE.VideoTexture| undefined>;
