@@ -124,8 +124,8 @@ async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext
         const { x, y } = data.vector; // [-1..1]
         controlState.move.forward = (y > -0.3);
         controlState.move.backward = (y < 0.3);
-        controlState.move.left = (x > -0.3);
-        controlState.move.right = (x < 0.3);
+        controlState.move.left = (x < -0.3);
+        controlState.move.right = (x > 0.3);
     };
     const endHandler = () => {
         if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;

@@ -67,7 +67,7 @@ export default function makeMusicBar(ctx: SceneContext, audioSys: AudioSystem): 
                         // depthWrite: false,
                         // blending: THREE.AdditiveBlending,
                     })
-                    //bar.layers.enable(ctx.state.postEffectState.bloom.layer);
+                    bar.layers.enable(ctx.state.postEffectState.bloom.layer);
                     // bar.castShadow = true;
                     // bar.receiveShadow = true;
                 }
