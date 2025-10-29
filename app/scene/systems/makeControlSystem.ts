@@ -122,10 +122,10 @@ async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext
     const moveHandler = (_evt: any, data: any) => {
         if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
         const { x, y } = data.vector; // [-1..1]
-        controlState.move.forward = (y < -0.3);
-        controlState.move.backward = (y > 0.3);
-        controlState.move.left = (x < -0.3);
-        controlState.move.right = (x > 0.3);
+        controlState.move.forward = (y > -0.3);
+        controlState.move.backward = (y < 0.3);
+        controlState.move.left = (x > -0.3);
+        controlState.move.right = (x < 0.3);
     };
     const endHandler = () => {
         if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
@@ -148,7 +148,7 @@ async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext
     const el = ctx.renderer.domElement;
 
     const onStart = (e: TouchEvent) => {
-        if (e.touches.length !== 1) return;
+        // if (e.touches.length !== 1) return;
         const joystickRect = zoneEl.getBoundingClientRect();
         if (pointInRect(e.touches[0].clientX, e.touches[0].clientY, joystickRect)) return; // ignore if touching joystick area
         dragging = true;
