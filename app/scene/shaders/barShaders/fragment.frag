@@ -33,7 +33,8 @@ float toonQuantize(float x, int steps) {
 
 void main() {
 
-    vec4 textureColor = texture2D(barTexture, fract(vUv+vec2(uTime*0.005, uTime*0.003)));
+    // vec4 textureColor = texture2D(barTexture, fract(vUv+vec2(uTime*0.005, uTime*0.003)));
+    vec4 textureColor = texture2D(barTexture, vUv);
     vec3 color = textureColor.rgb;
 
     // vec4 holoColor = hologramShader(vPosWS, vNormalWS, uTime, cameraPosition);
