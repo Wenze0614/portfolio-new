@@ -13,7 +13,7 @@ export interface InteractiveSystem {
 }
 
 export default function makeInteractiveSystem(ctx: SceneContext, audioSys:AudioSystem): InteractiveSystem {
-    const pokeballPosition = new THREE.Vector3(-30, 3, 7);
+    const pokeballPosition = new THREE.Vector3(-30, 0, 7);
     const pianoPosition = new THREE.Vector3(10, 0.2, 50);
     const barSys = makeMusicBar(ctx, audioSys)
     const pokeBallSystem = makePokeBallSystem(ctx)

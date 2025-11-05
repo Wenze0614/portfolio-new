@@ -68,6 +68,29 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     pokeballTexture.needsUpdate = true;
     ctx.state.setTexture(TEXTURE_NAME.POKEBALL_TEXTURE, pokeballTexture);
 
+    const minecraftTexture = await ctx.loaders.texture.loadAsync('/textures/minecraft.png');
+    minecraftTexture.flipY = false;
+    minecraftTexture.colorSpace = THREE.SRGBColorSpace;
+    minecraftTexture.minFilter = THREE.NearestFilter;
+    minecraftTexture.magFilter = THREE.NearestFilter;
+    minecraftTexture.name = "minecraftTexture";
+    minecraftTexture.needsUpdate = true;
+    ctx.state.setTexture(TEXTURE_NAME.MINECRAFT_TEXTURE, minecraftTexture);
+
+    const minecraftWoodTexture = await ctx.loaders.texture.loadAsync('/textures/wood.jpg');
+    minecraftWoodTexture.flipY = false;
+    minecraftWoodTexture.colorSpace = THREE.SRGBColorSpace;
+    minecraftWoodTexture.name = "minecraftWoodTexture";
+    minecraftWoodTexture.needsUpdate = true;
+    ctx.state.setTexture(TEXTURE_NAME.MINECRAFT_WOOD_TEXTURE, minecraftWoodTexture);
+
+    const minecraftRoofTexture = await ctx.loaders.texture.loadAsync('/textures/roof.jpg');
+    minecraftRoofTexture.flipY = false;
+    minecraftRoofTexture.colorSpace = THREE.SRGBColorSpace;
+    minecraftRoofTexture.name = "minecraftRoofTexture";
+    minecraftRoofTexture.needsUpdate = true;
+    ctx.state.setTexture(TEXTURE_NAME.MINECRAFT_ROOF_TEXTURE, minecraftRoofTexture);
+
     const foliageTexture = await ctx.loaders.texture.loadAsync('/textures/trees/foliage-2.png');
     foliageTexture.colorSpace = THREE.NoColorSpace;
     foliageTexture.name = "foliageTexture";

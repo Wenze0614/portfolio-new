@@ -132,6 +132,9 @@ export enum TEXTURE_NAME {
     FOLIAGE_TEXTURE = "foliageTexture",
     TREEBARK_TEXTURE = "treebarkTexture",
     STAR_TEXTURE = "starTexture",
+    MINECRAFT_TEXTURE = "minecraftTexture",
+    MINECRAFT_WOOD_TEXTURE = "minecraftWoodTexture",
+    MINECRAFT_ROOF_TEXTURE = "minecraftRoofTexture",
 }
 
 export enum VIDEOTEXTURE_NAME {

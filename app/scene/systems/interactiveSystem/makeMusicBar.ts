@@ -158,6 +158,7 @@ export default function makeMusicBar(ctx: SceneContext, audioSys: AudioSystem): 
         },
         update(dt: number) {
             barUniforms.uTime.value = dt;
+            screenUniforms.uTime.value = dt;
             // if (screenSys) {
             //     screenSys.update(dt);
             // }

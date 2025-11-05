@@ -80,6 +80,9 @@ export function makeState(): AppState {
         foliageTexture: undefined,
         treebarkTexture: undefined,
         starTexture: undefined,
+        minecraftTexture: undefined,
+        minecraftRoofTexture:undefined,
+        minecraftWoodTexture:undefined,
     };
     function setTexture(name: TEXTURE_NAME, texture: THREE.Texture) {
         textures[name] = texture;
