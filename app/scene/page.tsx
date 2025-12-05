@@ -27,6 +27,7 @@ import makeAudioSystem, { AudioSystem } from "./systems/makeAudioSystem";
 import { ControlSystem, GUISystem, LightSystem, System, TEXTURE_NAME } from "./core/types";
 import makeSignSystem from "./systems/makeSignSystem";
 import makeTextureLoaderSys from "./systems/makeTextureLoaderSys";
+import { makeLoadingSystem } from "./systems/makeLoadingSystem";
 
 
 export default function Page() {
@@ -47,6 +48,7 @@ export default function Page() {
     const treeCardSysRef = useRef<TreeCardsSystem>(null);
     const skySysRef = useRef<System>(null);
     const signSysRef = useRef<System>(null);
+    // const loadingSysRef = useRef<System>(null);
 
 
 
@@ -86,6 +88,10 @@ export default function Page() {
         let myMixer: THREE.AnimationMixer;
         // #endregion
         (async () => {
+            // const loadingSystem = makeLoadingSystem(ctx);
+            // loadingSystem.init(ctx);
+            // loadingSysRef.current = loadingSystem;
+
             await makeTextureLoaderSys(ctx);
             makeFogSystem(ctx);
             scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
@@ -225,6 +231,7 @@ export default function Page() {
             updateSys(interactiveSysRef);
             updateSys(composerSysRef);
             updateSys(signSysRef);
+            // updateSys(loadingSysRef);
             // controlSysRef.current.update(ctx, timer.getElapsed());
             // lightSysRef.current.update(ctx, timer.getElapsed());
             // testCube.rotation.y += 0.01;

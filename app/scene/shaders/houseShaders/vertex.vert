@@ -1,3 +1,6 @@
+#include <common>
+#include <shadowmap_pars_vertex>
+
 uniform vec2 uScreenSize;
 
 varying vec2 vUv;
@@ -25,4 +28,6 @@ void main() {
     vNormal = normal;
 
     gl_Position = projectionMatrix*mvPos;
+
+      #include <shadowmap_vertex>
 }

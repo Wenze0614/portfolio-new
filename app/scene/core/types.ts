@@ -112,6 +112,7 @@ export interface SceneContext {
     }
     clock: THREE.Clock;
     loaders: {
+        loaderManager: THREE.LoadingManager;
         gltf: GLTFLoader;
         texture: THREE.TextureLoader;
         audio: THREE.AudioLoader;
@@ -135,6 +136,7 @@ export enum TEXTURE_NAME {
     MINECRAFT_TEXTURE = "minecraftTexture",
     MINECRAFT_WOOD_TEXTURE = "minecraftWoodTexture",
     MINECRAFT_ROOF_TEXTURE = "minecraftRoofTexture",
+    HOUSE_TEXTURE = "houseTexture",
 }
 
 export enum VIDEOTEXTURE_NAME {

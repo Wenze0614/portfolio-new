@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { OutputPass, UnrealBloomPass } from "three/examples/jsm/Addons.js";
 import vertexShader from '../shaders/bloomMixShaders/vertex.vert';
 import fragmentShader from '../shaders/bloomMixShaders/fragment.frag';
-import { add } from "three/tsl";
+import { add, overlay } from "three/tsl";
 
 
 const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomComposer: EffectComposer) => {
@@ -110,6 +110,32 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
     const testComposer = new EffectComposer(ctx.renderer);
     testComposer.addPass(new RenderPass(ctx.scene, ctx.camera));
 
+    const OverlayPass = new ShaderPass({
+        uniforms: {
+            tDiffuse: { value: null },                  // previous pass
+            uAlpha: { value: 1.0 },
+            uColor: { value: new THREE.Color(0x000000) },
+        },
+        vertexShader: `
+          varying vec2 vUv;
+          void main(){ vUv = uv; gl_Position = vec4(position,1.0); }
+        `,
+        fragmentShader: `
+          uniform sampler2D tDiffuse;
+          uniform float uAlpha;
+          uniform vec3 uColor;
+          varying vec2 vUv;
+          void main(){
+            vec4 base = texture2D(tDiffuse, vUv);
+            vec4 over = vec4(uColor, uAlpha);
+            gl_FragColor = mix(base, over, over.a);
+          }
+        `
+    });
+    let loaded = false;
+
+    finalComposer.addPass(OverlayPass);
+
     // function* iterTexturesFromMaterial(mat: any) {
     //     // direct map slots on standard materials
     //     for (const k in mat) {
@@ -170,24 +196,30 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
     (function patchNeedsUpdateLog() {
         const desc = Object.getOwnPropertyDescriptor(THREE.Texture.prototype, 'needsUpdate')!;
         Object.defineProperty(THREE.Texture.prototype, 'needsUpdate', {
-          set(v: boolean) {
-            // @ts-ignore
-            if (v && (!this.image || !(this.image as any).width)) {
-              // @ts-ignore
-              console.warn('needsUpdate on texture with no image:', this.name || this.uuid, this);
-            }
-            // @ts-ignore
-            desc.set!.call(this, v);
-          },
-          get() { /* @ts-ignore */ return desc.get!.call(this); }
+            set(v: boolean) {
+                // @ts-ignore
+                if (v && (!this.image || !(this.image as any).width)) {
+                    // @ts-ignore
+                    console.warn('needsUpdate on texture with no image:', this.name || this.uuid, this);
+                }
+                // @ts-ignore
+                desc.set!.call(this, v);
+            },
+            get() { /* @ts-ignore */ return desc.get!.call(this); }
         });
-      })();
+    })();
+
+    ctx.loaders.loaderManager.onLoad = () => {
+        //OverlayPass.material.uniforms.uAlpha.value = 0.0;
+        loaded = true;
+    }
 
     return {
         init() {
             return finalComposer;
         },
         update(dt: number) {
+            const deltaTime = ctx.clock.getDelta();
             // disable fog and set background to black for bloom pass
             ctx.scene.fog = null;
             ctx.scene.background = new THREE.Color(0x000000);
@@ -201,6 +233,10 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
             mixMat.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
             mixMat.uniforms.hasBloom.value = true;
             ctx.camera.layers.enable(3);
+            if(loaded && OverlayPass.material.uniforms.uAlpha.value > 0.0) {
+                OverlayPass.material.uniforms.uAlpha.value -= deltaTime * 0.1;
+                if(OverlayPass.material.uniforms.uAlpha.value < 0.0) OverlayPass.material.uniforms.uAlpha.value = 0.0;
+            }
             finalComposer.render();
 
             // testComposer.render();

@@ -1,13 +1,13 @@
 #include <common>
 #include <packing>
 #include <lights_pars_begin>
+#include <shadowmap_pars_fragment>
 
 #pragma glslify: pointLight = require('../includes/pointLight.glsl')
 
 // #pragma glslify: utils = require('../includes/utils.glsl')
 // #include <shadowmap_pars_fragment>
 // #include <fog_pars_fragment>
-
 
 uniform sampler2D minecraftWoodTexture;
 uniform float uTime;
@@ -32,11 +32,11 @@ float toonQuantize(float x, int steps) {
 void main() {
 
     // vec4 textureColor = texture2D(barTexture, fract(vUv+vec2(uTime*0.005, uTime*0.003)));
-    vec4 textureColor = texture2D(minecraftWoodTexture, vUv);
-    vec3 color = textureColor.rgb;
+    // vec4 textureColor = texture2D(minecraftWoodTexture, vUv);
+    // vec3 color = textureColor.rgb;
+    vec3 color = vec3(0.85, 0.61, 0.44);
 
     // vec4 holoColor = hologramShader(vPosWS, vNormalWS, uTime, cameraPosition);
-    float alpha = textureColor.a;
 
       // View vector in view space is (0,0,1) toward the camera
     vec3 N = normalize(vNormalView);
@@ -75,12 +75,17 @@ void main() {
     // vec3 ambient = 0.431*color;
     // color = mix(ambient, color, shadowFactor);
 
-    
-
     // alpha = 1.0 - smoothstep(4.3, 5.0, vPosWS.y);
-    alpha = 1.0;
 
-    gl_FragColor = vec4(color, alpha);
+    float shadowFactor = 1.0;
+    #if NUM_DIR_LIGHTS > 0
+    shadowFactor *= getShadow(directionalShadowMap[0], directionalLightShadows[0].shadowMapSize, directionalLightShadows[0].shadowIntensity, directionalLightShadows[0].shadowBias, directionalLightShadows[0].shadowRadius, vDirectionalShadowCoord[0]);
+    #endif
+
+    vec3 ambient = 0.431*color;
+    color = mix(ambient, color, shadowFactor);
+
+    gl_FragColor = vec4(color, 1.0);
     // gl_FragColor = holoColor;
 
     #include <colorspace_fragment>
