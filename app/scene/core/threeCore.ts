@@ -21,7 +21,7 @@ export function setupThreeCore(
     // scene.add(axesHelper);
 
     const camera = new THREE.PerspectiveCamera(
-        30,
+        60,
         mount.clientWidth / mount.clientHeight,
         0.1,
         1500

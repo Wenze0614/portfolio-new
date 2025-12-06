@@ -8,7 +8,7 @@ import { tree } from "next/dist/build/templates/app-page";
 import { makeHeightSampler } from "../../utils/makeHeightSampler";
 import { useRef } from "react";
 import { Console } from "console";
-import forestData from '../../data/forest.json';
+import forestData from '../../data/forest_2.json';
 
 
 const testFoliageGuides: FoliageClumpsData = {
