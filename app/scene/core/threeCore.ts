@@ -26,7 +26,7 @@ export function setupThreeCore(
         0.1,
         1500
     );
-    camera.position.set(10, 2.2, 20);
+    camera.position.set(20, 2.2,40);
     camera.layers.enable(0); // default layer
     // camera.layers.enable(1); // also render layer 1
     scene.add(camera);

@@ -21,11 +21,13 @@ export default function makePokeBallSystem(ctx: SceneContext): System {
 
     return {
         init(ctx: SceneContext, meshs: THREE.Mesh[], guiSystem: any, opts: { position: THREE.Vector3 }) {
-            ctx.loaders.gltf.load('/models/house.glb', (gltf)=> {
+            ctx.loaders.gltf.load('/models/house-v9.glb', (gltf)=> {
                 const model = gltf.scene;
                 // model.position.copy(opts.position);
                 // model.position.y += 0.5;
-                model.scale.set(1.5,1.5,1.5);
+                model.position.set(-35, -0.3, -27);
+                model.scale.set(2,2,2);
+                model.rotateY(-Math.PI/6);
                 ctx.scene.add(model);
                 const house = model.getObjectByName('house');
                 const fence = model.getObjectByName('fence');

@@ -14,7 +14,7 @@ export function makeState(): AppState {
         speed: 0.06,
         bobFrequency: 1.5,
         bobAmplitude: 0.02,
-        baseY: 1.6,
+        baseY: 2.2,
     } as PLockState;
 
     const _terrainState: TerrainState = {
@@ -53,7 +53,7 @@ export function makeState(): AppState {
         speed: 0.03,
         bobFrequency: 1.5,
         bobAmplitude: 0.02,
-        baseY: 1.6,
+        baseY: 2.2,
     }
 
     const _OrbitStateDefaults: OrbitState = {

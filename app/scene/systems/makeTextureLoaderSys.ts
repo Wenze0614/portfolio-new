@@ -17,7 +17,7 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     const pFoliageTexture = await ctx.loaders.texture.loadAsync('/textures/trees/foliage-2.png');
     const pTreebarkTexture = await ctx.loaders.texture.loadAsync('/textures/trees/tree_trunk_baseColor.png');
     const pStarTexture = await ctx.loaders.texture.loadAsync('/textures/star.png');
-    const pHouseTexture = await ctx.loaders.texture.loadAsync('/textures/TextureSetOne.webp');
+    const pHouseTexture = await ctx.loaders.texture.loadAsync('/textures/TextureSetOne_v2.webp');
 
     //const pokeballTexture = await ctx.loaders.texture.loadAsync('/textures/pokeball_BaseColor.png');
     const [grassTexture, archieTexture, heightMap, fogNoiseTexture, terrainTexture, windNoiseTexture, pianoTexture, barTexture, pokeballTexture, minecraftTexture, minecraftWoodTexture, minecraftRoofTexture, foliageTexture, treebarkTexture, starTexture, houseTexture] = 
