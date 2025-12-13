@@ -362,12 +362,12 @@ export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): Co
     const playerCollider = new Capsule(
         new THREE.Vector3(
             camPos.x,
-            camPos.y - ctx.state.cameraHeight + 0.2,
+            0.2,
             camPos.z
         ),
         new THREE.Vector3(
             camPos.x,
-            camPos.y,
+            1.6,
             camPos.z
         ),
         0.35
