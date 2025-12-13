@@ -110,12 +110,23 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
     const testComposer = new EffectComposer(ctx.renderer);
     testComposer.addPass(new RenderPass(ctx.scene, ctx.camera));
 
+    // set resolution uniform to actual pixels
+    const dpr = ctx.renderer.getPixelRatio?.() ?? 1;
+    const size = ctx.renderer.getSize(new THREE.Vector2());
+    //updateMatResolution(new THREE.Vector2(size.width * dpr, size.height * dpr));
+
+    const overlayPassUniforms = {
+        tDiffuse: { value: null },                  // previous pass
+        uAlpha: { value: 1.0 },
+        uColor: { value: new THREE.Color("#ffffff") },
+        uResolution: { value: new THREE.Vector2(size.width * dpr, size.height * dpr) },
+        uTime: { value: 0.0},
+        uRadius: { value: 0.4},
+        uStretch: { value: new THREE.Vector2(0.0)},
+    }
+
     const OverlayPass = new ShaderPass({
-        uniforms: {
-            tDiffuse: { value: null },                  // previous pass
-            uAlpha: { value: 1.0 },
-            uColor: { value: new THREE.Color(0x000000) },
-        },
+        uniforms: overlayPassUniforms,
         vertexShader: `
           varying vec2 vUv;
           void main(){ vUv = uv; gl_Position = vec4(position,1.0); }
@@ -124,15 +135,70 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
           uniform sampler2D tDiffuse;
           uniform float uAlpha;
           uniform vec3 uColor;
+          uniform vec2 uResolution;
+          uniform float uTime;
+          uniform float uRadius;
+          uniform vec2 uStretch;
           varying vec2 vUv;
+
+          // small helper: cheap 2D noise
+        float hash(vec2 p) {
+        p = fract(p * vec2(123.34, 345.45));
+        p += dot(p, p + 34.345);
+        return fract(p.x * p.y);
+        }
+        float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        float a = hash(i);
+        float b = hash(i + vec2(1.0, 0.0));
+        float c = hash(i + vec2(0.0, 1.0));
+        float d = hash(i + vec2(1.0, 1.0));
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
+
+
           void main(){
+            // move uv origin to center
+            float aspect = uResolution.x / uResolution.y;
+            vec2 p = (vUv - 0.5) * 2.0;
+            p.x *= aspect;
+            float opacity = 1.0;
+            float radius = uRadius;
+            vec2 stretch = vec2(1.0 + uStretch.x, 1.0 + uStretch.y);
+            float distance = length(p/stretch - vec2(0.0));
+            float ang = atan(p.y, p.x);
+
+            // --- Wavy edge distortion ---
+            float wave1 = sin(ang * 5.0 + uTime * 2.0) * 0.02;
+            float wave2 = sin(ang * 10.0 - uTime * 1.3) * 0.01;
+
+            // add some organic noise along the edge (sample noise in polar-ish space)
+            float n = noise(vec2(ang * 2.0, uTime * 0.4));
+            float wobble = (n - 0.5) * 0.03;
+
+            float warpedRadius = radius + wave1 + wave2;
+            float edge = 0.02;
+            //float mask = smoothstep(warpedRadius, warpedRadius + edge, distance);
+            float mask = distance < warpedRadius ? 0.0: 1.0;
+
+            vec3 color = uColor;
+            opacity = mix(uAlpha, 1.0, mask);
+            color = mix(vec3(0.2), uColor, mask);
+
+            // if(distance < radius) {
+            //     opacity = uAlpha;
+            //     color = vec3(0.2);
+            // }
             vec4 base = texture2D(tDiffuse, vUv);
-            vec4 over = vec4(uColor, uAlpha);
+            vec4 over = vec4(color, opacity);
             gl_FragColor = mix(base, over, over.a);
-          }
+            }
         `
     });
     let loaded = false;
+    let start = false;
 
     finalComposer.addPass(OverlayPass);
 
@@ -209,16 +275,47 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
         });
     })();
 
-    ctx.loaders.loaderManager.onLoad = () => {
-        //OverlayPass.material.uniforms.uAlpha.value = 0.0;
-        loaded = true;
+    function sleep(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
+
+    // const progressBar = document.getElementById('progress-bar') as HTMLProgressElement;
+    const progressLabel = document.getElementById('loading-label') as HTMLLabelElement;
+    const progressBarContainer = document.getElementById('progress-bar-container') as HTMLDivElement;
+
+    ctx.loaders.loaderManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+        console.log("items total: ", itemsTotal);
+        const p = (itemsLoaded / itemsTotal) * 100;
+        const capped = Math.min(p, 0.9);           // stop at 95% until ready
+        // progressBar.value = capped * 100;
+    }
+
+    ctx.loaders.loaderManager.onLoad = async () => {
+        //OverlayPass.material.uniforms.uAlpha.value = 0.0;
+        await sleep(3000);
+        // progressBar.value = 100;
+        progressLabel.textContent = 'Click to Explore';
+        loaded = true;
+        // progressBarContainer.style.display = 'none';
+
+    }
+
+    window.addEventListener('click', () => {
+        if (loaded) {
+            progressBarContainer.style.display = 'none';
+            start = true;
+        }
+    })
 
     return {
         init() {
             return finalComposer;
         },
         update(dt: number) {
+            const dpr = ctx.renderer.getPixelRatio?.() ?? 1;
+            const size = ctx.renderer.getSize(new THREE.Vector2());
+            OverlayPass.uniforms.uResolution.value = new THREE.Vector2(size.width * dpr, size.height * dpr);
+            OverlayPass.uniforms.uTime.value = dt;
             const deltaTime = ctx.clock.getDelta();
             // disable fog and set background to black for bloom pass
             ctx.scene.fog = null;
@@ -233,9 +330,14 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
             mixMat.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
             mixMat.uniforms.hasBloom.value = true;
             ctx.camera.layers.enable(3);
-            if(loaded && OverlayPass.material.uniforms.uAlpha.value > 0.0) {
+            if (loaded && OverlayPass.material.uniforms.uAlpha.value > 0.0) {
                 OverlayPass.material.uniforms.uAlpha.value -= deltaTime * 0.1;
-                if(OverlayPass.material.uniforms.uAlpha.value < 0.0) OverlayPass.material.uniforms.uAlpha.value = 0.0;
+                if (OverlayPass.material.uniforms.uAlpha.value < 0.0) OverlayPass.material.uniforms.uAlpha.value = 0.0;
+            }
+            if(start) {
+                OverlayPass.material.uniforms.uRadius.value < 0.9 && (OverlayPass.material.uniforms.uRadius.value += deltaTime * 0.4);
+                OverlayPass.material.uniforms.uStretch.value.x < 1.1 && (OverlayPass.material.uniforms.uStretch.value.x += deltaTime * 0.6);
+                OverlayPass.material.uniforms.uStretch.value.y < 0.08 && (OverlayPass.material.uniforms.uStretch.value.y += deltaTime * 0.4);
             }
             finalComposer.render();
 

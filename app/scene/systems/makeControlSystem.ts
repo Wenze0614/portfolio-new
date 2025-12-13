@@ -4,11 +4,14 @@ import { OrbitControls, PointerLockControls } from 'three/examples/jsm/Addons.js
 import { makeHeightSampler } from '../utils/makeHeightSampler';
 import * as THREE from 'three';
 import { AudioSystem } from './makeAudioSystem';
+import { Octree } from "three/examples/jsm/math/Octree.js";
+import { Capsule } from "three/examples/jsm/math/Capsule.js";
 
-import nipplejs from 'nipplejs';
+// import nipplejs from 'nipplejs';
+
 
 const onKeyDown = (event: KeyboardEvent, controlState: PLockState, ctx: SceneContext) => {
-    if(ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
+    if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
     switch (event.code) {
         case 'KeyW': controlState.move.forward = true; break;
         case 'KeyS': controlState.move.backward = true; break;
@@ -19,7 +22,7 @@ const onKeyDown = (event: KeyboardEvent, controlState: PLockState, ctx: SceneCon
 };
 
 const onKeyUp = (event: KeyboardEvent, controlState: PLockState, ctx: SceneContext) => {
-    if(ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
+    if (ctx.state.controlState.controlType !== CONTROL_TYPE.Walk) return;
     switch (event.code) {
         case 'KeyW': controlState.move.forward = false; break;
         case 'KeyS': controlState.move.backward = false; break;
@@ -27,6 +30,13 @@ const onKeyUp = (event: KeyboardEvent, controlState: PLockState, ctx: SceneConte
         case 'KeyD': controlState.move.right = false; break;
         case 'ShiftLeft': controlState.move.run = false; break; // Optional: add running
     }
+};
+
+const WORLD_BOUNDS = {
+    minX: -50,
+    maxX: 50,
+    minZ: -50,
+    maxZ: 50,
 };
 
 // function addTouchLook(pControl: PointerLockControls, domElement: HTMLElement) {
@@ -230,7 +240,7 @@ function createOrbitControl(controlState: OrbitState, { scene, camera, renderer 
     return orbitControl;
 }
 
-function updatePointerLockControls(controlState: PLockState, pControl: PointerLockControls, ctx: SceneContext, heightSampler: { heightAtXZ: (x: number, z: number, scale: number, offset: number) => number }, audioSys: AudioSystem) {
+function updatePointerLockControls(controlState: PLockState, pControl: PointerLockControls, ctx: SceneContext, heightSampler: { heightAtXZ: (x: number, z: number, scale: number, offset: number) => number }, audioSys: AudioSystem, playerCollider: Capsule, worldOctree: Octree) {
 
     const camera = ctx.camera;
 
@@ -245,8 +255,64 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
     velocity.x = direction.x * speed * (move.run ? 5 : 1);
     velocity.z = direction.z * speed * (move.run ? 5 : 1);
 
-    pControl.moveRight(velocity.x);
-    pControl.moveForward(velocity.z);
+    const forward = new THREE.Vector3();
+    ctx.camera.getWorldDirection(forward);
+    forward.y = 0;
+    forward.normalize();
+
+    const right = new THREE.Vector3();
+    right.crossVectors(forward, ctx.camera.up).normalize();
+
+    // world-space movement this frame
+    const deltaMove = new THREE.Vector3()
+        .addScaledVector(right, velocity.x)
+        .addScaledVector(forward, velocity.z);
+
+    playerCollider.translate(deltaMove);
+
+
+    // collision test
+    const hit = worldOctree.capsuleIntersect(playerCollider);
+    if (hit) {
+        // push capsule out of wall
+        playerCollider.translate(hit.normal.multiplyScalar(hit.depth));
+
+        // optional: remove velocity into wall (sliding)
+        deltaMove.addScaledVector(hit.normal, -hit.normal.dot(deltaMove));
+    }
+
+    const dx = playerCollider.end.x - playerCollider.start.x;
+    const dy = playerCollider.end.y - playerCollider.start.y;
+    const dz = playerCollider.end.z - playerCollider.start.z;
+
+    // Clamp end position
+    const clampedX = THREE.MathUtils.clamp(
+        playerCollider.end.x,
+        WORLD_BOUNDS.minX,
+        WORLD_BOUNDS.maxX
+    );
+
+    const clampedZ = THREE.MathUtils.clamp(
+        playerCollider.end.z,
+        WORLD_BOUNDS.minZ,
+        WORLD_BOUNDS.maxZ
+    );
+
+    // If clamped, move entire capsule consistently
+    if (clampedX !== playerCollider.end.x || clampedZ !== playerCollider.end.z) {
+        playerCollider.end.set(clampedX, playerCollider.end.y, clampedZ);
+        playerCollider.start.set(
+            clampedX - dx,
+            playerCollider.start.y,
+            clampedZ - dz
+        );
+    }
+
+    // sync camera to capsule
+    ctx.camera.position.copy(playerCollider.end);
+
+    // pControl.moveRight(velocity.x);
+    // pControl.moveForward(velocity.z);
 
     // Update walk time only if moving
     const isMoving = direction.lengthSq() > 0;
@@ -291,6 +357,23 @@ export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): Co
     let orbit: OrbitControls | null = null;
     let plock: PointerLockControls | null = null;
     let disposeMobileControls: (() => void) | undefined;
+    const camPos = ctx.camera.position.clone();
+    // Player capsule (radius ~0.35, height ~1.6)
+    const playerCollider = new Capsule(
+        new THREE.Vector3(
+            camPos.x,
+            camPos.y - ctx.state.cameraHeight + 0.2,
+            camPos.z
+        ),
+        new THREE.Vector3(
+            camPos.x,
+            camPos.y,
+            camPos.z
+        ),
+        0.35
+    );
+    // playerCollider.translate(ctx.camera.position);
+    const worldOctree = new Octree();
 
     // click to lock when orbit is off
     const clickToLock = () => {
@@ -349,7 +432,7 @@ export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): Co
         },
         update(dt: number) {
             ctx.state.controlState.controlType === 'Walk'
-                ? updatePointerLockControls(ctx.state.controlState as PLockState, plock!, ctx, heightSampler, audioSys)
+                ? updatePointerLockControls(ctx.state.controlState as PLockState, plock!, ctx, heightSampler, audioSys, playerCollider, worldOctree)
                 : updateOrbitControls(orbit!);
         },
         dispose() {
@@ -371,6 +454,16 @@ export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): Co
                     if (plock!.isLocked) plock!.unlock();
                     break;
             }
+        },
+        buildCollisionOctree(collidersGroup: THREE.Group) {
+            // Put ALL static collidable level geometry under one group (walls/floor/etc)
+            worldOctree.fromGraphNode(collidersGroup);
+
+
+
+            // Store velocity between frames if you want smoother motion
+            // const playerVelocity = new THREE.Vector3();
         }
+
     };
 }

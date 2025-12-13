@@ -1,4 +1,4 @@
-import { SceneContext, System } from "../../core/types";
+import { ControlSystem, SceneContext, System } from "../../core/types";
 import * as THREE from "three";
 import makePianoSystem from "./makeMusicBar";
 import makePokeBallSystem from "./makePokeBallSystem";
@@ -13,7 +13,7 @@ export interface InteractiveSystem {
     getInteractables(): THREE.Mesh[];
 }
 
-export default function makeInteractiveSystem(ctx: SceneContext, audioSys: AudioSystem): InteractiveSystem {
+export default function makeInteractiveSystem(ctx: SceneContext, audioSys: AudioSystem, controlSystem:ControlSystem): InteractiveSystem {
     const pokeballPosition = new THREE.Vector3(-35, 0, 5);
     // const pianoPosition = new THREE.Vector3(10, 0.2, 50);
     // const barSys = makeMusicBar(ctx, audioSys)
@@ -25,12 +25,13 @@ export default function makeInteractiveSystem(ctx: SceneContext, audioSys: Audio
     return {
         async init(meshs: THREE.Mesh[], guiSystem: any) {
             //barSys.init(ctx, meshs, guiSystem, {position: pianoPosition});
-            await pokeBallSystem.init(ctx, meshs, guiSystem, { position: pokeballPosition });
+            await pokeBallSystem.init(ctx, meshs, guiSystem, { position: pokeballPosition }, controlSystem, audioSys);
 
         },
         update(dt: number) {
             fireflySys1.update(dt);
             fireflySys2.update(dt);
+            pokeBallSystem.update(dt);
             //barSys.update(dt);
         },
         dispose() {

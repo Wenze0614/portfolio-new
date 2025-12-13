@@ -27,6 +27,42 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <div
+          id="progress-bar-container"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.1)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 2000,
+
+          }}>
+          <p
+            id="loading-label"
+            style={{
+              color: "white",
+              fontSize: "1.5rem",
+
+            }}
+          >Loading Scene...</p>
+          {/* <progress
+            id="progress-bar"
+            max="100"
+            value="0"
+            style={{
+              width: "30%",
+              marginTop: "0.5%",
+              height: "2%",
+              borderRadius: "5px",
+            }}></progress> */}
+        </div>
         {children}
       </body>
     </html>

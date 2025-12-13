@@ -77,11 +77,11 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     sun2.shadow.mapSize.set(2048, 2048);
     sun2.shadow.bias = -0.0005;
     sun2.shadow.normalBias = 0.02; // reduces acne when surfaces are coplanar-ish
-    // sun2.layers.enable(ctx.state.postEffectState.bloom.layer);
+    sun2.layers.enable(ctx.state.postEffectState.bloom.layer);
     sun2.layers.set(3);
 
     const sun3Color = new THREE.Color("#f8fcf9");
-    const sun3 = new THREE.DirectionalLight(sun3Color, 7);
+    const sun3 = new THREE.DirectionalLight(sun3Color, 3.14);
     sun3.position.set(-24, 9, 5);
     sun3.target.position.set(-21, 0, -25);
     sun3.castShadow = false;
@@ -94,9 +94,9 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     // pointLight.position.copy(ctx.camera.position).add(forward.multiplyScalar(1)); ;
     // pointLight.castShadow = true;
 
-    const pointLight  = new THREE.PointLight("#ffe0ce", 10, 10, 1);
+    const pointLight  = new THREE.PointLight("#ffe0ce", 6, 10, 1);
     pointLight.name = 'point light';
-    pointLight.position.set(-30, 3, -27)
+    pointLight.position.set(-28, 3, -35)
     pointLight.castShadow = true;
     pointLight.shadow.mapSize.set(2048, 2048);
     pointLight.shadow.bias = -0.0005;
@@ -104,6 +104,16 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     ctx.scene.add(pointLight);
     const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.5);
     ctx.scene.add(pointLightHelper);
+    pointLight.layers.enable(ctx.state.postEffectState.bloom.layer);
+
+    const rotomPointLight = new THREE.PointLight("#baf9f6", 5, 3, 0.5);
+    rotomPointLight.name = 'rotom light';
+    rotomPointLight.position.set(-33.8, 4.4, -25)
+    rotomPointLight.castShadow = false;
+    ctx.scene.add(rotomPointLight);
+    // const rotomPointLightHelper = new THREE.PointLightHelper(rotomPointLight, 0.5);
+    // ctx.scene.add(rotomPointLightHelper);
+    rotomPointLight.layers.enable(ctx.state.postEffectState.bloom.layer);
 
 
     return {
@@ -112,7 +122,7 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
             ctx.scene.add(sun1);
             ctx.scene.add(sun2);
             // ctx.scene.add(pointLight);
-            // ctx.scene.add(sun3);
+            ctx.scene.add(sun3);
             // ctx.scene.add(sun1Helper)
 
             // ctx.scene.add(sun2);

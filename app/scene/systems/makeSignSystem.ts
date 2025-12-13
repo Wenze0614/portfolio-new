@@ -57,8 +57,10 @@ export default function makeSignSystem(ctx: SceneContext): System {
       
       const arrow = new Line2(geometry, material);
       ctx.scene.add(arrow);
-      arrow.position.set(-50, 1.3, 50);
+      arrow.position.set(27, 1.3, 26);
+      arrow.rotateY(Math.PI/2);
       arrow.layers.enable(ctx.state.postEffectState.bloom.layer);
+      ctx.camera.lookAt(arrow.position);
 
     //   const curve2 = new THREE.CatmullRomCurve3([
     //     new THREE.Vector3(0,1.8, 0),

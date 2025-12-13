@@ -1,9 +1,48 @@
-import { SceneContext, System, TEXTURE_NAME } from "../../core/types";
+import { ControlSystem, SceneContext, System, TEXTURE_NAME } from "../../core/types";
 import * as THREE from "three";
 import vertexShader from '../../shaders/houseShaders/vertex.vert';
 import fragmentShader from '../../shaders/houseShaders/fragment.frag';
 import vertexDepth from '../../shaders/houseShaders/vertexDepth.vert';
 import { GLTF } from "three/examples/jsm/Addons.js";
+import gsap from "gsap";
+import { AudioSystem } from "../makeAudioSystem";
+
+function animateZ(sprite: THREE.Sprite, headPos: THREE.Vector3, delay = 0) {
+    const finalPos: THREE.Vector3 = sprite.userData.finalPos;
+    const finalScale: THREE.Vector3 = sprite.userData.finalScale;
+
+    // reset to start
+    sprite.position.copy(headPos);
+    sprite.scale.set(0, 0, 0);
+    sprite.material.opacity = 0;      // optional fade-in
+    sprite.visible = true;
+
+    const tl = gsap.timeline({ delay });
+
+    tl.to(sprite.material, { opacity: 1, duration: 0.2, ease: "power1.out" }, 0);
+
+    tl.to(sprite.position, {
+        x: finalPos.x,
+        y: finalPos.y,
+        z: finalPos.z,
+        duration: 0.9,
+        ease: "power2.out",
+    }, 0);
+
+    tl.to(sprite.scale, {
+        x: finalScale.x,
+        y: finalScale.y,
+        z: finalScale.z,
+        duration: 0.9,
+        ease: "back.out(2.2)", // nice pop
+    }, 0);
+
+    // optional: float a bit + fade out at the end
+    tl.to(sprite.position, { y: finalPos.y + 0.2, duration: 0.6, ease: "sine.out" }, 0.9);
+    tl.to(sprite.material, { opacity: 0, duration: 0.4, ease: "power1.in" }, 1.1);
+
+    return tl;
+}
 
 export default function makePokeBallSystem(ctx: SceneContext): System & { getinteractables: () => THREE.Mesh[] } {
     const pokeballTexture = ctx.state.getTexture(TEXTURE_NAME.POKEBALL_TEXTURE);
@@ -25,6 +64,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
     const bookCover = ctx.state.getTexture(TEXTURE_NAME.BOOK_COVER);
     const jolteonIcon = ctx.state.getTexture(TEXTURE_NAME.JOLTEON_ICON);
     const zTexture = ctx.state.getTexture(TEXTURE_NAME.Z_TEXTURE);
+    const cdCoverTexture = ctx.state.getTexture(TEXTURE_NAME.CD_COVER);
 
     const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
     const customHouseUniform = {
@@ -49,11 +89,11 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
     })
 
     const blueMaterial = new THREE.MeshToonMaterial({
-        color: "#7ac0cf"
+        color: "#62919c"
     })
 
     const redMaterial = new THREE.MeshToonMaterial({
-        color: "#d68386"
+        color: "#9c6567"
     })
 
     const brownMaterial = new THREE.MeshToonMaterial({
@@ -61,7 +101,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
     })
 
     const lightBrownMaterial = new THREE.MeshToonMaterial({
-        color: "#c9a37d"
+        color: "#91775d"
     })
 
     const yellowMaterial = new THREE.MeshToonMaterial({
@@ -69,32 +109,41 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
     })
 
     const pinkMaterial = new THREE.MeshToonMaterial({
-        color: "#f2c1d1"
+        color: "#b87d90"
     })
-    
+
     const orangeMaterial = new THREE.MeshToonMaterial({
-        color: "#f2a65e"
+        color: "#996f46"
     })
 
     const purpleMaterial = new THREE.MeshToonMaterial({
-        color: "#c27ba0"
+        color: "#7d395d"
     })
     const whiteMaterial = new THREE.MeshToonMaterial({
         color: "#eaeaea"
     })
+    const greenMaterial = new THREE.MeshToonMaterial({
+        color: "#557850"
+    })
 
     let youtubeLogoMesh: THREE.Mesh | null = null;
     let linkedInLogoMesh: THREE.Mesh | null = null;
+    let cdPlayerMesh: THREE.Mesh | null = null;
+    let cdInPlayMesh: THREE.Mesh | null = null;
+    const collisionGroup = new THREE.Group();
+    ctx.scene.add(collisionGroup);
 
     return {
-        async init(ctx: SceneContext, meshs: THREE.Mesh[], guiSystem: any, opts: { position: THREE.Vector3 }) {
-            const gltf: GLTF = await ctx.loaders.gltf.loadAsync('/models/fence-v41.glb');
+        async init(ctx: SceneContext, meshs: THREE.Mesh[], guiSystem: any, opts: { position: THREE.Vector3 }, controlSystem: ControlSystem, audioSystem: AudioSystem,) {
+            const gltf: GLTF = await ctx.loaders.gltf.loadAsync('/models/fence-v52.glb');
             const model = gltf.scene;
             // model.position.copy(opts.position);
             // model.position.y += 0.5;
             model.position.set(-21, 0, -25);
             // model.scale.set(1.5, 1.5, 1.3);
             model.rotateY(-Math.PI / 6);
+            collisionGroup.position.copy(model.position);
+            collisionGroup.rotation.copy(model.rotation);
             // model.layers.set(3);
             ctx.scene.add(model);
 
@@ -112,6 +161,8 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 })
                 houseWall.castShadow = true;
                 houseWall.receiveShadow = true;
+                //houseWall.layers.enable(3);
+                collisionGroup.add(houseWall);
             }
             if (houseWood && houseWood instanceof THREE.Mesh) {
                 houseWood.material = new THREE.MeshToonMaterial({
@@ -121,6 +172,8 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 })
                 houseWood.castShadow = true;
                 houseWood.receiveShadow = true;
+                //houseWood.layers.enable(3);
+                collisionGroup.add(houseWood);
             }
             if (fence && fence instanceof THREE.Mesh) {
                 // fence.material = woodMat;
@@ -131,15 +184,18 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 })
                 fence.castShadow = true;
                 fence.receiveShadow = true;
+                //fence.layers.enable(3);
+                collisionGroup.add(fence);
             }
 
             const bedSilk = model.getObjectByName('bedSilk');
             const bedWood = model.getObjectByName('bedWood');
+            const bedCollider = model.getObjectByName('bedCollider');
             const capybara = model.getObjectByName('capybara');
             const archie = model.getObjectByName('archie');
             const photoFrame = model.getObjectByName('photoFrame');
             const archiePhoto = model.getObjectByName('archiePhoto');
-            const bedDesk = model.getObjectByName('bedDesk');
+            //const bedDesk = model.getObjectByName('bedDesk');
             const rotomBody = model.getObjectByName('rotomBody');
             const rotomShine = model.getObjectByName('rotomShine');
             const phoneOrange = model.getObjectByName('phoneOrange');
@@ -156,6 +212,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 //bedSilk.castShadow = true;
                 bedSilk.receiveShadow = true;
                 bedSilk.layers.set(0);
+                collisionGroup.add(bedSilk);
             }
             if (bedWood && bedWood instanceof THREE.Mesh) {
                 bedWood.material = new THREE.MeshToonMaterial({
@@ -165,7 +222,12 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 })
                 bedWood.castShadow = true;
                 bedWood.receiveShadow = true;
-                bedWood.layers.set(0);
+                //bedWood.layers.set(0);
+                collisionGroup.add(bedWood);
+            }
+            if (bedCollider && bedCollider instanceof THREE.Mesh) {
+                bedCollider.visible = false;
+                collisionGroup.add(bedCollider);
             }
             if (capybara && capybara instanceof THREE.Mesh) {
                 capybara.material = new THREE.MeshToonMaterial({
@@ -196,28 +258,52 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 archie.receiveShadow = true;
                 archie.material.needsUpdate = true;
                 const zTex = zTexture;
-                const zMat = new THREE.SpriteMaterial({ map: zTex, transparent: true, depthWrite: false, fog:false });
+                const zMat = new THREE.SpriteMaterial({ map: zTex, transparent: true, depthWrite: false, fog: false });
 
                 const z1 = new THREE.Sprite(zMat);
                 z1.position.set(-31, 2, -24);
                 z1.scale.set(0.5, 0.5, 0.5);
-                z1.material.rotation = Math.PI;
-                
+                z1.userData.finalPos = new THREE.Vector3(-31, 2, -24);
+                z1.userData.finalScale = new THREE.Vector3(0.5, 0.5, 0.5);
+
 
                 const z2 = new THREE.Sprite(zMat);
                 z2.position.set(-31.2, 2.2, -24.2);
                 z2.scale.set(0.4, 0.4, 0.4);
-                z2.material.rotation = Math.PI;
-                
+                z2.userData.finalPos = new THREE.Vector3(-31.2, 2.2, -24.2);
+                z2.userData.finalScale = new THREE.Vector3(0.4, 0.4, 0.4);
+
 
                 const z3 = new THREE.Sprite(zMat);
                 z3.position.set(-31.4, 2.4, -24.4);
                 z3.scale.set(0.3, 0.3, 0.3);
-                z3.material.rotation = Math.PI;
+                z3.userData.finalPos = new THREE.Vector3(-31.4, 2.4, -24.4);
+                z3.userData.finalScale = new THREE.Vector3(0.3, 0.3, 0.3);
+
 
 
                 ctx.scene.add(z1, z2, z3);
                 guiSystem.updateSprites([z1, z2, z3]);
+
+                const archieHeadPosition = new THREE.Vector3(-31, 1.5, -24);
+                function loopZZZ() {
+                    const master = gsap.timeline({
+                        onComplete: () => loopZZZ(),
+                    });
+
+                    master.add(animateZ(z1, archieHeadPosition, 0.0), 0);
+                    master.add(animateZ(z2, archieHeadPosition, 0.35), 0);
+                    master.add(animateZ(z3, archieHeadPosition, 0.7), 0);
+                }
+
+                loopZZZ();
+
+                const placeholderCube = new THREE.Mesh();
+                placeholderCube.position.set(-31, 1.5, -24);
+                ctx.scene.add(placeholderCube);
+                placeholderCube.visible = false;
+
+                audioSystem.playCatSound(placeholderCube);
 
             }
             if (photoFrame && photoFrame instanceof THREE.Mesh) {
@@ -235,36 +321,114 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 archiePhoto.castShadow = true;
             }
 
-            if(bedDesk && bedDesk instanceof THREE.Mesh) {
-                bedDesk.material = blackMaterial;
-                bedDesk.castShadow = true;
-                bedDesk.receiveShadow = true;
-            }
-            if( rotomBody && rotomBody instanceof THREE.Mesh) {
+            // if(bedDesk && bedDesk instanceof THREE.Mesh) {
+            //     bedDesk.material = new THREE.MeshToonMaterial({
+            //         map: woodTexture,
+            //     });
+            //     bedDesk.castShadow = true;
+            //     bedDesk.receiveShadow = true;
+            // }
+
+            if (rotomBody && rotomBody instanceof THREE.Mesh) {
                 rotomBody.material = new THREE.MeshBasicMaterial({
                     map: rotomTexture,
                 })
             }
-            if( rotomShine && rotomShine instanceof THREE.Mesh) {
+            if (rotomShine && rotomShine instanceof THREE.Mesh) {
                 rotomShine.material = new THREE.MeshBasicMaterial({
-                    color:"#7ac0cf"
+                    color: "#7ac0cf"
                 });
                 rotomShine.layers.enable(ctx.state.postEffectState.bloom.layer);
             }
-            if( phoneOrange && phoneOrange instanceof THREE.Mesh) {
+            function startRotomIdle(rotom: THREE.Object3D) {
+                // Float up/down
+                gsap.to(rotom.position, {
+                    y: rotom.position.y + 0.22,
+                    duration: 2.2,
+                    ease: "sine.inOut",
+                    yoyo: true,
+                    repeat: -1,
+                });
+
+                // Subtle side drift (optional)
+                gsap.to(rotom.position, {
+                    x: rotom.position.x + 0.08,
+                    duration: 3.6,
+                    ease: "sine.inOut",
+                    yoyo: true,
+                    repeat: -1,
+                });
+
+                // Gentle yaw sway (optional)
+                // gsap.to(rotom.rotation, {
+                //     y: rotom.rotation.y + 0.18,
+                //     duration: 3.0,
+                //     ease: "sine.inOut",
+                //     yoyo: true,
+                //     repeat: -1,
+                // });
+            }
+
+            function scheduleRotomSpin(rotomBody: THREE.Object3D, rotomShine: THREE.Object3D) {
+                const wait = gsap.utils.random(10, 20); // seconds
+                gsap.delayedCall(wait, () => {
+                    doRotomSpin(rotomBody, rotomShine);
+                    scheduleRotomSpin(rotomBody, rotomShine);
+                });
+            }
+
+            function doRotomSpin(rotomBody: THREE.Object3D, rotomShine: THREE.Object3D) {
+                // quick spin burst
+                gsap.to(rotomBody.rotation, {
+                    z: rotomBody.rotation.z + Math.PI * 2,
+                    x: rotomBody.rotation.x + Math.PI * 2,
+                    duration: 0.85,
+                    ease: "power2.inOut",
+                    yoyo: true,
+                });
+
+                gsap.to(rotomShine.rotation, {
+                    z: rotomShine.rotation.z + Math.PI * 2,
+                    x: rotomBody.rotation.x + Math.PI * 2,
+                    duration: 0.85,
+                    ease: "power2.inOut",
+                    yoyo: true,
+                });
+
+                // optional: tiny “pop” scale for energy
+                gsap.fromTo(
+                    rotomBody.scale,
+                    { x: 0.95, y: 1.08, z: 0.95 },
+                    { x: 1, y: 1, z: 1, duration: 0.28, ease: "back.out(2)" }
+                );
+                gsap.fromTo(
+                    rotomShine.scale,
+                    { x: 0.95, y: 1.08, z: 0.95 },
+                    { x: 1, y: 1, z: 1, duration: 0.28, ease: "back.out(2)" }
+                );
+            }
+
+            if (rotomBody && rotomShine) {
+                startRotomIdle(rotomBody);
+                startRotomIdle(rotomShine);
+
+                scheduleRotomSpin(rotomBody, rotomShine);
+            }
+
+            if (phoneOrange && phoneOrange instanceof THREE.Mesh) {
                 phoneOrange.material = orangeMaterial;
                 phoneOrange.castShadow = true;
                 phoneOrange.receiveShadow = true;
             }
-            if( phoneBlack && phoneBlack instanceof THREE.Mesh) {
+            if (phoneBlack && phoneBlack instanceof THREE.Mesh) {
                 phoneBlack.material = blackMaterial;
             }
-            if( candlePurple && candlePurple instanceof THREE.Mesh) {
+            if (candlePurple && candlePurple instanceof THREE.Mesh) {
                 candlePurple.material = purpleMaterial;
                 candlePurple.castShadow = true;
                 candlePurple.receiveShadow = true;
             }
-            if(candleWhite && candleWhite instanceof THREE.Mesh) {
+            if (candleWhite && candleWhite instanceof THREE.Mesh) {
                 candleWhite.material = whiteMaterial;
             }
 
@@ -288,6 +452,8 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
             const mug = model.getObjectByName('mug');
             const coffee = model.getObjectByName('coffee');
             const mugSticker = model.getObjectByName('mugSticker');
+            const pokeball = model.getObjectByName('pokeball');
+            const pokeballShine = model.getObjectByName('pokeballShine');
 
 
             if (desk && desk instanceof THREE.Mesh) {
@@ -297,6 +463,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 })
                 desk.castShadow = true;
                 desk.receiveShadow = true;
+                collisionGroup.add(desk);
             }
             if (smallDesk && smallDesk instanceof THREE.Mesh) {
                 smallDesk.material = new THREE.MeshToonMaterial({
@@ -305,13 +472,15 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 })
                 smallDesk.castShadow = true;
                 smallDesk.receiveShadow = true;
+                collisionGroup.add(smallDesk);
             }
             if (glass && glass instanceof THREE.Mesh) {
                 glass.material = new THREE.MeshPhysicalMaterial({
-                    color: "#a6c2ca",
+                    color: "#bacacf",
                     transparent: true,
                     opacity: 0.5,
                 });
+                collisionGroup.add(glass);
             }
 
             if (switchRed && switchRed instanceof THREE.Mesh) {
@@ -350,9 +519,20 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 plants.receiveShadow = true;
             }
             if (certificate && certificate instanceof THREE.Mesh) {
-                certificate.material = new THREE.MeshBasicMaterial({
+                certificate.material = new THREE.MeshToonMaterial({
                     map: certificateTexture,
                 })
+                certificate.material.onBeforeCompile = (shader: any) => {
+
+                    shader.fragmentShader = shader.fragmentShader.replace(
+                        'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',
+                        `
+                            vec3 outgoingLight = (reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance) * 0.3;
+
+                            `
+                    );
+                }
+                certificate.receiveShadow = true;
             }
             if (yellowBinder && yellowBinder instanceof THREE.Mesh) {
                 yellowBinder.material = yellowMaterial;
@@ -375,9 +555,19 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 blueNotes.receiveShadow = true;
             }
             if (doraemon && doraemon instanceof THREE.Mesh) {
-                doraemon.material = new THREE.MeshBasicMaterial({
+                doraemon.material = new THREE.MeshToonMaterial({
                     map: bookCover
                 })
+                doraemon.material.onBeforeCompile = (shader: any) => {
+
+                    shader.fragmentShader = shader.fragmentShader.replace(
+                        'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',
+                        `
+                            vec3 outgoingLight = (reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance) * 0.3;
+
+                            `
+                    );
+                }
                 doraemon.castShadow = true;
                 doraemon.receiveShadow = true;
             }
@@ -385,8 +575,41 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 pikachu.material = new THREE.MeshToonMaterial({
                     map: pikachuStatueTexture
                 })
+                pikachu.material.onBeforeCompile = (shader: any) => {
+
+                    shader.fragmentShader = shader.fragmentShader.replace(
+                        'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',
+                        `
+                            vec3 outgoingLight = (reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance) * 0.3;
+
+                            `
+                    );
+                }
                 pikachu.castShadow = true;
                 pikachu.receiveShadow = true;
+            }
+            if( pokeball && pokeball instanceof THREE.Mesh) {
+                pokeball.material = new THREE.MeshToonMaterial({
+                    map: pokeballTexture,
+                });
+                pokeball.material.onBeforeCompile = (shader: any) => {
+
+                    shader.fragmentShader = shader.fragmentShader.replace(
+                        'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',
+                        `
+                            vec3 outgoingLight = (reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance) * 0.3;
+
+                            `
+                    );
+                }
+                pokeball.castShadow = true;
+                pokeball.receiveShadow = true;
+            }
+            if( pokeballShine && pokeballShine instanceof THREE.Mesh) {
+                pokeballShine.material = new THREE.MeshBasicMaterial({
+                    color: "#ffffff",
+                });
+                pokeballShine.layers.enable(ctx.state.postEffectState.bloom.layer);
             }
 
             if (boxes && boxes instanceof THREE.Mesh) {
@@ -413,6 +636,19 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
             const cdIdle = model.getObjectByName('cdIdle');
             const cdInPlay = model.getObjectByName('cdInPlay');
             const cdPlayer = model.getObjectByName('cdPlayer');
+            const cactusPot = model.getObjectByName('cactusPot');
+            const cactus = model.getObjectByName('cactus');
+
+            if (cactusPot && cactusPot instanceof THREE.Mesh) {
+                cactusPot.material = blueMaterial;
+                cactusPot.castShadow = true;
+                cactusPot.receiveShadow = true;
+            }
+            if (cactus && cactus instanceof THREE.Mesh) {
+                cactus.material = greenMaterial;
+                cactus.castShadow = true;
+                cactus.receiveShadow = true;
+            }
 
 
             if (cdCover && cdCover instanceof THREE.Mesh) {
@@ -426,7 +662,10 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 // cdIdle.receiveShadow = true;
             }
             if (cdInPlay && cdInPlay instanceof THREE.Mesh) {
-                cdInPlay.material = blackMaterial;
+                cdInPlay.material = new THREE.MeshToonMaterial({
+                    map: cdCoverTexture,
+                });
+                cdInPlayMesh = cdInPlay;
                 // cdInPlay.castShadow = true;
                 // cdInPlay.receiveShadow = true;
             }
@@ -436,25 +675,43 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 })
                 cdPlayer.castShadow = true;
                 cdPlayer.receiveShadow = true;
+                cdPlayer.userData.playMusic = 'luna';
+                cdPlayer.userData.interactLabel = "play music";
+                cdPlayer.userData.rotation = false;
+                cdPlayerMesh = cdPlayer;
+
+                const cdPlayerPlaceholder = new THREE.Mesh();
+                cdPlayerPlaceholder.position.set(-28, 2, -37);
+                ctx.scene.add(cdPlayerPlaceholder);
+                cdPlayerPlaceholder.visible = false;
+                audioSystem.bindPiano('lune', cdPlayerPlaceholder);
             }
 
             const youtubeLogo = model.getObjectByName('logoYoutube');
             const linkedInLogo = model.getObjectByName('logoLinkedin');
+            const neonLogo = model.getObjectByName('neonLogo');
 
             if (youtubeLogo && youtubeLogo instanceof THREE.Mesh) {
-                youtubeLogo.material = new THREE.MeshBasicMaterial({ color: "#eb757b" });
+                youtubeLogo.material = new THREE.MeshBasicMaterial({ color: "#d9614c" });
                 youtubeLogo.layers.enable(ctx.state.postEffectState.bloom.layer);
                 youtubeLogo.userData.interactUrl = "https://www.youtube.com/@wenzezhang5595";
                 youtubeLogo.userData.interactLabel = "Visit my YouTube";
                 youtubeLogoMesh = youtubeLogo;
             }
             if (linkedInLogo && linkedInLogo instanceof THREE.Mesh) {
-                linkedInLogo.material = new THREE.MeshBasicMaterial({ color: "#6da8e3" });
+                linkedInLogo.material = new THREE.MeshBasicMaterial({ color: "#3b77a8" });
                 linkedInLogo.layers.enable(ctx.state.postEffectState.bloom.layer);
                 linkedInLogo.userData.interactUrl = "https://www.linkedin.com/in/wenze-zhang-7b5669237/";
                 linkedInLogo.userData.interactLabel = "Visit my LinkedIn";
                 linkedInLogoMesh = linkedInLogo;
             }
+
+            if( neonLogo && neonLogo instanceof THREE.Mesh) {
+                neonLogo.material = new THREE.MeshBasicMaterial({ color: "#868be3" });
+                neonLogo.layers.enable(ctx.state.postEffectState.bloom.layer);
+            }
+
+            controlSystem.buildCollisionOctree(collisionGroup);
 
 
             // if (house && house instanceof THREE.Mesh) {
@@ -738,10 +995,14 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
             //     console.log("pokeball model loaded:", model);
             // });
         },
-        update(dt: number) { },
+        update(dt: number) { 
+            if(cdPlayerMesh && cdInPlayMesh && cdPlayerMesh.userData.rotation) {
+                cdInPlayMesh.rotation.y = dt * 2;
+            }
+        },
         getinteractables() {
-            console.log("pokeBallSystem interactables: ", [youtubeLogoMesh, linkedInLogoMesh]);
-            return [youtubeLogoMesh, linkedInLogoMesh].filter((mesh): mesh is THREE.Mesh => mesh !== null);
+            console.log("pokeBallSystem interactables: ", [youtubeLogoMesh, linkedInLogoMesh, cdPlayerMesh]);
+            return [youtubeLogoMesh, linkedInLogoMesh, cdPlayerMesh].filter((mesh): mesh is THREE.Mesh => mesh !== null);
         },
 
         dispose() { }

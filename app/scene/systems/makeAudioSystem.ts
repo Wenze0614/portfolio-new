@@ -8,7 +8,9 @@ export interface AudioSystem {
     dispose(): void;
     play(name: string): void;
     stop(): void;
-    playPiano(name: string, mesh: THREE.Mesh):void;
+    bindPiano(name: string, mesh: THREE.Mesh):void;
+    playPiano():void;
+    playCatSound(mesh: THREE.Mesh):void;
     // isStepPlaying: () => boolean;
 }
 
@@ -28,19 +30,24 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
     });
 
     const sounds: Record<string, THREE.Audio> = {};
+    const catSounds: Record<string, THREE.PositionalAudio> = {};
     const pianoSounds: Record<string, THREE.PositionalAudio> = {};
     let currentStepSound: THREE.Audio | null = null;
     let currentPianoSound: THREE.PositionalAudio | null = null;
+    let currentCatSound: THREE.PositionalAudio | null = null;
 
-    async function loadSound(name: string, url: string, loop = false, volume = 1, piano = false) {
+    async function loadSound(name: string, url: string, loop = false, volume = 1, piano = false, cat = false) {
         const buffer = await audioLoader.loadAsync(url);
-        const sound = piano ? new THREE.PositionalAudio(ctx.listener) : new THREE.Audio(ctx.listener);
+        const sound = piano || cat ? new THREE.PositionalAudio(ctx.listener) : new THREE.Audio(ctx.listener);
         sound.setBuffer(buffer);
         sound.setLoop(loop);
         sound.setVolume(volume);
         if(piano) {
             pianoSounds[name] = sound as THREE.PositionalAudio;
-        } else{
+        } else if(cat) {
+            catSounds[name] = sound as THREE.PositionalAudio;
+        }
+        else{
             sounds[name] = sound as THREE.Audio;
         }
         return sound;
@@ -51,12 +58,13 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
                 //console.log('audio loaded: ', buffer);
                 envSound.setBuffer(buffer);
                 envSound.setLoop(true);
-                envSound.setVolume(0.75);
+                envSound.setVolume(0.3);
                 envSound.play();
             })
             await loadSound("grassStep", '/audio/walk_grass_2_trim.mp3')
             await loadSound("terrainStep", '/audio/walk_terrain.mp3')
             await loadSound("lune", "/audio/lune.mp3", false, 1, true)
+            await loadSound("cat", "/audio/catSound.mp3", true, 0.5, false, true)
             //console.log("sounds loaded: ", sounds);
             //console.log("piano sounds loaded: ", pianoSounds);
         },
@@ -79,7 +87,7 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
                 currentStepSound = null;
             }
         },
-        playPiano(name: string, mesh: THREE.Mesh) {
+        bindPiano(name: string, mesh: THREE.Mesh) {
             currentPianoSound = pianoSounds[name];
             currentPianoSound.setVolume(1.2);
             //console.log('pianoSounds: ', pianoSounds);
@@ -87,7 +95,20 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
             if (!currentPianoSound || currentPianoSound.isPlaying) return;
             mesh.add(currentPianoSound);
             currentPianoSound.setRefDistance(2);
+            //currentPianoSound.play();
+        },
+        playPiano() {
+            if(!currentPianoSound || currentPianoSound.isPlaying) return;
             currentPianoSound.play();
+        },
+        playCatSound(mesh: THREE.Mesh) {
+            currentCatSound = catSounds["cat"];
+            console.log("play cat sound: ", currentCatSound);
+            currentCatSound.setVolume(0.5);
+            if (!currentCatSound || currentCatSound.isPlaying) return;
+            mesh.add(currentCatSound);
+            currentCatSound.setRefDistance(0.5);
+            currentCatSound.play();
         }
 
     }

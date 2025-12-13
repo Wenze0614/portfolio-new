@@ -107,7 +107,7 @@ export default function Page() {
                 console.log("hits: ", hits[0].object.userData.interactUrl);
                 // If logos have children, grab the top-level interactable
                 const hitObj = hits[0].object;
-                currentTarget = hitObj.userData.interactUrl ? hitObj : hitObj.parent as THREE.Object3D;
+                currentTarget = hitObj.userData.interactUrl || hitObj.userData.playMusic ? hitObj : hitObj.parent as THREE.Object3D;
 
                 const label = currentTarget.userData.interactLabel ?? "Interact";
                 if (promptEl) {
@@ -131,7 +131,15 @@ export default function Page() {
             if (!currentTarget) return;
 
             // Important: works best if it's a direct user gesture (keydown is fine)
-            window.open(currentTarget.userData.interactUrl, "_blank", "noopener,noreferrer");
+            if(currentTarget.userData.interactUrl) {
+                window.open(currentTarget.userData.interactUrl, "_blank", "noopener,noreferrer");
+            }
+
+            if(currentTarget.userData.playMusic) {
+                currentTarget.userData.rotation = true;
+                audioSysRef.current?.playPiano();
+            }
+
         });
         const interactables: THREE.Mesh[] = [];
         // #endregion
@@ -169,14 +177,14 @@ export default function Page() {
             guiSystem.updateLights(lightSystem.getLights());
             lightSysRef.current = lightSystem;
 
-            const interactiveSystem = makeInteractiveSystem(ctx, audioSys);
+            const interactiveSystem = makeInteractiveSystem(ctx, audioSys, controlSystem);
             await interactiveSystem.init(meshs, guiSystem);
             interactiveSysRef.current = interactiveSystem;
             interactiveSystem.getInteractables().map((mesh) => interactables.push(mesh));
             console.log("interactables: ", interactables);
 
 
-            makeEnvSystem(ctx).init(meshs, guiSystem);
+            // makeEnvSystem(ctx).init(meshs, guiSystem);
 
             const terrainSystem = makeTerrainSystem(ctx);
             terrainSystem.init(ctx);
@@ -199,19 +207,19 @@ export default function Page() {
 
             signSysRef.current = makeSignSystem(ctx);
 
-            const testCubeMat = new THREE.MeshToonMaterial({ color: 'white' });
-            // testCubeMat.onBeforeCompile = (shader) => {
-            //     modifyShader(shader);
-            // }
-            const testCube = new THREE.Mesh(
-                new THREE.BoxGeometry(1, 1, 1),
-                testCubeMat
-            );
-            testCube.position.set(-5, 2, 5);
-            testCube.castShadow = true;
-            scene.add(testCube);
-            testCube.name = "test cube";
-            meshs.push(testCube);
+            // const testCubeMat = new THREE.MeshToonMaterial({ color: 'white' });
+            // // testCubeMat.onBeforeCompile = (shader) => {
+            // //     modifyShader(shader);
+            // // }
+            // const testCube = new THREE.Mesh(
+            //     new THREE.BoxGeometry(1, 1, 1),
+            //     testCubeMat
+            // );
+            // testCube.position.set(-5, 2, 5);
+            // testCube.castShadow = true;
+            // scene.add(testCube);
+            // testCube.name = "test cube";
+            // meshs.push(testCube);
 
             // ctx.loaders.gltf.load('/models/archie.glb', async (gltf) => {
             //     const model = gltf.scene;

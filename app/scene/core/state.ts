@@ -24,13 +24,14 @@ export function makeState(): AppState {
         tileResolution: 20,
         terrainWidth: 200,
         terrainLength: 200,
-        heightScale: 1.0,
+        heightScale: 0.4,
         heightOffset: 0.0
     }
 
     const _windState = {
         windSpeed: 1.0, // default wind speed
         windDirection: new THREE.Vector2(1, 1).normalize(), // default wind direction
+        windStrength: 0.12
     };
 
     const _fogState = {
@@ -39,10 +40,10 @@ export function makeState(): AppState {
 
     const _postEffectState = {
         bloom: {
-            strength: 0.6,
+            strength: 0.8,
             layer: 1,
-            radius: 0.5,
-            threshold: 0.6,
+            radius: 0.7,
+            threshold: 0.01,
         }
     }
 
@@ -100,6 +101,7 @@ export function makeState(): AppState {
         bookCover: undefined,
         jolteonIcon: undefined,
         zTexture: undefined,
+        cdCover: undefined,
     };
     function setTexture(name: TEXTURE_NAME, texture: THREE.Texture) {
         textures[name] = texture;

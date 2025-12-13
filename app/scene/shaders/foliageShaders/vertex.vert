@@ -10,6 +10,11 @@ uniform float uSphereRadius[MAX_SPHERES];
 uniform vec2 uFoliageSize[MAX_SPHERES];
 uniform vec3 uFoliageSpherePositions[MAX_SPHERES];
 uniform int uSphereVertOffset[MAX_SPHERES];
+uniform float uTime;
+uniform float uWindSpeed;
+uniform float uGustScale;
+uniform vec2 uWindDirection;
+uniform float uWindStrength;
 
 attribute float sphereID; // 0~Number of spheres -1
 
@@ -88,24 +93,40 @@ vec3 fibonacciPoint(int clumpID, int clumpNum, float radius) {
 }
 
 float inverseLerp(float v, float minValue, float maxValue) {
-  return (v-minValue)/(maxValue-minValue);
+    return (v-minValue)/(maxValue-minValue);
 }
 
 float remap(float v, float inMin, float inMax, float outMin, float outMax) {
-  float t = inverseLerp(v, inMin, inMax);
-  return mix(outMin, outMax, t);
+    float t = inverseLerp(v, inMin, inMax);
+    return mix(outMin, outMax, t);
+}
+
+float hash(vec2 p) {
+    p = fract(p*vec2(123.34, 345.45));
+    p += dot(p, p+34.345);
+    return fract(p.x*p.y);
+}
+float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    float a = hash(i);
+    float b = hash(i+vec2(1.0, 0.0));
+    float c = hash(i+vec2(0.0, 1.0));
+    float d = hash(i+vec2(1.0, 1.0));
+    vec2 u = f*f*(3.0-2.0*f);
+    return mix(a, b, u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
 }
 
 void main() {
-    
-    int sphereIdx = int(sphereID + 0.5); //safety convert to int
+
+    int sphereIdx = int(sphereID+0.5); //safety convert to int
     int horitontal_quads = int(uQuadNumber[sphereIdx].x);
     int vertical_quads = int(uQuadNumber[sphereIdx].y);
     int totalNumQuads = horitontal_quads+vertical_quads;
-    float vertIDoffset = (sphereIdx == 0) ? 0.0 : float(uSphereVertOffset[sphereIdx-1]);
-    float vertID_sphere = float(gl_VertexID) - vertIDoffset;
+    float vertIDoffset = (sphereIdx==0) ? 0.0 : float(uSphereVertOffset[sphereIdx-1]);
+    float vertID_sphere = float(gl_VertexID)-vertIDoffset;
     int foliageSegment = uFoliageSegment[sphereIdx]; // =1
-    int clumpNum = uClumpNumber[sphereIdx]; 
+    int clumpNum = uClumpNumber[sphereIdx];
     float sphereRadius = uSphereRadius[sphereIdx];
     vec2 foliageSize = uFoliageSize[sphereIdx];
     vec3 foliageSpherePosition = uFoliageSpherePositions[sphereIdx];
@@ -151,13 +172,27 @@ void main() {
     vec3 jitterAngle = hash31(float(clumpID))*2.0*PI; //0~2PI
     mat3 jitterRot = rotateX(jitterAngle.x)*rotateY(jitterAngle.y)*rotateZ(jitterAngle.z);
     vec3 spherePosition = fibonacciPoint(clumpID, clumpNum, sphereRadius); //also the normal
-    quadVertLocalPosition = foliageSpherePosition + spherePosition+jitterRot*quadVertLocalPosition;
-    vec4 quadVertLocalPositionPerTree = treeTransformMatrix * vec4(quadVertLocalPosition, 1.0); // apply tree transform matrix
+    quadVertLocalPosition = foliageSpherePosition+spherePosition+jitterRot*quadVertLocalPosition;
+    vec4 quadVertLocalPositionPerTree = treeTransformMatrix*vec4(quadVertLocalPosition, 1.0); // apply tree transform matrix
 
+    // add wind animation
+    vec3 perTreePos = quadVertLocalPositionPerTree.xyz;
+    // A stable phase per clump + per tree position so it's not uniform
+    float phase = float(clumpID)*0.7+perTreePos.x*0.15+perTreePos.z*0.15;
+    // Low-frequency sway
+    float sway = sin(uTime*uWindSpeed+phase);
+    float gust = remap(noise(vec2(perTreePos.x, perTreePos.z)*uGustScale+vec2(uTime*0.05, 0.0)), 0.0, 1.0, 0.6, 1.4);
+    // Wind direction in XZ
+    vec2 wd = normalize(uWindDirection);
 
     //for shadow map
     vec4 worldPosition = modelMatrix*quadVertLocalPositionPerTree;
     vPosWS = worldPosition.xyz; // required for shadow map
+
+        // Main sway offset
+    float windStrength = noise(vec2(worldPosition.xz*0.05)+uTime);
+    vec3 windOffset = vec3(wd.x, 0.0, wd.y)*sway*windStrength*gust;
+    quadVertLocalPositionPerTree.xyz += windOffset;
 
     //experimenting with normal
     vec3 lightDirection = normalize(vec3(100, 160, 0));
@@ -167,7 +202,6 @@ void main() {
     }
     vNormalWS = normalize(mat3(transpose(inverse(modelMatrix)))*mat3(treeTransformMatrix)*(mix(spherePosition, n, ndl*0.25)));
     vec3 transformedNormal = normalize(mat3(modelViewMatrix)*mat3(treeTransformMatrix)*(mix(spherePosition, n, ndl*0.25)));
-
 
     // sampling shadow from terrain shadow map instead of from foliage itself to avoid self-shadowing artifacts
     // vec4 worldBasePos = modelMatrix*vec4(0.0, 1.0, 0.0, 1.0);		

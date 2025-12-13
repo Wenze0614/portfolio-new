@@ -31,11 +31,12 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     const pBookCover = ctx.loaders.texture.loadAsync('/textures/bookCover.webp');
     const pJolteonIcon = ctx.loaders.texture.loadAsync('/textures/jolteonIcon.webp');
     const pZ = ctx.loaders.texture.loadAsync('/textures/z-2.webp');
+    const pCdCover = ctx.loaders.texture.loadAsync('/textures/cdCover.webp');
 
 
     //const pokeballTexture = await ctx.loaders.texture.loadAsync('/textures/pokeball_BaseColor.png');
-    const [grassTexture, archieTexture, heightMap, fogNoiseTexture, terrainTexture, windNoiseTexture, pianoTexture, barTexture, pokeballTexture, minecraftTexture, wood, minecraftRoofTexture, foliageTexture, treebarkTexture, starTexture, houseTexture, musicAreaTexture, textureSetThree, rotomTexture, textureSetFour, archiePhoto, certificate, leafTexture, pikachuStatueTexture, bootTexture, wallTexture, bookCover, jolteonIcon, z ] =
-        await Promise.all([pGrassTexture, pArchieTexture, pHeightMap, pFogNoiseTexture, pTerrainTexture, pWindNoiseTexture, pPianoTexture, pBarTexture, pPokeballTexture, pMinecraftTexture, pWood, pMinecraftRoofTexture, pFoliageTexture, pTreebarkTexture, pStarTexture, pHouseTexture, pMusicAreaTexture, pTextureSetThree, pRotomTexture, pTextureSetFour, pArchiePhoto, pCertificate, pLeafTexture, pPikachuStatueTexture, pBootTexture, pWallTexture, pBookCover, pJolteonIcon, pZ]);
+    const [grassTexture, archieTexture, heightMap, fogNoiseTexture, terrainTexture, windNoiseTexture, pianoTexture, barTexture, pokeballTexture, minecraftTexture, wood, minecraftRoofTexture, foliageTexture, treebarkTexture, starTexture, houseTexture, musicAreaTexture, textureSetThree, rotomTexture, textureSetFour, archiePhoto, certificate, leafTexture, pikachuStatueTexture, bootTexture, wallTexture, bookCover, jolteonIcon, z, cdCover ] =
+        await Promise.all([pGrassTexture, pArchieTexture, pHeightMap, pFogNoiseTexture, pTerrainTexture, pWindNoiseTexture, pPianoTexture, pBarTexture, pPokeballTexture, pMinecraftTexture, pWood, pMinecraftRoofTexture, pFoliageTexture, pTreebarkTexture, pStarTexture, pHouseTexture, pMusicAreaTexture, pTextureSetThree, pRotomTexture, pTextureSetFour, pArchiePhoto, pCertificate, pLeafTexture, pPikachuStatueTexture, pBootTexture, pWallTexture, pBookCover, pJolteonIcon, pZ, pCdCover]);
 
 
     grassTexture.wrapS = grassTexture.wrapT = THREE.MirroredRepeatWrapping;
@@ -226,6 +227,12 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     z.colorSpace = THREE.SRGBColorSpace;
     z.needsUpdate = true;
     ctx.state.setTexture(TEXTURE_NAME.Z_TEXTURE, z);
+
+    cdCover.name = "cdCover";
+    cdCover.flipY = false;
+    cdCover.colorSpace = THREE.SRGBColorSpace;
+    cdCover.needsUpdate = true;
+    ctx.state.setTexture(TEXTURE_NAME.CD_COVER, cdCover);
 
     // const video = document.createElement('video');
     // video.src = '/textures/singing.mp4';   // or .mov if your browser supports it

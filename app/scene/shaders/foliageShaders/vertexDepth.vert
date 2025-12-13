@@ -7,6 +7,12 @@ uniform float uSphereRadius[MAX_SPHERES];
 uniform vec2 uFoliageSize[MAX_SPHERES];
 uniform vec3 uFoliageSpherePositions[MAX_SPHERES];
 uniform int uSphereVertOffset[MAX_SPHERES];
+uniform float uTime;
+uniform float uWindSpeed;
+uniform float uGustScale;
+uniform vec2 uWindDirection;
+uniform float uWindStrength;
+
 
 attribute float sphereID; // 0~Number of spheres -1
 
@@ -94,6 +100,22 @@ float remap(float v, float inMin, float inMax, float outMin, float outMax) {
     return mix(outMin, outMax, t);
 }
 
+float hash(vec2 p) {
+    p = fract(p*vec2(123.34, 345.45));
+    p += dot(p, p+34.345);
+    return fract(p.x*p.y);
+}
+float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    float a = hash(i);
+    float b = hash(i+vec2(1.0, 0.0));
+    float c = hash(i+vec2(0.0, 1.0));
+    float d = hash(i+vec2(1.0, 1.0));
+    vec2 u = f*f*(3.0-2.0*f);
+    return mix(a, b, u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+
 void main() {
 
     int sphereIdx = int(sphereID+0.5); //safety convert to int
@@ -152,9 +174,24 @@ void main() {
     quadVertLocalPosition = foliageSpherePosition+spherePosition+jitterRot*quadVertLocalPosition;
     vec4 quadVertLocalPositionPerTree = treeTransformMatrix*vec4(quadVertLocalPosition, 1.0); // apply tree transform matrix
 
+        // add wind animation
+    vec3 perTreePos = quadVertLocalPositionPerTree.xyz;
+    // A stable phase per clump + per tree position so it's not uniform
+    float phase = float(clumpID)*0.7+perTreePos.x*0.15+perTreePos.z*0.15;
+    // Low-frequency sway
+    float sway = sin(uTime*uWindSpeed+phase);
+    float gust = remap(noise(vec2(perTreePos.x, perTreePos.z)*uGustScale+vec2(uTime*0.05, 0.0)), 0.0, 1.0, 0.6, 1.4);
+    // Wind direction in XZ
+    vec2 wd = normalize(uWindDirection);
+
     //for shadow map
     vec4 worldPosition = modelMatrix*quadVertLocalPositionPerTree;
     vPosWS = worldPosition.xyz; // required for shadow map
+
+            // Main sway offset
+    float windStrength = noise(vec2(worldPosition.xz*0.05)+uTime);
+    vec3 windOffset = vec3(wd.x, 0.0, wd.y)*sway*windStrength*gust;
+    quadVertLocalPositionPerTree.xyz += windOffset;
 
     //experimenting with normal
     vec3 lightDirection = normalize(vec3(100, 160, 0));

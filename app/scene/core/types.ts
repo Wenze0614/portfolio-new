@@ -2,10 +2,11 @@
 
 import * as THREE from "three";
 import { EffectComposer, GLTFLoader } from "three/examples/jsm/Addons.js";
+import { AudioSystem } from "../systems/makeAudioSystem";
 
 
 export interface System {
-    init(ctx: SceneContext, meshes?: THREE.Mesh[], guiSystem?: GUISystem, opts?:{position: THREE.Vector3}): Promise<void> | void;
+    init(ctx: SceneContext, meshes?: THREE.Mesh[], guiSystem?: GUISystem, opts?:{position: THREE.Vector3},  controlSystem?: ControlSystem, audioSystem?: AudioSystem): Promise<void> | void;
     update( dt: number): void;
     dispose(): void;
   }
@@ -17,6 +18,7 @@ export interface UpdateParams {
 
 export interface ControlSystem extends System {
     switchControl: (ctx: SceneContext) => void;
+    buildCollisionOctree: (collidersGroup: THREE.Group) => void;
 };
 
 export interface GUISystem extends System {
@@ -68,6 +70,7 @@ export interface TerrainState {
 export interface WindState {
     windSpeed: number,
     windDirection: THREE.Vector2,
+    windStrength: number
 }
 
 export interface FogState {
@@ -152,6 +155,7 @@ export enum TEXTURE_NAME {
     BOOK_COVER = "bookCover",
     JOLTEON_ICON = "jolteonIcon",
     Z_TEXTURE = "zTexture",
+    CD_COVER = "cdCover",
 }
 
 export enum VIDEOTEXTURE_NAME {

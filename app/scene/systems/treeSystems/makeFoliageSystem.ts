@@ -11,7 +11,7 @@ const FOLIAGE_HORIZONTAL_QUADS = 0;
 const FOLIAGE_VERTICAL_QUADS = 2;
 const FOLIAGE_SEGMENT = 1;
 const CLUMPS_NUM = 30;
-const SPHERE_RADIUS = 0.5;
+const SPHERE_RADIUS = 0.8;
 
 export interface FoliageClumpsData {
     position: THREE.Vector3;
@@ -136,8 +136,8 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
 
     const foliageSegments = foliageGuides.map((guide) => guide.segments);
     const foliageClumpNums = foliageGuides.map((guide) => guide.clumpsNum);
-    const foliageSphereRadiuses = foliageGuides.map((guide) => guide.sphereRadius);
-    const foliageSizes = foliageGuides.map((guide) => new THREE.Vector2(guide.foliageWidth, guide.foliageHeight));
+    const foliageSphereRadiuses = foliageGuides.map((guide) => guide.sphereRadius * 1.2);
+    const foliageSizes = foliageGuides.map((guide) => new THREE.Vector2(guide.foliageWidth * 1.2, guide.foliageHeight * 1.2));
     const foliageSpherePositions = foliageGuides.map((guide) => guide.position);
 
 
@@ -147,10 +147,12 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
     const baseUniforms = THREE.UniformsUtils.clone(THREE.ShaderLib.lambert.uniforms);
     const MAX_SPHERES = 10;
     const customUniforms = {
-        time: { value: 0 },
+        uTime: { value: 0 },
         resolution: { value: new THREE.Vector2(1, 1) },
         uWindSpeed: { value: ctx.state.windState.windSpeed },
         uWindDirection: { value: ctx.state.windState.windDirection },
+        uWindStrength: { value: ctx.state.windState.windStrength },
+        uGustScale:{ value: 0.15 },
         uFoliageTexture: { value: foliageTexture },
         //arrays
         uFoliageSegment: { value: new Int32Array(MAX_SPHERES) },
@@ -216,6 +218,7 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
     //foliageMesh.position.copy(foliageGuides.position);
     // foliageMesh.position.y = 1;
     // foliageMesh.scale.setScalar(foliageGuides.scale);
+    //foliageMesh.scale.set(1.2, 1.2, 1.2);
     foliageMesh.castShadow = true;
     foliageMesh.receiveShadow = false;
     //foliageMesh.receiveShadow = true;
@@ -247,6 +250,7 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
         init(ctx: SceneContext) { },
         update(dt: number) {
             foliageMat.uniforms.fogTime.value = dt;
+            foliageMat.uniforms.uTime.value = dt;
         },
         dispose() { },
         getFoliage() {
