@@ -283,7 +283,10 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
 
 
                 ctx.scene.add(z1, z2, z3);
-                guiSystem.updateSprites([z1, z2, z3]);
+                if (guiSystem) {
+                    guiSystem.updateSprites([z1, z2, z3]);
+                }
+
 
                 const archieHeadPosition = new THREE.Vector3(-31, 1.5, -24);
                 function loopZZZ() {
@@ -588,7 +591,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 pikachu.castShadow = true;
                 pikachu.receiveShadow = true;
             }
-            if( pokeball && pokeball instanceof THREE.Mesh) {
+            if (pokeball && pokeball instanceof THREE.Mesh) {
                 pokeball.material = new THREE.MeshToonMaterial({
                     map: pokeballTexture,
                 });
@@ -605,7 +608,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 pokeball.castShadow = true;
                 pokeball.receiveShadow = true;
             }
-            if( pokeballShine && pokeballShine instanceof THREE.Mesh) {
+            if (pokeballShine && pokeballShine instanceof THREE.Mesh) {
                 pokeballShine.material = new THREE.MeshBasicMaterial({
                     color: "#ffffff",
                 });
@@ -706,7 +709,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 linkedInLogoMesh = linkedInLogo;
             }
 
-            if( neonLogo && neonLogo instanceof THREE.Mesh) {
+            if (neonLogo && neonLogo instanceof THREE.Mesh) {
                 neonLogo.material = new THREE.MeshBasicMaterial({ color: "#868be3" });
                 neonLogo.layers.enable(ctx.state.postEffectState.bloom.layer);
             }
@@ -995,8 +998,8 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
             //     console.log("pokeball model loaded:", model);
             // });
         },
-        update(dt: number) { 
-            if(cdPlayerMesh && cdInPlayMesh && cdPlayerMesh.userData.rotation) {
+        update(dt: number) {
+            if (cdPlayerMesh && cdInPlayMesh && cdPlayerMesh.userData.rotation) {
                 cdInPlayMesh.rotation.y = dt * 2;
             }
         },

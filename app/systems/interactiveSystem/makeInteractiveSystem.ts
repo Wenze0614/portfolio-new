@@ -7,7 +7,7 @@ import { AudioSystem } from "../makeAudioSystem";
 import makeMusicBar from "./makeMusicBar";
 
 export interface InteractiveSystem {
-    init(meshs: THREE.Mesh[], guiSystem: any): void;
+    init(meshs: THREE.Mesh[], guiSystem?: any): void;
     update(dt: number): void;
     dispose(): void;
     getInteractables(): THREE.Mesh[];
