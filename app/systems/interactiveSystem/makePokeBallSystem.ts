@@ -516,7 +516,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
             }
             if (plants && plants instanceof THREE.Mesh) {
                 plants.material = new THREE.MeshToonMaterial({
-                    map: leafTexture
+                    color:"#497347"
                 })
                 plants.castShadow = true;
                 plants.receiveShadow = true;

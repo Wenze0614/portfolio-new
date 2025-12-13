@@ -2,31 +2,31 @@ import { SceneContext, TEXTURE_NAME } from "../core/types";
 import * as THREE from "three";
 
 export default async function makeTextureLoaderSys(ctx: SceneContext) {
-    const pGrassTexture = ctx.loaders.texture.loadAsync('/textures/greenTexture3.png');
+    const pGrassTexture = ctx.loaders.texture.loadAsync('/textures/greenTexture3.webp');
     const pArchieTexture = ctx.loaders.texture.loadAsync('/textures/archie.webp');
-    const pHeightMap = ctx.loaders.texture.loadAsync('/textures/heightMap.jpg');
+    const pHeightMap = ctx.loaders.texture.loadAsync('/textures/heightMap.webp');
     const pFogNoiseTexture = ctx.loaders.texture.loadAsync('/textures/noise.png');
     const pTerrainTexture = ctx.loaders.texture.loadAsync('/textures/terrain.jpg');
     const pWindNoiseTexture = ctx.loaders.texture.loadAsync('/textures/wind-noise-1.png');
-    const pPianoTexture = ctx.loaders.texture.loadAsync('/textures/piano.jpg');
-    const pBarTexture = ctx.loaders.texture.loadAsync('/textures/bar_2.jpg');
+    //const pPianoTexture = ctx.loaders.texture.loadAsync('/textures/piano.jpg');
+    //const pBarTexture = ctx.loaders.texture.loadAsync('/textures/bar_2.jpg');
     const pPokeballTexture = ctx.loaders.texture.loadAsync('/textures/pokeball.webp');
-    const pMinecraftTexture = ctx.loaders.texture.loadAsync('/textures/minecraft.png');
+    //const pMinecraftTexture = ctx.loaders.texture.loadAsync('/textures/minecraft.png');
     const pWood = ctx.loaders.texture.loadAsync('/textures/wood.webp');
-    const pMinecraftRoofTexture = ctx.loaders.texture.loadAsync('/textures/roof.jpg');
+    //const pMinecraftRoofTexture = ctx.loaders.texture.loadAsync('/textures/roof.jpg');
     const pFoliageTexture = ctx.loaders.texture.loadAsync('/textures/trees/foliage-2.png');
-    const pTreebarkTexture = ctx.loaders.texture.loadAsync('/textures/trees/tree_trunk_baseColor.png');
-    const pStarTexture = ctx.loaders.texture.loadAsync('/textures/star.png');
-    const pHouseTexture = ctx.loaders.texture.loadAsync('/textures/TextureSetOne.webp');
-    const pMusicAreaTexture = ctx.loaders.texture.loadAsync('/textures/TextureSetTwo.webp');
-    const pTextureSetThree = ctx.loaders.texture.loadAsync('/textures/TextureSetThree.webp');
+    const pTreebarkTexture = ctx.loaders.texture.loadAsync('/textures/trees/tree_trunk_baseColor.webp');
+    //const pStarTexture = ctx.loaders.texture.loadAsync('/textures/star.png');
+    //const pHouseTexture = ctx.loaders.texture.loadAsync('/textures/TextureSetOne.webp');
+    //const pMusicAreaTexture = ctx.loaders.texture.loadAsync('/textures/TextureSetTwo.webp');
+    //const pTextureSetThree = ctx.loaders.texture.loadAsync('/textures/TextureSetThree.webp');
     const pRotomTexture = ctx.loaders.texture.loadAsync('/textures/RotomTexture.webp');
-    const pTextureSetFour = ctx.loaders.texture.loadAsync('/textures/TextureSetFour.webp');
+    //const pTextureSetFour = ctx.loaders.texture.loadAsync('/textures/TextureSetFour.webp');
     const pArchiePhoto = ctx.loaders.texture.loadAsync('/textures/archiePhoto.webp');
     const pCertificate = ctx.loaders.texture.loadAsync('/textures/certificate.webp');
     const pLeafTexture = ctx.loaders.texture.loadAsync('/textures/leaf.webp');
     const pPikachuStatueTexture = ctx.loaders.texture.loadAsync('/textures/pikachuStatue.webp');
-    const pBootTexture = ctx.loaders.texture.loadAsync('/textures/boot.webp');
+    //const pBootTexture = ctx.loaders.texture.loadAsync('/textures/boot.webp');
     const pWallTexture = ctx.loaders.texture.loadAsync('/textures/wall.webp');
     const pBookCover = ctx.loaders.texture.loadAsync('/textures/bookCover.webp');
     const pJolteonIcon = ctx.loaders.texture.loadAsync('/textures/jolteonIcon.webp');
@@ -35,8 +35,65 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
 
 
     //const pokeballTexture = await ctx.loaders.texture.loadAsync('/textures/pokeball_BaseColor.png');
-    const [grassTexture, archieTexture, heightMap, fogNoiseTexture, terrainTexture, windNoiseTexture, pianoTexture, barTexture, pokeballTexture, minecraftTexture, wood, minecraftRoofTexture, foliageTexture, treebarkTexture, starTexture, houseTexture, musicAreaTexture, textureSetThree, rotomTexture, textureSetFour, archiePhoto, certificate, leafTexture, pikachuStatueTexture, bootTexture, wallTexture, bookCover, jolteonIcon, z, cdCover ] =
-        await Promise.all([pGrassTexture, pArchieTexture, pHeightMap, pFogNoiseTexture, pTerrainTexture, pWindNoiseTexture, pPianoTexture, pBarTexture, pPokeballTexture, pMinecraftTexture, pWood, pMinecraftRoofTexture, pFoliageTexture, pTreebarkTexture, pStarTexture, pHouseTexture, pMusicAreaTexture, pTextureSetThree, pRotomTexture, pTextureSetFour, pArchiePhoto, pCertificate, pLeafTexture, pPikachuStatueTexture, pBootTexture, pWallTexture, pBookCover, pJolteonIcon, pZ, pCdCover]);
+    const [
+        grassTexture, 
+        archieTexture, 
+        heightMap, 
+        fogNoiseTexture, 
+        terrainTexture, 
+        windNoiseTexture, 
+        //barTexture, 
+        pokeballTexture, 
+        //minecraftTexture, 
+        wood, 
+        //minecraftRoofTexture, 
+        foliageTexture, 
+        treebarkTexture, 
+        //starTexture, 
+        //houseTexture, 
+        //musicAreaTexture, 
+        //textureSetThree, 
+        rotomTexture, 
+        //textureSetFour, 
+        archiePhoto, 
+        certificate, 
+        leafTexture, 
+        pikachuStatueTexture, 
+        //bootTexture, 
+        wallTexture, 
+        bookCover, 
+        jolteonIcon, 
+        z, 
+        cdCover ] = await Promise.all([
+            pGrassTexture, 
+            pArchieTexture, 
+            pHeightMap, 
+            pFogNoiseTexture, 
+            pTerrainTexture, 
+            pWindNoiseTexture, 
+            //pBarTexture, 
+            pPokeballTexture, 
+            //pMinecraftTexture, 
+            pWood, 
+            //pMinecraftRoofTexture, 
+            pFoliageTexture, 
+            pTreebarkTexture, 
+            //pStarTexture, 
+            //pHouseTexture, 
+            //pMusicAreaTexture, 
+            //pTextureSetThree, 
+            pRotomTexture, 
+            //pTextureSetFour, 
+            pArchiePhoto, 
+            pCertificate, 
+            pLeafTexture, 
+            pPikachuStatueTexture,
+            //pBootTexture, 
+            pWallTexture, 
+            pBookCover, 
+            pJolteonIcon, 
+            pZ, 
+            pCdCover]);
 
 
     grassTexture.wrapS = grassTexture.wrapT = THREE.MirroredRepeatWrapping;
@@ -84,18 +141,18 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     ctx.state.setTexture(TEXTURE_NAME.WIND_NOISE_TEXTURE, windNoiseTexture);
 
 
-    pianoTexture.flipY = false;
-    pianoTexture.colorSpace = THREE.SRGBColorSpace;
-    pianoTexture.name = "pianoTexture";
-    pianoTexture.needsUpdate = true;
-    ctx.state.setTexture(TEXTURE_NAME.PIANO_TEXTURE, pianoTexture);
+    // pianoTexture.flipY = false;
+    // pianoTexture.colorSpace = THREE.SRGBColorSpace;
+    // pianoTexture.name = "pianoTexture";
+    // pianoTexture.needsUpdate = true;
+    // ctx.state.setTexture(TEXTURE_NAME.PIANO_TEXTURE, pianoTexture);
 
 
-    barTexture.flipY = false;
-    barTexture.colorSpace = THREE.SRGBColorSpace;
-    barTexture.name = "barTexture";
-    barTexture.needsUpdate = true;
-    ctx.state.setTexture(TEXTURE_NAME.BAR_TEXTURE, barTexture);
+    // barTexture.flipY = false;
+    // barTexture.colorSpace = THREE.SRGBColorSpace;
+    // barTexture.name = "barTexture";
+    // barTexture.needsUpdate = true;
+    // ctx.state.setTexture(TEXTURE_NAME.BAR_TEXTURE, barTexture);
 
 
     pokeballTexture.flipY = false;
@@ -105,13 +162,13 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     ctx.state.setTexture(TEXTURE_NAME.POKEBALL_TEXTURE, pokeballTexture);
 
 
-    minecraftTexture.flipY = false;
-    minecraftTexture.colorSpace = THREE.SRGBColorSpace;
-    minecraftTexture.minFilter = THREE.NearestFilter;
-    minecraftTexture.magFilter = THREE.NearestFilter;
-    minecraftTexture.name = "minecraftTexture";
-    minecraftTexture.needsUpdate = true;
-    ctx.state.setTexture(TEXTURE_NAME.MINECRAFT_TEXTURE, minecraftTexture);
+    // minecraftTexture.flipY = false;
+    // minecraftTexture.colorSpace = THREE.SRGBColorSpace;
+    // minecraftTexture.minFilter = THREE.NearestFilter;
+    // minecraftTexture.magFilter = THREE.NearestFilter;
+    // minecraftTexture.name = "minecraftTexture";
+    // minecraftTexture.needsUpdate = true;
+    // ctx.state.setTexture(TEXTURE_NAME.MINECRAFT_TEXTURE, minecraftTexture);
 
 
     wood.flipY = false;
@@ -120,11 +177,11 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     wood.needsUpdate = true;
     ctx.state.setTexture(TEXTURE_NAME.WOOD_TEXTURE, wood);
 
-    minecraftRoofTexture.flipY = false;
-    minecraftRoofTexture.colorSpace = THREE.SRGBColorSpace;
-    minecraftRoofTexture.name = "minecraftRoofTexture";
-    minecraftRoofTexture.needsUpdate = true;
-    ctx.state.setTexture(TEXTURE_NAME.MINECRAFT_ROOF_TEXTURE, minecraftRoofTexture);
+    // minecraftRoofTexture.flipY = false;
+    // minecraftRoofTexture.colorSpace = THREE.SRGBColorSpace;
+    // minecraftRoofTexture.name = "minecraftRoofTexture";
+    // minecraftRoofTexture.needsUpdate = true;
+    // ctx.state.setTexture(TEXTURE_NAME.MINECRAFT_ROOF_TEXTURE, minecraftRoofTexture);
 
 
     foliageTexture.colorSpace = THREE.NoColorSpace;
@@ -139,28 +196,28 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     ctx.state.setTexture(TEXTURE_NAME.TREEBARK_TEXTURE, treebarkTexture);
 
 
-    starTexture.name = "starTexture";
-    starTexture.colorSpace = THREE.SRGBColorSpace;
-    starTexture.needsUpdate = true;
-    ctx.state.setTexture(TEXTURE_NAME.STAR_TEXTURE, starTexture);
+    // starTexture.name = "starTexture";
+    // starTexture.colorSpace = THREE.SRGBColorSpace;
+    // starTexture.needsUpdate = true;
+    // ctx.state.setTexture(TEXTURE_NAME.STAR_TEXTURE, starTexture);
 
-    houseTexture.name = "houseTexture";
-    houseTexture.flipY = false;
-    houseTexture.colorSpace = THREE.SRGBColorSpace;
-    houseTexture.needsUpdate = true;
-    ctx.state.setTexture(TEXTURE_NAME.HOUSE_TEXTURE, houseTexture);
+    // houseTexture.name = "houseTexture";
+    // houseTexture.flipY = false;
+    // houseTexture.colorSpace = THREE.SRGBColorSpace;
+    // houseTexture.needsUpdate = true;
+    // ctx.state.setTexture(TEXTURE_NAME.HOUSE_TEXTURE, houseTexture);
 
-    musicAreaTexture.name = "musicAreaTexture";
-    musicAreaTexture.flipY = false;
-    musicAreaTexture.colorSpace = THREE.SRGBColorSpace;
-    musicAreaTexture.needsUpdate = true;
-    ctx.state.setTexture(TEXTURE_NAME.TEXTURE_SET_TWO, musicAreaTexture);
+    // musicAreaTexture.name = "musicAreaTexture";
+    // musicAreaTexture.flipY = false;
+    // musicAreaTexture.colorSpace = THREE.SRGBColorSpace;
+    // musicAreaTexture.needsUpdate = true;
+    // ctx.state.setTexture(TEXTURE_NAME.TEXTURE_SET_TWO, musicAreaTexture);
 
-    textureSetThree.name = "textureSetThree";
-    textureSetThree.flipY = false;
-    textureSetThree.colorSpace = THREE.SRGBColorSpace;
-    textureSetThree.needsUpdate = true;
-    ctx.state.setTexture(TEXTURE_NAME.TEXTURE_SET_THREE, textureSetThree);
+    // textureSetThree.name = "textureSetThree";
+    // textureSetThree.flipY = false;
+    // textureSetThree.colorSpace = THREE.SRGBColorSpace;
+    // textureSetThree.needsUpdate = true;
+    // ctx.state.setTexture(TEXTURE_NAME.TEXTURE_SET_THREE, textureSetThree);
 
     rotomTexture.name = "rotomTexture";
     rotomTexture.flipY = false;
@@ -168,11 +225,11 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     rotomTexture.needsUpdate = true;
     ctx.state.setTexture(TEXTURE_NAME.ROTOM_TEXTURE, rotomTexture);
 
-    textureSetFour.name = "textureSetFour";
-    textureSetFour.flipY = false;
-    textureSetFour.colorSpace = THREE.SRGBColorSpace;
-    textureSetFour.needsUpdate = true;
-    ctx.state.setTexture(TEXTURE_NAME.TEXTURE_SET_FOUR, textureSetFour);
+    // textureSetFour.name = "textureSetFour";
+    // textureSetFour.flipY = false;
+    // textureSetFour.colorSpace = THREE.SRGBColorSpace;
+    // textureSetFour.needsUpdate = true;
+    // ctx.state.setTexture(TEXTURE_NAME.TEXTURE_SET_FOUR, textureSetFour);
 
     archiePhoto.name = "archiePhoto";
     archiePhoto.flipY = false;
@@ -198,11 +255,11 @@ export default async function makeTextureLoaderSys(ctx: SceneContext) {
     pikachuStatueTexture.needsUpdate = true;
     ctx.state.setTexture(TEXTURE_NAME.Pikachu_Statue_Texture, pikachuStatueTexture);
 
-    bootTexture.name = "bootTexture";
-    bootTexture.flipY = false;
-    bootTexture.colorSpace = THREE.SRGBColorSpace;
-    bootTexture.needsUpdate = true;
-    ctx.state.setTexture(TEXTURE_NAME.Boot_Texture, bootTexture);
+    // bootTexture.name = "bootTexture";
+    // bootTexture.flipY = false;
+    // bootTexture.colorSpace = THREE.SRGBColorSpace;
+    // bootTexture.needsUpdate = true;
+    // ctx.state.setTexture(TEXTURE_NAME.Boot_Texture, bootTexture);
 
     wallTexture.name = "wallTexture";
     wallTexture.flipY = false;
