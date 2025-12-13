@@ -5,6 +5,8 @@ import { AppState, CONTROL_TYPE, PLockState, OrbitState, TerrainState, TextureDi
 export function makeState(): AppState {
     const isFullScreen = false; // placeholder, implement fullscreen logic as needed
 
+    const cameraHeight = 2.2;
+
     let _controlState: PLockState | OrbitState = {
         controlType: CONTROL_TYPE.Walk,
         move: { forward: false, backward: false, left: false, right: false, run: false },
@@ -14,7 +16,7 @@ export function makeState(): AppState {
         speed: 0.06,
         bobFrequency: 1.5,
         bobAmplitude: 0.02,
-        baseY: 2.2,
+        baseY: cameraHeight,
     } as PLockState;
 
     const _terrainState: TerrainState = {
@@ -53,7 +55,7 @@ export function makeState(): AppState {
         speed: 0.03,
         bobFrequency: 1.5,
         bobAmplitude: 0.02,
-        baseY: 2.2,
+        baseY: cameraHeight,
     }
 
     const _OrbitStateDefaults: OrbitState = {
@@ -84,6 +86,20 @@ export function makeState(): AppState {
         minecraftRoofTexture:undefined,
         minecraftWoodTexture:undefined,
         houseTexture: undefined,
+        textureSetTwo: undefined,
+        textureSetThree: undefined,
+        rotomTexture: undefined,
+        textureSetFour: undefined,
+        archiePhoto: undefined,
+        certificate: undefined,
+        leafTexture: undefined,
+        pikachuStatueTexture: undefined,
+        bootTexture: undefined,
+        woodTexture: undefined,
+        wallTexture: undefined,
+        bookCover: undefined,
+        jolteonIcon: undefined,
+        zTexture: undefined,
     };
     function setTexture(name: TEXTURE_NAME, texture: THREE.Texture) {
         textures[name] = texture;
@@ -115,5 +131,5 @@ export function makeState(): AppState {
     }
 
 
-    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() { return _windState }, get fogState() { return _fogState }, get postEffectState() { return _postEffectState }, isFullScreen, get walkStateDefaults() { return _walkStateDefaults; }, setTexture, getTexture, setVideoTexture, getVideoTexture };
+    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() { return _windState }, get fogState() { return _fogState }, get postEffectState() { return _postEffectState }, isFullScreen, get walkStateDefaults() { return _walkStateDefaults; }, setTexture, getTexture, setVideoTexture, getVideoTexture, cameraHeight };
 };

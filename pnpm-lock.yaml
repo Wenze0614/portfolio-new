@@ -18,7 +18,7 @@ importers:
         specifier: ^0.10.2
         version: 0.10.2
       react:
-        specifier: ^19.0.0
+        specifier: ^19.2.1
         version: 19.2.1
       react-dom:
         specifier: ^19.0.0
@@ -29,9 +29,6 @@ importers:
       three:
         specifier: ^0.176.0
         version: 0.176.0
-      three-good-godrays:
-        specifier: ^0.7.1
-        version: 0.7.1(postprocessing@6.38.0(three@0.176.0))(three@0.176.0)
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4
@@ -40,7 +37,7 @@ importers:
         specifier: ^20
         version: 20.19.25
       '@types/react':
-        specifier: ^19
+        specifier: ^19.2.7
         version: 19.2.7
       '@types/react-dom':
         specifier: ^19
@@ -914,11 +911,6 @@ packages:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  postprocessing@6.38.0:
-    resolution: {integrity: sha512-tisx8XN/PWTL3uXz2mt8bjlMS1wiOUSCK3ixi4zjwUCFmP8XW8hNhXwrxwd2zf2VmCyCQ3GUaLm7GLnkkBbDsQ==}
-    peerDependencies:
-      three: '>= 0.157.0 < 0.182.0'
-
   process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
 
@@ -1075,13 +1067,6 @@ packages:
     resolution: {integrity: sha512-t/R3R/n0MSwnnazuPpPNVO60LX0SKL45pyl9YlvxIdkH0Of7D5qM2EVe+yASRIlY5pZ73nclYJfNANGWPwFDZw==}
     engines: {node: '>=10'}
     hasBin: true
-
-  three-good-godrays@0.7.1:
-    resolution: {integrity: sha512-VeaJlcWozjKPm2FgiHXPDTVmGxYr89arRYJlyLmJvLr+C+2OVm1RPsHcdXyRU4IPT33EQUfSuFBtL/z2lNqXAw==}
-    engines: {node: '>= 0.13.2'}
-    peerDependencies:
-      postprocessing: ^6.33.4
-      three: '>= 0.125.0 <= 0.167.0'
 
   three@0.176.0:
     resolution: {integrity: sha512-PWRKYWQo23ojf9oZSlRGH8K09q7nRSWx6LY/HF/UUrMdYgN9i1e2OwJYHoQjwc6HF/4lvvYLC5YC1X8UJL2ZpA==}
@@ -1933,10 +1918,6 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  postprocessing@6.38.0(three@0.176.0):
-    dependencies:
-      three: 0.176.0
-
   process-nextick-args@2.0.1: {}
 
   punycode@2.3.1: {}
@@ -2102,11 +2083,6 @@ snapshots:
       acorn: 8.15.0
       commander: 2.20.3
       source-map-support: 0.5.21
-
-  three-good-godrays@0.7.1(postprocessing@6.38.0(three@0.176.0))(three@0.176.0):
-    dependencies:
-      postprocessing: 6.38.0(three@0.176.0)
-      three: 0.176.0
 
   three@0.176.0: {}
 

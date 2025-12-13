@@ -1,4 +1,3 @@
-import { sign } from "crypto";
 import { SceneContext, System } from "../core/types";
 import * as THREE from "three";
 import vertexShader from '../shaders/signShaders/vertex.vert';

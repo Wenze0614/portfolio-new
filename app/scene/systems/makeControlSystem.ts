@@ -3,7 +3,6 @@ import { System, SceneContext, PLockState, OrbitState, CONTROL_TYPE, ControlSyst
 import { OrbitControls, PointerLockControls } from 'three/examples/jsm/Addons.js';
 import { makeHeightSampler } from '../utils/makeHeightSampler';
 import * as THREE from 'three';
-import { useRef } from 'react';
 import { AudioSystem } from './makeAudioSystem';
 
 import nipplejs from 'nipplejs';

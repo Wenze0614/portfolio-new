@@ -9,7 +9,7 @@
 // #include <shadowmap_pars_fragment>
 // #include <fog_pars_fragment>
 
-uniform sampler2D minecraftWoodTexture;
+uniform sampler2D woodTexture;
 uniform float uTime;
 
 varying vec3 vPosWS;
@@ -32,9 +32,9 @@ float toonQuantize(float x, int steps) {
 void main() {
 
     // vec4 textureColor = texture2D(barTexture, fract(vUv+vec2(uTime*0.005, uTime*0.003)));
-    // vec4 textureColor = texture2D(minecraftWoodTexture, vUv);
-    // vec3 color = textureColor.rgb;
-    vec3 color = vec3(0.85, 0.61, 0.44);
+    vec4 textureColor = texture2D(woodTexture, vUv);
+    vec3 color = textureColor.rgb;
+    // vec3 color = vec3(0.85, 0.61, 0.44);
 
     // vec4 holoColor = hologramShader(vPosWS, vNormalWS, uTime, cameraPosition);
 

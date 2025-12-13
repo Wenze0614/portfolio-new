@@ -21,13 +21,14 @@ export function setupThreeCore(
     // scene.add(axesHelper);
 
     const camera = new THREE.PerspectiveCamera(
-        60,
+        55,
         mount.clientWidth / mount.clientHeight,
         0.1,
         1500
     );
-    camera.position.set(20, 2.2,40);
+    camera.position.set(20, state.cameraHeight,40);
     camera.layers.enable(0); // default layer
+    camera.layers.enable(3); // render layer 3 for house
     // camera.layers.enable(1); // also render layer 1
     scene.add(camera);
 

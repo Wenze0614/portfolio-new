@@ -1,6 +1,5 @@
 // core/types.ts
 
-import { init } from "next/dist/compiled/webpack/webpack";
 import * as THREE from "three";
 import { EffectComposer, GLTFLoader } from "three/examples/jsm/Addons.js";
 
@@ -24,6 +23,7 @@ export interface GUISystem extends System {
     toggleControl: (ctx: SceneContext, switchControl: (ctx: SceneContext) => void) => void;
     updateLights: (lights: THREE.Light[]) => void;
     updateMeshes: (meshes: THREE.Mesh[]) => void;
+    updateSprites: (sprites: THREE.Sprite[]) => void;
 }
 
 export interface LightSystem extends System {
@@ -99,6 +99,7 @@ export interface AppState {
     getTexture(name: string): THREE.Texture;
     setVideoTexture(name: string, texture: THREE.VideoTexture): void;
     getVideoTexture(name: string): THREE.VideoTexture;
+    cameraHeight: number;
 }
 
 export interface SceneContext {
@@ -137,6 +138,20 @@ export enum TEXTURE_NAME {
     MINECRAFT_WOOD_TEXTURE = "minecraftWoodTexture",
     MINECRAFT_ROOF_TEXTURE = "minecraftRoofTexture",
     HOUSE_TEXTURE = "houseTexture",
+    TEXTURE_SET_TWO = "textureSetTwo",
+    TEXTURE_SET_THREE = "textureSetThree",
+    ROTOM_TEXTURE = "rotomTexture",
+    TEXTURE_SET_FOUR = "textureSetFour",
+    Archie_Photo = "archiePhoto",
+    Certificate = "certificate",
+    Leaf_Texture = "leafTexture",
+    Pikachu_Statue_Texture = "pikachuStatueTexture",
+    Boot_Texture = "bootTexture",
+    WOOD_TEXTURE = "woodTexture",
+    WALL_TEEXTURE = "wallTexture",
+    BOOK_COVER = "bookCover",
+    JOLTEON_ICON = "jolteonIcon",
+    Z_TEXTURE = "zTexture",
 }
 
 export enum VIDEOTEXTURE_NAME {

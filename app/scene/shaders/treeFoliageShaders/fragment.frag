@@ -35,6 +35,7 @@ void main() {
 
     float ndl = dot(N, L);
     float brightness = remap(ndl, -1.0, 1.0, 0.25, 0.75);
+    float lightFactor = 0.2;
     vec3 ambienLight = 0.25*color;
     color = ambienLight+color*directionalLights[0].color*brightness;
     // if(ndl<-0.9) {

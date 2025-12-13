@@ -60,7 +60,7 @@ export default async function makeFogSystem(ctx: SceneContext) {
     //     noise = FBM(noiseSampleCoord + FBM(noiseSampleCoord)) * 0.5 + 0.5;
     //   #endif
       fogDepth *= mix(noise, 1.0, saturate((fogDepth - 200.0) / 400.0));
-      fogDepth *= fogDepth * 0.08;
+      fogDepth *= fogDepth * 0.43;
 
       float heightFactor = 0.5;
       float fogFactor = heightFactor * exp(-fogOrigin.y * fogDensity) * (

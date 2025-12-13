@@ -10,7 +10,6 @@ import glassVertexShader from '../../shaders/glassShaders/vertex.vert';
 import glassFragmentShader from '../../shaders/glassShaders/fragment.frag';
 import screenVertexShader from '../../shaders/screenShaders/vertex.vert';
 import screenFragmentShader from '../../shaders/screenShaders/fragment.frag';
-import { utimes } from "fs";
 
 
 export default function makeMusicBar(ctx: SceneContext, audioSys: AudioSystem): System {

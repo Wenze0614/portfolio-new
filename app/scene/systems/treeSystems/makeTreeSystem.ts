@@ -4,10 +4,10 @@ import makeFoliageSystem, { FoliageClumpsData } from "./makeFoliageSystem";
 import vertexShader from '../../shaders/treeTrunkShader/vertex.vert';
 import fragmentShader from '../../shaders/treeTrunkShader/fragment.frag';
 import vertexDepth from '../../shaders/treeTrunkShader/vertexDepth.vert';
-import { tree } from "next/dist/build/templates/app-page";
-import { makeHeightSampler } from "../../utils/makeHeightSampler";
-import { useRef } from "react";
-import { Console } from "console";
+// import { tree } from "next/dist/build/templates/app-page";
+// import { makeHeightSampler } from "../../utils/makeHeightSampler";
+// import { useRef } from "react";
+// import { Console } from "console";
 import forestData from '../../data/forest_2.json';
 
 

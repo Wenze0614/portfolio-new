@@ -1,6 +1,6 @@
 "use client";
 
-import { RefObject, useEffect, useMemo, useRef } from "react";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import {
     GLTFLoader,
@@ -14,7 +14,6 @@ import { makeStats } from "./utils/makeStats";
 import makeTerrainSystem from "./systems/terrainSystems/makeTerrainSystem";
 import { makeSkySystem } from "./systems/makeSkySystem";
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-import test from "node:test";
 import makeTreeSystem, { TreeSystem } from "./systems/treeSystems/makeTreeSystem";
 import makeFoliageSystem from "./systems/treeSystems/makeFoliageSystem";
 import makePostEffectSystem, { ComposerSystem } from "./systems/makePostEffectSystem";
@@ -48,6 +47,7 @@ export default function Page() {
     const treeCardSysRef = useRef<TreeCardsSystem>(null);
     const skySysRef = useRef<System>(null);
     const signSysRef = useRef<System>(null);
+    const [promptText, setPromptText] = useState<string>("");
     // const loadingSysRef = useRef<System>(null);
 
 
@@ -76,6 +76,8 @@ export default function Page() {
     // };
 
 
+
+
     useEffect(() => {
         if (!canvasRef.current) return;
 
@@ -86,6 +88,52 @@ export default function Page() {
         const stats = makeStats(renderer.domElement.parentElement ?? document.body);
         const meshs: THREE.Mesh[] = [];
         let myMixer: THREE.AnimationMixer;
+
+        const raycaster = new THREE.Raycaster();
+        const center = new THREE.Vector2(0, 0); // screen center in NDC
+        const promptEl = document.getElementById("interactPrompt");
+        let currentTarget: THREE.Object3D | null = null;
+
+        function updateInteraction(cam: THREE.Camera, interactables: THREE.Mesh[]) {
+            // console.log("updating interaction", interactables);
+            raycaster.setFromCamera(center, cam);
+
+            // Optional: limit how far you can interact
+            raycaster.far = 3; // 3 units (meters)
+
+            const hits = raycaster.intersectObjects(interactables, true);
+
+            if (hits.length > 0) {
+                console.log("hits: ", hits[0].object.userData.interactUrl);
+                // If logos have children, grab the top-level interactable
+                const hitObj = hits[0].object;
+                currentTarget = hitObj.userData.interactUrl ? hitObj : hitObj.parent as THREE.Object3D;
+
+                const label = currentTarget.userData.interactLabel ?? "Interact";
+                if (promptEl) {
+                    promptEl.style.opacity = "1";
+                    setPromptText(`Press E to ${label}`);
+                    //promptEl.textContent = `Press E to ${label}`;
+                }
+
+
+            } else {
+                currentTarget = null;
+                if (promptEl) {
+                    promptEl.style.opacity = "0";
+                    setPromptText("");
+                };
+            }
+        }
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key.toLowerCase() !== "e") return;
+            if (!currentTarget) return;
+
+            // Important: works best if it's a direct user gesture (keydown is fine)
+            window.open(currentTarget.userData.interactUrl, "_blank", "noopener,noreferrer");
+        });
+        const interactables: THREE.Mesh[] = [];
         // #endregion
         (async () => {
             // const loadingSystem = makeLoadingSystem(ctx);
@@ -122,8 +170,10 @@ export default function Page() {
             lightSysRef.current = lightSystem;
 
             const interactiveSystem = makeInteractiveSystem(ctx, audioSys);
-            interactiveSystem.init(meshs, guiSystem);
+            await interactiveSystem.init(meshs, guiSystem);
             interactiveSysRef.current = interactiveSystem;
+            interactiveSystem.getInteractables().map((mesh) => interactables.push(mesh));
+            console.log("interactables: ", interactables);
 
 
             makeEnvSystem(ctx).init(meshs, guiSystem);
@@ -163,35 +213,35 @@ export default function Page() {
             testCube.name = "test cube";
             meshs.push(testCube);
 
-            ctx.loaders.gltf.load('/models/archie.glb', async (gltf) => {
-                const model = gltf.scene;
-                model.scale.set(0.02, 0.02, 0.02);
-                model.position.set(0, 0.2, 0);
-                scene.add(model);
-                const archie = model.getObjectByName('archie');
-                const archieTexture = ctx.state.getTexture(TEXTURE_NAME.ARCHIE_TEXTURE);
+            // ctx.loaders.gltf.load('/models/archie.glb', async (gltf) => {
+            //     const model = gltf.scene;
+            //     model.scale.set(0.02, 0.02, 0.02);
+            //     model.position.set(0, 0.2, 0);
+            //     scene.add(model);
+            //     const archie = model.getObjectByName('archie');
+            //     const archieTexture = ctx.state.getTexture(TEXTURE_NAME.ARCHIE_TEXTURE);
 
-                if (archie && archie instanceof THREE.Mesh) {
-                    archie.material = new THREE.MeshBasicMaterial({
-                        map: archieTexture,
-                    });
-                    // ctx.scene.add(archie);
-                    // archie.position.set(0, 0.2, 0);
-                }
-                const mixer = new THREE.AnimationMixer(model);
-                const clips = gltf.animations;
+            //     if (archie && archie instanceof THREE.Mesh) {
+            //         archie.material = new THREE.MeshBasicMaterial({
+            //             map: archieTexture,
+            //         });
+            //         // ctx.scene.add(archie);
+            //         // archie.position.set(0, 0.2, 0);
+            //     }
+            //     const mixer = new THREE.AnimationMixer(model);
+            //     const clips = gltf.animations;
 
-                // pick the first animation (or by name)
-                const idle = THREE.AnimationClip.findByName(clips, 'Idle');
-                if (idle) {
-                    const action = mixer.clipAction(idle);
-                    action.reset().play();
-                } else {
-                    console.warn("Idle animation not found on archie");
-                }
-                // store mixer for update loop
-                myMixer = mixer;
-            })
+            //     // pick the first animation (or by name)
+            //     const idle = THREE.AnimationClip.findByName(clips, 'Idle');
+            //     if (idle) {
+            //         const action = mixer.clipAction(idle);
+            //         action.reset().play();
+            //     } else {
+            //         console.warn("Idle animation not found on archie");
+            //     }
+            //     // store mixer for update loop
+            //     myMixer = mixer;
+            // })
 
         })()
 
@@ -219,6 +269,7 @@ export default function Page() {
         }
         const animate = () => {
             requestAnimationFrame(animate);
+            //console.log("interactables",interactables)
             stats.begin();
             timer.update();
             updateSys(controlSysRef);
@@ -231,6 +282,7 @@ export default function Page() {
             updateSys(interactiveSysRef);
             updateSys(composerSysRef);
             updateSys(signSysRef);
+            updateInteraction(camera, interactables);
             // updateSys(loadingSysRef);
             // controlSysRef.current.update(ctx, timer.getElapsed());
             // lightSysRef.current.update(ctx, timer.getElapsed());
@@ -245,7 +297,7 @@ export default function Page() {
             //treeCardSysRef.current.update(timer.getElapsed());
             //interactiveSysRef.current.update(timer.getElapsed());
 
-            if (myMixer) myMixer.update(timer.getDelta());
+            //if (myMixer) myMixer.update(timer.getDelta());
 
 
             // renderer.render(scene, camera);
@@ -256,7 +308,28 @@ export default function Page() {
     }, [scene]);
 
     return (
-        <div ref={canvasRef} className="relative w-full h-[calc(100vh-64px)]">
-        </div>
+        <>
+            <div
+                id="interactPrompt"
+                style={{
+                    position: "fixed",
+                    left: "50%",
+                    top: "55%",
+                    transform: "translate(-50%, -50%)",
+                    padding: "8px 12px",
+                    borderRadius: "10px",
+                    background: "rgba(0,0,0,.5)",
+                    color: "white",
+                    fontFamily: "sans-serif",
+                    pointerEvents: "none",
+                    zIndex: 9999,
+                    opacity: 0,          // start hidden
+                    transition: "opacity .1s ease",
+                }}
+            >{promptText}</div>
+            <div ref={canvasRef} className="relative w-full h-[calc(100vh-64px)]">
+            </div>
+
+        </>
     );
 }
