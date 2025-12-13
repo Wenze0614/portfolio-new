@@ -284,7 +284,7 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
     const progressBarContainer = document.getElementById('progress-bar-container') as HTMLDivElement;
 
     ctx.loaders.loaderManager.onProgress = (url, itemsLoaded, itemsTotal) => {
-        console.log("items total: ", itemsTotal);
+        //console.log("items total: ", itemsTotal);
         const p = (itemsLoaded / itemsTotal) * 100;
         const capped = Math.min(p, 0.9);           // stop at 95% until ready
         // progressBar.value = capped * 100;

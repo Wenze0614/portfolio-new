@@ -7,8 +7,8 @@ export function makeHeightSampler(
   terrainMax: THREE.Vector2,   // e.g. ( 50,  100)
   options?: { flipV?: boolean }  // set true if your terrain mapping flips V
 ) {
-  console.log("heightexture: ", heightTex);
-  console.log('heightmap width: ', heightTex.image)
+  //console.log("heightexture: ", heightTex);
+  //console.log('heightmap width: ', heightTex.image)
   const img: HTMLImageElement | ImageBitmap = heightTex.image;
   const w = (img as any).width, h = (img as any).height;
 

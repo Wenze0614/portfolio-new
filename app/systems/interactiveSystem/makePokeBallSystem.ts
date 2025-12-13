@@ -46,20 +46,20 @@ function animateZ(sprite: THREE.Sprite, headPos: THREE.Vector3, delay = 0) {
 
 export default function makePokeBallSystem(ctx: SceneContext): System & { getinteractables: () => THREE.Mesh[] } {
     const pokeballTexture = ctx.state.getTexture(TEXTURE_NAME.POKEBALL_TEXTURE);
-    const minecraftTexture = ctx.state.getTexture(TEXTURE_NAME.MINECRAFT_TEXTURE);
+    //const minecraftTexture = ctx.state.getTexture(TEXTURE_NAME.MINECRAFT_TEXTURE);
     const woodTexture = ctx.state.getTexture(TEXTURE_NAME.WOOD_TEXTURE);
-    const minecraftRoofTexture = ctx.state.getTexture(TEXTURE_NAME.MINECRAFT_ROOF_TEXTURE);
-    const houseTexture = ctx.state.getTexture(TEXTURE_NAME.HOUSE_TEXTURE);
-    const textureSetTwo = ctx.state.getTexture(TEXTURE_NAME.TEXTURE_SET_TWO);
-    const textureSetThree = ctx.state.getTexture(TEXTURE_NAME.TEXTURE_SET_THREE);
+    //const minecraftRoofTexture = ctx.state.getTexture(TEXTURE_NAME.MINECRAFT_ROOF_TEXTURE);
+    //const houseTexture = ctx.state.getTexture(TEXTURE_NAME.HOUSE_TEXTURE);
+    //const textureSetTwo = ctx.state.getTexture(TEXTURE_NAME.TEXTURE_SET_TWO);
+    //const textureSetThree = ctx.state.getTexture(TEXTURE_NAME.TEXTURE_SET_THREE);
     const rotomTexture = ctx.state.getTexture(TEXTURE_NAME.ROTOM_TEXTURE);
-    const textureSetFour = ctx.state.getTexture(TEXTURE_NAME.TEXTURE_SET_FOUR);
+    //const textureSetFour = ctx.state.getTexture(TEXTURE_NAME.TEXTURE_SET_FOUR);
     const archiePhotoTexture = ctx.state.getTexture(TEXTURE_NAME.Archie_Photo);
     const certificateTexture = ctx.state.getTexture(TEXTURE_NAME.Certificate);
-    const leafTexture = ctx.state.getTexture(TEXTURE_NAME.Leaf_Texture);
+    //const leafTexture = ctx.state.getTexture(TEXTURE_NAME.Leaf_Texture);
     const pikachuStatueTexture = ctx.state.getTexture(TEXTURE_NAME.Pikachu_Statue_Texture);
     const archieTexture = ctx.state.getTexture(TEXTURE_NAME.ARCHIE_TEXTURE);
-    const bootTexture = ctx.state.getTexture(TEXTURE_NAME.Boot_Texture);
+    //const bootTexture = ctx.state.getTexture(TEXTURE_NAME.Boot_Texture);
     const wallTexture = ctx.state.getTexture(TEXTURE_NAME.WALL_TEEXTURE);
     const bookCover = ctx.state.getTexture(TEXTURE_NAME.BOOK_COVER);
     const jolteonIcon = ctx.state.getTexture(TEXTURE_NAME.JOLTEON_ICON);
@@ -1004,7 +1004,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
             }
         },
         getinteractables() {
-            console.log("pokeBallSystem interactables: ", [youtubeLogoMesh, linkedInLogoMesh, cdPlayerMesh]);
+            //console.log("pokeBallSystem interactables: ", [youtubeLogoMesh, linkedInLogoMesh, cdPlayerMesh]);
             return [youtubeLogoMesh, linkedInLogoMesh, cdPlayerMesh].filter((mesh): mesh is THREE.Mesh => mesh !== null);
         },
 

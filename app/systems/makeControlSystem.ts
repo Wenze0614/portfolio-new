@@ -252,8 +252,8 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
 
     // Optional: add running speed
     const velocity = { x: 0, z: 0 };
-    velocity.x = direction.x * speed * (move.run ? 5 : 1);
-    velocity.z = direction.z * speed * (move.run ? 5 : 1);
+    velocity.x = direction.x * speed * (move.run ? 2 : 1);
+    velocity.z = direction.z * speed * (move.run ? 2 : 1);
 
     const forward = new THREE.Vector3();
     ctx.camera.getWorldDirection(forward);
@@ -337,7 +337,7 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
     // console.log("timeSinceLastStep: ", controlState.timeSinceLastStep);
     if (isMoving && controlState.walkTime > 0.8 && controlState.timeSinceLastStep > stepInterval) {
         if (groundY < 0.1) {
-            console.log("play step sound");
+            //console.log("play step sound");
             audioSys.play("terrainStep");
             controlState.timeSinceLastStep = 0;
         } else {

@@ -39,7 +39,7 @@ export default function makeInteractiveSystem(ctx: SceneContext, audioSys: Audio
         },
         getInteractables() {
             const interactables = pokeBallSystem.getinteractables()
-            console.log("interactiveSystem interactables: ", interactables);
+            //console.log("interactiveSystem interactables: ", interactables);
             return interactables;
         }
     }

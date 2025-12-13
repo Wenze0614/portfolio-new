@@ -106,7 +106,7 @@ export default function Page() {
             const hits = raycaster.intersectObjects(interactables, true);
 
             if (hits.length > 0) {
-                console.log("hits: ", hits[0].object.userData.interactUrl);
+                //console.log("hits: ", hits[0].object.userData.interactUrl);
                 // If logos have children, grab the top-level interactable
                 const hitObj = hits[0].object;
                 currentTarget = hitObj.userData.interactUrl || hitObj.userData.playMusic ? hitObj : hitObj.parent as THREE.Object3D;
@@ -185,7 +185,7 @@ export default function Page() {
             await interactiveSystem.init(meshs);
             interactiveSysRef.current = interactiveSystem;
             interactiveSystem.getInteractables().map((mesh) => interactables.push(mesh));
-            console.log("interactables: ", interactables);
+            //console.log("interactables: ", interactables);
 
 
             // makeEnvSystem(ctx).init(meshs, guiSystem);

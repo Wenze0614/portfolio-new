@@ -102,8 +102,8 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     pointLight.shadow.bias = -0.0005;
     pointLight.shadow.normalBias = 0.02;
     ctx.scene.add(pointLight);
-    const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.5);
-    ctx.scene.add(pointLightHelper);
+    // const pointLightHelper = new THREE.PointLightHelper(pointLight, 0.5);
+    // ctx.scene.add(pointLightHelper);
     pointLight.layers.enable(ctx.state.postEffectState.bloom.layer);
 
     const rotomPointLight = new THREE.PointLight("#baf9f6", 5, 3, 0.5);

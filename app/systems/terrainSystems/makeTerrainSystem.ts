@@ -45,7 +45,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     };
     const terrainUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
 
-    console.log('terrain uniforms:', terrainUniforms);
+    //console.log('terrain uniforms:', terrainUniforms);
 
     const terrainMat = new THREE.ShaderMaterial({
         uniforms: terrainUniforms,

@@ -103,7 +103,7 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
         },
         playCatSound(mesh: THREE.Mesh) {
             currentCatSound = catSounds["cat"];
-            console.log("play cat sound: ", currentCatSound);
+            //console.log("play cat sound: ", currentCatSound);
             currentCatSound.setVolume(0.5);
             if (!currentCatSound || currentCatSound.isPlaying) return;
             mesh.add(currentCatSound);
