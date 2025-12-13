@@ -292,7 +292,7 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
 
     ctx.loaders.loaderManager.onLoad = async () => {
         //OverlayPass.material.uniforms.uAlpha.value = 0.0;
-        await sleep(3000);
+        await sleep(6000);
         // progressBar.value = 100;
         progressLabel.textContent = 'Click to Explore';
         loaded = true;
