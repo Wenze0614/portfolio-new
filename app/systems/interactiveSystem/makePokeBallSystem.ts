@@ -135,7 +135,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
 
     return {
         async init(ctx: SceneContext, meshs: THREE.Mesh[], guiSystem: any, opts: { position: THREE.Vector3 }, controlSystem: ControlSystem, audioSystem: AudioSystem,) {
-            const gltf: GLTF = await ctx.loaders.gltf.loadAsync('/models/fence-v52.glb');
+            const gltf: GLTF = await ctx.loaders.gltf.loadAsync('/models/house.glb');
             const model = gltf.scene;
             // model.position.copy(opts.position);
             // model.position.y += 0.5;
