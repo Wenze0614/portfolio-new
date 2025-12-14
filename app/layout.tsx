@@ -52,6 +52,14 @@ export default function RootLayout({
 
             }}
           >Loading Scene...</p>
+          <p
+            id="move-label"
+            style={{
+              color: "white",
+              fontSize: "1rem",
+
+            }}
+          > (use WASD to move)</p>
           {/* <progress
             id="progress-bar"
             max="100"
