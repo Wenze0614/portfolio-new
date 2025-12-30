@@ -121,7 +121,7 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
         uColor: { value: new THREE.Color("#ffffff") },
         uResolution: { value: new THREE.Vector2(size.width * dpr, size.height * dpr) },
         uTime: { value: 0.0},
-        uRadius: { value: 0.4},
+        uRadius: { value: 0.5},
         uStretch: { value: new THREE.Vector2(0.0)},
     }
 
@@ -179,9 +179,9 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
             float wobble = (n - 0.5) * 0.03;
 
             float warpedRadius = radius + wave1 + wave2;
-            float edge = 0.02;
-            //float mask = smoothstep(warpedRadius, warpedRadius + edge, distance);
-            float mask = distance < warpedRadius ? 0.0: 1.0;
+            float edge = 1.5;
+            float mask = smoothstep(warpedRadius, warpedRadius + edge, distance);
+            //float mask = distance < warpedRadius ? 0.0: 1.0;
 
             vec3 color = uColor;
             opacity = mix(uAlpha, 1.0, mask);
@@ -336,8 +336,8 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
             }
             if(start) {
                 OverlayPass.material.uniforms.uRadius.value < 0.9 && (OverlayPass.material.uniforms.uRadius.value += deltaTime * 0.4);
-                OverlayPass.material.uniforms.uStretch.value.x < 1.1 && (OverlayPass.material.uniforms.uStretch.value.x += deltaTime * 0.6);
-                OverlayPass.material.uniforms.uStretch.value.y < 0.08 && (OverlayPass.material.uniforms.uStretch.value.y += deltaTime * 0.4);
+                OverlayPass.material.uniforms.uStretch.value.x < 1.5 && (OverlayPass.material.uniforms.uStretch.value.x += deltaTime * 0.6);
+                OverlayPass.material.uniforms.uStretch.value.y < 0.1 && (OverlayPass.material.uniforms.uStretch.value.y += deltaTime * 0.4);
             }
             finalComposer.render();
 
