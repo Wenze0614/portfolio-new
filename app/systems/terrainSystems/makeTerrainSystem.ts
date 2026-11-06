@@ -1,4 +1,4 @@
-import { SceneContext, System, TEXTURE_NAME } from "../../core/types";
+import { FINAL_PASS_LAYER, SceneContext, System, TEXTURE_NAME } from "../../core/types";
 import * as THREE from "three";
 import makeGrassSystem from "./makeGrassSystem";
 import vertexShader from "../../shaders/terrainShaders/vertex.vert";
@@ -65,6 +65,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     )
 
     terrainTileIM.frustumCulled = false; // todo: update the bounding box instead
+    terrainTileIM.layers.set(FINAL_PASS_LAYER); // skip the bloom pass (see FINAL_PASS_LAYER)
 
     // custom depth material for shadows
     const depthMat = new THREE.MeshDepthMaterial({

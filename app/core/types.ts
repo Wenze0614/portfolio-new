@@ -129,6 +129,14 @@ export interface SceneContext {
     state: AppState; // your store/event bus
 }
 
+/**
+ * Camera layer drawn only in the final pass, not the bloom pass (the bloom pass disables it).
+ * Used for lights that should only affect the final image (sun2, sun3), and for the procedural
+ * meshes (grass, foliage, terrain): they build their shape in their own vertex shaders, so the
+ * bloom pass's black MeshBasicMaterial can't draw them correctly anyway and they were pure cost there.
+ */
+export const FINAL_PASS_LAYER = 3;
+
 export enum TEXTURE_NAME {
     GRASS_TEXTURE = "grassTexture",
     ARCHIE_TEXTURE = "archieTexture",

@@ -1,4 +1,4 @@
-import { SceneContext, System, TEXTURE_NAME } from "../../core/types";
+import { FINAL_PASS_LAYER, SceneContext, System, TEXTURE_NAME } from "../../core/types";
 import vertexShader from "../../shaders/grassShaders/vertex.vert";
 import fragmentShader from "../../shaders/grassShaders/fragment.frag";
 import * as THREE from "three";
@@ -125,6 +125,7 @@ export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Text
     for (const cx of tileCenters(-terrainWidth * 0.5, terrainWidth * 0.5, GRASS_PATCH_SIZE)) {
         for (const cz of tileCenters(-terrainHeight * 0.5, terrainHeight * 0.5, GRASS_PATCH_SIZE)) {
             const mesh = new THREE.Mesh(geometries.HIGH, mats.HIGH);
+            mesh.layers.set(FINAL_PASS_LAYER); // skip the bloom pass (see FINAL_PASS_LAYER)
             mesh.matrixAutoUpdate = true; // we just position; three will handle world matrix
             mesh.position.set(cx, 0, cz);
             // mesh.layers.enable(ctx.state.postEffectState.bloom.layer);

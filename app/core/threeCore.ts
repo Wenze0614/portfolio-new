@@ -1,7 +1,7 @@
 // app/scene/core/threeCore.ts
 import * as THREE from 'three';
 import { makeState } from './state';
-import { SceneContext } from './types';
+import { FINAL_PASS_LAYER, SceneContext } from './types';
 import { makeLoaders } from './loaders';
 import { EffectComposer, RenderPass } from 'three/examples/jsm/Addons.js';
 
@@ -28,7 +28,7 @@ export function setupThreeCore(
     );
     camera.position.set(20, state.cameraHeight,40);
     camera.layers.enable(0); // default layer
-    camera.layers.enable(3); // render layer 3 for house
+    camera.layers.enable(FINAL_PASS_LAYER); // drawn in the final pass only (the bloom pass disables it)
     // camera.layers.enable(1); // also render layer 1
     scene.add(camera);
 

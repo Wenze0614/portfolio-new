@@ -1,4 +1,4 @@
-import { SceneContext, TEXTURE_NAME } from "../../core/types";
+import { FINAL_PASS_LAYER, SceneContext, TEXTURE_NAME } from "../../core/types";
 import * as THREE from "three";
 import vertexShader from '../../shaders/foliageShaders/vertex.vert';
 import vertexDepth from '../../shaders/foliageShaders/vertexDepth.vert';
@@ -220,6 +220,7 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
     // foliageMesh.scale.setScalar(foliageGuides.scale);
     //foliageMesh.scale.set(1.2, 1.2, 1.2);
     foliageMesh.castShadow = true;
+    foliageMesh.layers.set(FINAL_PASS_LAYER); // skip the bloom pass (see FINAL_PASS_LAYER)
     foliageMesh.receiveShadow = false;
     //foliageMesh.receiveShadow = true;
 

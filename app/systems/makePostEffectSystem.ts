@@ -1,5 +1,5 @@
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { SceneContext } from "../core/types";
+import { FINAL_PASS_LAYER, SceneContext } from "../core/types";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import * as THREE from "three";
@@ -325,7 +325,7 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
             const fog = ctx.scene.fog;
             ctx.scene.fog = null;
             ctx.scene.background = BLACK;
-            ctx.camera.layers.disable(3); //disable unwanter occluder for bloom
+            ctx.camera.layers.disable(FINAL_PASS_LAYER); // final-pass-only lights and procedural meshes are skipped in the bloom pass
             ctx.scene.traverse(nonBloom);
             // // ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer); //this method does not work with occluders
             // three.js re-renders every shadow map on each render() call. The bloom pass draws
@@ -338,7 +338,7 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
 
             mixMat.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
             mixMat.uniforms.hasBloom.value = true;
-            ctx.camera.layers.enable(3);
+            ctx.camera.layers.enable(FINAL_PASS_LAYER);
             if (loaded && OverlayPass.material.uniforms.uAlpha.value > 0.0) {
                 OverlayPass.material.uniforms.uAlpha.value -= deltaTime * 0.1;
                 if (OverlayPass.material.uniforms.uAlpha.value < 0.0) OverlayPass.material.uniforms.uAlpha.value = 0.0;
