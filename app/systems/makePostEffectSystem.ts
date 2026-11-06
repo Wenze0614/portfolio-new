@@ -303,6 +303,10 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
         }
     })
 
+    // reused every frame instead of allocating new objects
+    const _size = new THREE.Vector2();
+    const BLACK = new THREE.Color(0x000000);
+
     return {
         init() {
             return finalComposer;
@@ -310,19 +314,23 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
         setReady,
         update(dt: number) {
             const dpr = ctx.renderer.getPixelRatio?.() ?? 1;
-            const size = ctx.renderer.getSize(new THREE.Vector2());
-            OverlayPass.uniforms.uResolution.value = new THREE.Vector2(size.width * dpr, size.height * dpr);
+            const size = ctx.renderer.getSize(_size);
+            OverlayPass.uniforms.uResolution.value.set(size.width * dpr, size.height * dpr);
             OverlayPass.uniforms.uTime.value = dt;
             const deltaTime = ctx.clock.getDelta();
-            // disable fog and set background to black for bloom pass
+            // disable fog and set background to black for bloom pass.
+            // Keep the same fog object and put it back afterwards: three.js re-checks a material's
+            // shader program whenever scene.fog is a different object, so a new FogExp2 every frame
+            // made every fogged material go through that check every frame.
+            const fog = ctx.scene.fog;
             ctx.scene.fog = null;
-            ctx.scene.background = new THREE.Color(0x000000);
+            ctx.scene.background = BLACK;
             ctx.camera.layers.disable(3); //disable unwanter occluder for bloom
             ctx.scene.traverse(nonBloom);
             // // ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer); //this method does not work with occluders
             bloomComposer.render();
             ctx.scene.traverse(restoreMaterial);
-            ctx.scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
+            ctx.scene.fog = fog;
 
             mixMat.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
             mixMat.uniforms.hasBloom.value = true;
