@@ -227,7 +227,10 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
     //make foliage cast shadows
     const depthMat = new THREE.ShaderMaterial({
         vertexShader: vertexDepth,
+        // three.js reads shadow depth back with unpackRGBAToDepth, so it must be written packed across
+        // all four 8-bit channels; writing gl_FragCoord.z straight into RGB only kept 8 bits of precision.
         fragmentShader: `
+        #include <packing>
         uniform sampler2D uFoliageTexture;
         uniform vec3 uColorMap[4];
 
@@ -236,7 +239,7 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
           void main() {
             float m = texture2D(uFoliageTexture, vUv).a;
             if (m < 0.5) discard;
-            gl_FragColor = vec4( vec3( gl_FragCoord.z ), 1.0 );
+            gl_FragColor = packDepthToRGBA( gl_FragCoord.z );
           }
         `,
         uniforms: treeUniforms,

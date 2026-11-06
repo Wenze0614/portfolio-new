@@ -3,7 +3,6 @@ import * as THREE from "three";
 import makeFoliageSystem, { FoliageClumpsData } from "./makeFoliageSystem";
 import vertexShader from '../../shaders/treeTrunkShader/vertex.vert';
 import fragmentShader from '../../shaders/treeTrunkShader/fragment.frag';
-import vertexDepth from '../../shaders/treeTrunkShader/vertexDepth.vert';
 // import { tree } from "next/dist/build/templates/app-page";
 // import { makeHeightSampler } from "../../utils/makeHeightSampler";
 // import { useRef } from "react";
@@ -171,17 +170,8 @@ export default function makeTreeSystem(ctx: SceneContext): TreeSystem {
                 //     map:trunkTexture
                 // }), COUNT);
                 const trunkIM = new THREE.InstancedMesh(treeTrunkGeo, treeTrunkMat, COUNT);
-                trunkIM.customDepthMaterial = new THREE.ShaderMaterial({
-                    uniforms: treeTrunkUniforms,
-                    vertexShader: vertexDepth,
-                    fragmentShader: `
-                    varying vec2 vUv;
-                    varying vec3 vNormalWS;
-                      void main() {
-                        gl_FragColor = vec4( vec3( gl_FragCoord.z ), 1.0 );
-                      }
-                    `,
-                });
+                // No customDepthMaterial: the trunk shader doesn't move vertices, so three's default depth
+                // material (which supports InstancedMesh) casts the same shadow, with full depth precision.
                 trunkIM.castShadow = true;
                 trunkIM.receiveShadow = true;
                 trunkIM.frustumCulled = false; // todo: maybe tiling trees for better culling and LOD
