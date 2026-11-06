@@ -1,7 +1,7 @@
 // core/types.ts
 
 import * as THREE from "three";
-import { EffectComposer, GLTFLoader } from "three/examples/jsm/Addons.js";
+import { EffectComposer, GLTF, GLTFLoader } from "three/examples/jsm/Addons.js";
 import { AudioSystem } from "../systems/makeAudioSystem";
 
 
@@ -120,6 +120,9 @@ export interface SceneContext {
         gltf: GLTFLoader;
         texture: THREE.TextureLoader;
         audio: THREE.AudioLoader;
+        loadGLTF: (url: string) => Promise<GLTF>;
+        loadHDR: (url: string) => Promise<THREE.DataTexture>;
+        loadAudio: (url: string) => Promise<AudioBuffer>;
     };
     state: AppState; // your store/event bus
 }

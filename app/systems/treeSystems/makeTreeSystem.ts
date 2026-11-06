@@ -9,6 +9,7 @@ import vertexDepth from '../../shaders/treeTrunkShader/vertexDepth.vert';
 // import { useRef } from "react";
 // import { Console } from "console";
 import forestData from '../../data/forest_2.json';
+import { ASSET_URLS } from "../../core/loaders";
 
 
 const testFoliageGuides: FoliageClumpsData = {
@@ -85,7 +86,7 @@ function createTreeTransformMatrix(treeData: any[]): THREE.Matrix4[] {
 }
 
 export interface TreeSystem {
-    init(ctx: SceneContext): void;
+    init(ctx: SceneContext): Promise<void>;
     update(dt: number): void;
     dispose(): void;
 }
@@ -120,7 +121,8 @@ export default function makeTreeSystem(ctx: SceneContext): TreeSystem {
 
     return {
         init(ctx: SceneContext) {
-            ctx.loaders.gltf.load('/models/trees.glb', (gltf) => {
+            // resolves once trunks and foliage are in the scene, so page.tsx can wait for them
+            return ctx.loaders.loadGLTF(ASSET_URLS.trees).then((gltf) => {
                 const model = gltf.scene;
                 // model.scale.z = 0.5;
                 // model.position.set(-30, 0, 20);

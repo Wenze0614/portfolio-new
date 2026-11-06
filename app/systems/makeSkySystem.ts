@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { ASSET_URLS } from '../core/loaders';
 import { SceneContext, System } from '../core/types';
 import modifyShader from '../utils/modifyShader';
 
@@ -9,12 +9,23 @@ import modifyShader from '../utils/modifyShader';
 
 export function makeSkySystem(ctx: SceneContext): System {
     //use an HDRI for the sky for now
-    const rgbeLoader = new RGBELoader();
     const geometry = new THREE.SphereGeometry(1000, 50, 30);
     geometry.scale(-1, 1, 1); // invert normals
 
     //todo: remove hdr later and use procedural sky
-    const skyTexture = rgbeLoader.load('/textures/animeSky-day-2-2k.hdr');
+    // The HDR is requested at boot (page.tsx); wait on that same request and attach it when it arrives.
+    const material = new THREE.MeshBasicMaterial();
+    material.onBeforeCompile = (shader) => {
+        modifyShader(shader);
+    }
+    const skyReady = ctx.loaders.loadHDR(ASSET_URLS.skyHDR).then((skyTexture) => {
+        skyTexture.mapping = THREE.EquirectangularReflectionMapping;
+        skyTexture.magFilter = THREE.NearestFilter;
+        skyTexture.minFilter = THREE.NearestFilter;
+        skyTexture.colorSpace = THREE.SRGBColorSpace;
+        material.map = skyTexture;
+        material.needsUpdate = true; // adding a map changes the shader
+    });
     // const cubeImages = [
     //     ctx.loaders.texture.load('/textures/sky/px.png'),
     //     ctx.loaders.texture.load('/textures/sky/nx.png'),
@@ -36,14 +47,6 @@ export function makeSkySystem(ctx: SceneContext): System {
     //     new THREE.MeshBasicMaterial({ map: cubeImages[4], side: THREE.BackSide }),
     // ]
 
-    skyTexture.mapping = THREE.EquirectangularReflectionMapping;
-    skyTexture.magFilter = THREE.NearestFilter;
-    skyTexture.minFilter = THREE.NearestFilter;
-    skyTexture.colorSpace = THREE.SRGBColorSpace;
-    const material = new THREE.MeshBasicMaterial({ map: skyTexture });
-    material.onBeforeCompile = (shader) => {
-        modifyShader(shader);
-    }
     const skySphere = new THREE.Mesh(geometry, material);
     skySphere.rotateY(Math.PI * 1.5);
     skySphere.position.set(0, 0, 0);
@@ -79,7 +82,8 @@ export function makeSkySystem(ctx: SceneContext): System {
 
     return {
         init() {
-            // Initialization logic if needed
+            // resolves once the sky texture is attached
+            return skyReady;
         },
         update( dt: number) {
             //skySphere.rotation.y = 0.0001 * (dt || 0); // Slow rotation for dynamic effect

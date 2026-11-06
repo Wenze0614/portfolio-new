@@ -94,6 +94,7 @@ const addGrayScale = (ctx: SceneContext, finalComposer: EffectComposer) => {
 
 export interface ComposerSystem {
     init(): EffectComposer;
+    setReady(): void;
     update(dt: number): void;
     dispose(): void;
 }
@@ -275,10 +276,6 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
         });
     })();
 
-    function sleep(ms: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     // const progressBar = document.getElementById('progress-bar') as HTMLProgressElement;
     const progressLabel = document.getElementById('loading-label') as HTMLLabelElement;
     const progressBarContainer = document.getElementById('progress-bar-container') as HTMLDivElement;
@@ -290,14 +287,13 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
         // progressBar.value = capped * 100;
     }
 
-    ctx.loaders.loaderManager.onLoad = async () => {
-        //OverlayPass.material.uniforms.uAlpha.value = 0.0;
-        await sleep(6000);
+    // Called by page.tsx once every asset is loaded and shaders are compiled.
+    // (This used to be LoadingManager.onLoad + a fixed 6 s sleep; onLoad fired early, between sequential loads.)
+    function setReady() {
         // progressBar.value = 100;
         progressLabel.textContent = 'Click to Explore';
         loaded = true;
         // progressBarContainer.style.display = 'none';
-
     }
 
     window.addEventListener('click', () => {
@@ -311,6 +307,7 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
         init() {
             return finalComposer;
         },
+        setReady,
         update(dt: number) {
             const dpr = ctx.renderer.getPixelRatio?.() ?? 1;
             const size = ctx.renderer.getSize(new THREE.Vector2());

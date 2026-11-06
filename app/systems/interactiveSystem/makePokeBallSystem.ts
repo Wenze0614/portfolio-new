@@ -6,6 +6,7 @@ import vertexDepth from '../../shaders/houseShaders/vertexDepth.vert';
 import { GLTF } from "three/examples/jsm/Addons.js";
 import gsap from "gsap";
 import { AudioSystem } from "../makeAudioSystem";
+import { ASSET_URLS } from "../../core/loaders";
 
 function animateZ(sprite: THREE.Sprite, headPos: THREE.Vector3, delay = 0) {
     const finalPos: THREE.Vector3 = sprite.userData.finalPos;
@@ -135,7 +136,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
 
     return {
         async init(ctx: SceneContext, meshs: THREE.Mesh[], guiSystem: any, opts: { position: THREE.Vector3 }, controlSystem: ControlSystem, audioSystem: AudioSystem,) {
-            const gltf: GLTF = await ctx.loaders.gltf.loadAsync('/models/house.glb');
+            const gltf: GLTF = await ctx.loaders.loadGLTF(ASSET_URLS.house); // already requested at boot (page.tsx)
             const model = gltf.scene;
             // model.position.copy(opts.position);
             // model.position.y += 0.5;

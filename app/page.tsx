@@ -26,6 +26,7 @@ import makeAudioSystem, { AudioSystem } from "./systems/makeAudioSystem";
 import { ControlSystem, GUISystem, LightSystem, System, TEXTURE_NAME } from "./core/types";
 import makeSignSystem from "./systems/makeSignSystem";
 import makeTextureLoaderSys from "./systems/makeTextureLoaderSys";
+import { ASSET_URLS } from "./core/loaders";
 import { makeLoadingSystem } from "./systems/makeLoadingSystem";
 
 
@@ -150,6 +151,14 @@ export default function Page() {
             // loadingSystem.init(ctx);
             // loadingSysRef.current = loadingSystem;
 
+            // Start every download at once. The systems below ask for the same URLs and get
+            // these in-flight requests instead of starting new ones (see loaders.ts).
+            loaders.loadGLTF(ASSET_URLS.house);
+            loaders.loadGLTF(ASSET_URLS.trees);
+            loaders.loadHDR(ASSET_URLS.skyHDR);
+            const audioSys = makeAudioSystem(ctx);
+            const audioReady = audioSys.init(); // small sounds only; the music loads after the scene is ready
+
             await makeTextureLoaderSys(ctx);
             makeFogSystem(ctx);
             scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
@@ -166,8 +175,7 @@ export default function Page() {
             // guiSystem.init(ctx);
             // guiSysRef.current = guiSystem;
 
-            const audioSys = makeAudioSystem(ctx);
-            await audioSys.init();
+            await audioReady;
             audioSysRef.current = audioSys;
 
             const controlSystem = makeControlsSystem(ctx, audioSys);
@@ -198,11 +206,14 @@ export default function Page() {
 
             const skySystem = makeSkySystem(ctx);
             skySysRef.current = skySystem;
+            const skyReady = skySystem.init(ctx);
 
 
             const treeSystem = makeTreeSystem(ctx);
-            treeSystem.init(ctx);
+            const treesReady = treeSystem.init(ctx);
             treeSysRef.current = treeSystem;
+
+            await Promise.all([skyReady, treesReady]);
 
             //add tree cards for background
             // const treeCardSystem = makeTreeCardsSystem(ctx);
@@ -210,6 +221,12 @@ export default function Page() {
             // treeCardSysRef.current = treeCardSystem;
 
             signSysRef.current = makeSignSystem(ctx);
+
+            // Everything is in the scene: compile shaders now (in parallel where the GPU driver
+            // supports it) instead of hitching on the first frames, then let the user in.
+            await renderer.compileAsync(scene, camera);
+            composerSys.setReady();
+            audioSys.preloadMusic(); // background download, so it's usually ready by the time E is pressed on the CD player
 
             // const testCubeMat = new THREE.MeshToonMaterial({ color: 'white' });
             // // testCubeMat.onBeforeCompile = (shader) => {
