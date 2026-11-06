@@ -31,6 +31,8 @@ export interface GUISystem extends System {
 export interface LightSystem extends System {
     getLights: () => THREE.Light[];
     addComposer: (composer: EffectComposer) => void;
+    /** Shadows that don't update every frame (the lamp); call after the scene changes near them. */
+    refreshStaticShadows: () => void;
 }
 
 export interface ScreenSystem extends System {

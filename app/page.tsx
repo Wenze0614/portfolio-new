@@ -230,6 +230,7 @@ export default function Page() {
             // Everything is in the scene: compile shaders now (in parallel where the GPU driver
             // supports it) instead of hitching on the first frames, then let the user in.
             await renderer.compileAsync(scene, camera);
+            lightSystem.refreshStaticShadows(); // the house is in place now: draw the lamp's (static) shadow once
             composerSys.setReady();
             audioSys.preloadMusic(); // background download, so it's usually ready by the time E is pressed on the CD player
 

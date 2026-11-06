@@ -328,7 +328,11 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
             ctx.camera.layers.disable(3); //disable unwanter occluder for bloom
             ctx.scene.traverse(nonBloom);
             // // ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer); //this method does not work with occluders
+            // three.js re-renders every shadow map on each render() call. The bloom pass draws
+            // everything black or unlit, so it doesn't need fresh shadows: let the final pass update them.
+            ctx.renderer.shadowMap.autoUpdate = false;
             bloomComposer.render();
+            ctx.renderer.shadowMap.autoUpdate = true;
             ctx.scene.traverse(restoreMaterial);
             ctx.scene.fog = fog;
 

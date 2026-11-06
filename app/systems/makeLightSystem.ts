@@ -65,7 +65,10 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     const sun2 = new THREE.DirectionalLight(sun2Color, 3.14);
     sun2.position.set(20, 5, -3);
     sun2.target.position.set(-21, 0, -25);
-    sun2.castShadow = true;
+    // No shadow: with far = 20 its shadow box ends ~27 units short of the cabin it points at, and the
+    // custom shaders only read the first directional shadow (sun1), so this shadow was never visible.
+    // (To give the cabin sun2 shadows instead, set castShadow = true and shadow.camera.far ≈ 60.)
+    sun2.castShadow = false;
     sun2.name = 'yellow sun 2';
     sun2.shadow.camera.near = 1;
     sun2.shadow.camera.far = 20;
@@ -98,7 +101,12 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     pointLight.name = 'point light';
     pointLight.position.set(-28, 3, -35)
     pointLight.castShadow = true;
-    pointLight.shadow.mapSize.set(2048, 2048);
+    // A point-light shadow is a cube: 6 extra scene renders. Nothing that casts a visible shadow moves
+    // within this lamp's 10-unit range (the CD only spins in place), so render it once after the scene
+    // has loaded (refreshStaticShadows) instead of every frame.
+    // 1024 per face (was 2048): looks the same through the soft shadow filter, ~64 MB of GPU memory instead of ~256 MB.
+    pointLight.shadow.autoUpdate = false;
+    pointLight.shadow.mapSize.set(1024, 1024);
     pointLight.shadow.bias = -0.0005;
     pointLight.shadow.normalBias = 0.02;
     ctx.scene.add(pointLight);
@@ -141,6 +149,9 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
         dispose() { },
         getLights() {
             return [sun1, sun2, sun3, pointLight];
+        },
+        refreshStaticShadows() {
+            pointLight.shadow.needsUpdate = true; // re-render the lamp's shadow on the next frame
         },
         addComposer(composer: EffectComposer) {
             // const params = {
