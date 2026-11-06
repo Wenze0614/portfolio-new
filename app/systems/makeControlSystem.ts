@@ -374,6 +374,11 @@ export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): Co
     );
     // playerCollider.translate(ctx.camera.position);
     const worldOctree = new Octree();
+    // dev-only: lets the browser console move the player (e.g. for profiling inside the cabin)
+    if (process.env.NODE_ENV !== "production") {
+        const w = window as unknown as { __forest?: Record<string, unknown> };
+        w.__forest = { ...w.__forest, player: playerCollider };
+    }
 
     // click to lock when orbit is off
     const clickToLock = () => {

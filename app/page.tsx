@@ -85,6 +85,11 @@ export default function Page() {
         //initialize core ThreeJS components
         const ctx = setupThreeCore(canvasRef.current, { background: "#62aef0" });
         const { scene, camera, listener, renderer, composers, clock, state, loaders, disposeCore } = ctx;
+        // dev-only handle for profiling in the browser console (renderer.info, lights, etc.); not in production builds
+        if (process.env.NODE_ENV !== "production") {
+            const w = window as unknown as { __forest?: Record<string, unknown> };
+            w.__forest = { ...w.__forest, THREE, scene, camera, renderer, ctx };
+        }
         //need to initialize fog system first to embed fog uniforms into threejs material uniforms
 
         // dev only
