@@ -19,33 +19,21 @@ const LOW_INSTANCES = 3_000 * GRASS_NUMBER_FACTOR;
 const GRASS_WIDTH = 0.2;
 const GRASS_HEIGHT = 0.3;
 
-const vertsPerBlade = (seg: number) => (seg + 1) * 2;
-
 const buildGrassIndices = (segment: number): Uint32Array => {
-    const vpb = vertsPerBlade(segment); // for a single side
-    // front + back for each segment (2 tris per face per segment => 12 indices per segment total)
-    const idx = new Uint32Array(segment * 12);
+    // One face per blade (2 tris per segment => 6 indices per segment).
+    // No separate back face: a back copy would have the same positions, winding and
+    // (forced) normal as the front, and the material is DoubleSide, so it only doubled the work.
+    const idx = new Uint32Array(segment * 6);
     for (let i = 0; i < segment; ++i) {
         const vi = i * 2;
 
-        // front
-        idx[i * 12 + 0] = vi + 0;
-        idx[i * 12 + 1] = vi + 1;
-        idx[i * 12 + 2] = vi + 2;
+        idx[i * 6 + 0] = vi + 0;
+        idx[i * 6 + 1] = vi + 1;
+        idx[i * 6 + 2] = vi + 2;
 
-        idx[i * 12 + 3] = vi + 1;
-        idx[i * 12 + 4] = vi + 3;
-        idx[i * 12 + 5] = vi + 2;
-
-        // back (offset by vpb)
-        const fi = vpb + vi;
-        idx[i * 12 + 6] = fi + 0;
-        idx[i * 12 + 7] = fi + 1;
-        idx[i * 12 + 8] = fi + 2;
-
-        idx[i * 12 + 9] = fi + 1;
-        idx[i * 12 + 10] = fi + 3;
-        idx[i * 12 + 11] = fi + 2;
+        idx[i * 6 + 3] = vi + 1;
+        idx[i * 6 + 4] = vi + 3;
+        idx[i * 6 + 5] = vi + 2;
     }
     return idx;
 }
