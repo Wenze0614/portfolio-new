@@ -339,7 +339,7 @@ export default function Page() {
                     transition: "opacity .1s ease",
                 }}
             >{promptText}</div>
-            <div ref={canvasRef} className="relative w-full h-[calc(100vh-64px)]">
+            <div ref={canvasRef} className="relative w-full h-screen">
             </div>
 
         </>
