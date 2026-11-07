@@ -39,10 +39,13 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     sun1.name = 'yellow sun';
     sun1.shadow.camera.near = 1;
     sun1.shadow.camera.far = 150;
-    sun1.shadow.camera.left = -150;
-    sun1.shadow.camera.right = 150;
-    sun1.shadow.camera.top = 150;
-    sun1.shadow.camera.bottom = -150;
+    // Shadow box ±90 (was ±150): the player is clamped to ±50 and the fog hides the ground beyond
+    // ~35-50 units, so the box edge stays out of sight while the same 2048² map covers 2.8× less
+    // area: ~0.09 units per shadow-map pixel instead of ~0.15 (sharper forest shadows, same cost).
+    sun1.shadow.camera.left = -90;
+    sun1.shadow.camera.right = 90;
+    sun1.shadow.camera.top = 90;
+    sun1.shadow.camera.bottom = -90;
     // fitDirLightToCamera(sun1, ctx.camera);
     sun1.shadow.mapSize.set(2048, 2048);
     sun1.shadow.bias = -0.0005;
