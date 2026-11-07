@@ -27,6 +27,7 @@ import { ControlSystem, GUISystem, LightSystem, System, TEXTURE_NAME } from "./c
 import makeSignSystem from "./systems/makeSignSystem";
 import makeTextureLoaderSys from "./systems/makeTextureLoaderSys";
 import { ASSET_URLS } from "./core/loaders";
+import { isTouchDevice } from "./utils/isTouchDevice";
 import { makeLoadingSystem } from "./systems/makeLoadingSystem";
 
 
@@ -100,6 +101,7 @@ export default function Page() {
         const raycaster = new THREE.Raycaster();
         const center = new THREE.Vector2(0, 0); // screen center in NDC
         const promptEl = document.getElementById("interactPrompt");
+        const isTouch = isTouchDevice();
         let currentTarget: THREE.Object3D | null = null;
 
         function updateInteraction(cam: THREE.Camera, interactables: THREE.Mesh[]) {
@@ -120,8 +122,8 @@ export default function Page() {
                 const label = currentTarget.userData.interactLabel ?? "Interact";
                 if (promptEl) {
                     promptEl.style.opacity = "1";
-                    setPromptText(`Press E to ${label}`);
-                    //promptEl.textContent = `Press E to ${label}`;
+                    promptEl.style.pointerEvents = isTouch ? "auto" : "none"; // tappable on touch devices
+                    setPromptText(isTouch ? `Tap here to ${label}` : `Press E to ${label}`);
                 }
 
 
@@ -129,16 +131,17 @@ export default function Page() {
                 currentTarget = null;
                 if (promptEl) {
                     promptEl.style.opacity = "0";
+                    promptEl.style.pointerEvents = "none";
                     setPromptText("");
                 };
             }
         }
 
-        window.addEventListener("keydown", (e) => {
-            if (e.key.toLowerCase() !== "e") return;
+        // Interact with whatever is in the centre of the screen: E on desktop, tapping the prompt on touch devices.
+        // Both are direct user gestures, which window.open and audio playback need.
+        const interact = () => {
             if (!currentTarget) return;
 
-            // Important: works best if it's a direct user gesture (keydown is fine)
             if(currentTarget.userData.interactUrl) {
                 window.open(currentTarget.userData.interactUrl, "_blank", "noopener,noreferrer");
             }
@@ -147,9 +150,20 @@ export default function Page() {
                 currentTarget.userData.rotation = true;
                 audioSysRef.current?.playPiano();
             }
-
+        };
+        window.addEventListener("keydown", (e) => {
+            if (e.key.toLowerCase() === "e") interact();
         });
+        if (isTouch && promptEl) {
+            // the prompt sits above the canvas, so this tap doesn't also start a look-drag
+            promptEl.addEventListener("click", interact);
+        }
         const interactables: THREE.Mesh[] = [];
+        if (process.env.NODE_ENV !== "production") {
+            const w = window as unknown as { __forest?: Record<string, unknown> };
+            // dev-only: run the centre-of-screen check / interaction without the render loop (tests)
+            w.__forest = { ...w.__forest, updateInteraction: () => updateInteraction(camera, interactables), interact };
+        }
         // #endregion
         (async () => {
             // const loadingSystem = makeLoadingSystem(ctx);
@@ -187,6 +201,10 @@ export default function Page() {
             controlSystem.init(ctx);
             //guiSystem.toggleControl(ctx, controlSystem.switchControl);
             controlSysRef.current = controlSystem;
+            if (process.env.NODE_ENV !== "production") {
+                const w = window as unknown as { __forest?: Record<string, unknown> };
+                w.__forest = { ...w.__forest, controls: controlSystem }; // dev-only, for stepping movement in tests
+            }
 
 
             const lightSystem = makeLightSystem(ctx);
