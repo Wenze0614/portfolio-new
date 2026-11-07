@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { AudioSystem } from './makeAudioSystem';
 import { Octree } from "three/examples/jsm/math/Octree.js";
 import { Capsule } from "three/examples/jsm/math/Capsule.js";
+import { isTouchDevice } from '../utils/isTouchDevice';
 
 // import nipplejs from 'nipplejs';
 
@@ -112,7 +113,7 @@ function pointInRect(x: number, y: number, rect: DOMRect) {
 async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext, controlState: PLockState) {
     // Guard SSR
     if (typeof window === 'undefined') return;
-    if (!/Mobi|Android|iPhone/i.test(navigator.userAgent)) return;
+    if (!isTouchDevice()) return;
 
     // dynamic import (client only)
     const { default: nipplejs } = await import('nipplejs');
@@ -150,36 +151,54 @@ async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext
     const pitchObject = plock.getObject().children[0] as THREE.Object3D; // camera holder
     const yawObject = plock.getObject();
 
-    let startX = 0, startY = 0, dragging = false;
+    // Follow one "look" finger by its touch identifier, so the joystick finger and the look finger
+    // work at the same time. (Reading e.touches[0] used whichever finger touched first: with the
+    // joystick held, every look drag was ignored.)
+    let lookId: number | null = null, lastX = 0, lastY = 0;
     const minPitch = -Math.PI / 2 + 0.1, maxPitch = Math.PI / 2 - 0.1;
     const sens = 0.0025;
 
     const el = ctx.renderer.domElement;
+    // no browser pan/pinch-zoom on the canvas: with a second finger down (joystick + look) the
+    // browser could otherwise treat it as a pinch and cancel the touches
+    el.style.touchAction = 'none';
+    const findTouch = (list: TouchList, id: number) => {
+        for (let i = 0; i < list.length; i++) if (list[i].identifier === id) return list[i];
+        return null;
+    };
 
     const onStart = (e: TouchEvent) => {
-        // if (e.touches.length !== 1) return;
+        if (lookId !== null) return; // already looking with another finger
         const joystickRect = zoneEl.getBoundingClientRect();
-        if (pointInRect(e.touches[0].clientX, e.touches[0].clientY, joystickRect)) return; // ignore if touching joystick area
-        dragging = true;
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            if (pointInRect(t.clientX, t.clientY, joystickRect)) continue; // that finger belongs to the joystick
+            lookId = t.identifier;
+            lastX = t.clientX;
+            lastY = t.clientY;
+            break;
+        }
     };
     const onMove = (e: TouchEvent) => {
-        if (!dragging) return;
-        const t = e.touches[0];
-        const dx = (t.clientX - startX) * sens;
-        const dy = (t.clientY - startY) * sens;
-        startX = t.clientX;
-        startY = t.clientY;
+        if (lookId === null) return;
+        const t = findTouch(e.changedTouches, lookId);
+        if (!t) return; // only the joystick finger moved
+        const dx = (t.clientX - lastX) * sens;
+        const dy = (t.clientY - lastY) * sens;
+        lastX = t.clientX;
+        lastY = t.clientY;
 
         yawObject.rotation.y -= dx;
         pitchObject.rotation.x = THREE.MathUtils.clamp(pitchObject.rotation.x - dy, minPitch, maxPitch);
     };
-    const onEnd = () => { dragging = false; };
+    const onEnd = (e: TouchEvent) => {
+        if (lookId !== null && findTouch(e.changedTouches, lookId)) lookId = null;
+    };
 
     el.addEventListener('touchstart', onStart, { passive: true });
     el.addEventListener('touchmove', onMove, { passive: true });
     el.addEventListener('touchend', onEnd, { passive: true });
+    el.addEventListener('touchcancel', onEnd, { passive: true });
 
     // Return a disposer so your system can clean up
     return () => {
@@ -191,6 +210,7 @@ async function setupMobileControls(plock: PointerLockControls, ctx: SceneContext
         el.removeEventListener('touchstart', onStart as any);
         el.removeEventListener('touchmove', onMove as any);
         el.removeEventListener('touchend', onEnd as any);
+        el.removeEventListener('touchcancel', onEnd as any);
     };
 }
 function createPointerLockControls(controlState: PLockState, ctx: SceneContext) {
@@ -240,9 +260,14 @@ function createOrbitControl(controlState: OrbitState, { scene, camera, renderer 
     return orbitControl;
 }
 
-function updatePointerLockControls(controlState: PLockState, pControl: PointerLockControls, ctx: SceneContext, heightSampler: { heightAtXZ: (x: number, z: number, scale: number, offset: number) => number }, audioSys: AudioSystem, playerCollider: Capsule, worldOctree: Octree) {
+// speed, bob and step settings were tuned as "per frame at 60 fps"; scaling by
+// (frame time × 60) keeps that feel at any refresh rate (120 Hz no longer walks twice as fast)
+const TUNED_FPS = 60;
+
+function updatePointerLockControls(controlState: PLockState, pControl: PointerLockControls, ctx: SceneContext, heightSampler: { heightAtXZ: (x: number, z: number, scale: number, offset: number) => number }, audioSys: AudioSystem, playerCollider: Capsule, worldOctree: Octree, frameSeconds: number) {
 
     const camera = ctx.camera;
+    const frameScale = frameSeconds * TUNED_FPS; // 1.0 at 60 fps, 0.5 at 120 fps
 
     const { direction, move, speed, bobFrequency, bobAmplitude, baseY } = controlState;
 
@@ -252,8 +277,8 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
 
     // Optional: add running speed
     const velocity = { x: 0, z: 0 };
-    velocity.x = direction.x * speed * (move.run ? 2 : 1);
-    velocity.z = direction.z * speed * (move.run ? 2 : 1);
+    velocity.x = direction.x * speed * (move.run ? 2 : 1) * frameScale;
+    velocity.z = direction.z * speed * (move.run ? 2 : 1) * frameScale;
 
     const forward = new THREE.Vector3();
     ctx.camera.getWorldDirection(forward);
@@ -317,8 +342,8 @@ function updatePointerLockControls(controlState: PLockState, pControl: PointerLo
     // Update walk time only if moving
     const isMoving = direction.lengthSq() > 0;
     if (isMoving) {
-        controlState.walkTime += 0.1;
-        controlState.timeSinceLastStep += 0.1;
+        controlState.walkTime += 0.1 * frameScale;
+        controlState.timeSinceLastStep += 0.1 * frameScale;
     } else {
         controlState.walkTime = 0;
     }
@@ -403,6 +428,8 @@ export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): Co
         heightSampler = makeHeightSampler(heightMap, terrainMin, terrainMax, { flipV: true });
     })()
 
+    let lastElapsed: number | null = null; // for per-frame duration in update()
+
     document.addEventListener('keydown', (e) => onKeyDown(e, ctx.state.controlState as PLockState, ctx));
     document.addEventListener('keyup', (e) => onKeyUp(e, ctx.state.controlState as PLockState, ctx));
 
@@ -435,9 +462,13 @@ export function makeControlsSystem(ctx: SceneContext, audioSys: AudioSystem): Co
                 orbit?.dispose();
             };
         },
-        update(dt: number) {
+        update(elapsed: number) {
+            // page.tsx passes total elapsed seconds; turn it into this frame's duration.
+            // Capped at 0.1 s so a long pause (tab switch, breakpoint) doesn't teleport the player.
+            const frameSeconds = lastElapsed === null ? 1 / TUNED_FPS : Math.min(Math.max(elapsed - lastElapsed, 0), 0.1);
+            lastElapsed = elapsed;
             ctx.state.controlState.controlType === 'Walk'
-                ? updatePointerLockControls(ctx.state.controlState as PLockState, plock!, ctx, heightSampler, audioSys, playerCollider, worldOctree)
+                ? updatePointerLockControls(ctx.state.controlState as PLockState, plock!, ctx, heightSampler, audioSys, playerCollider, worldOctree, frameSeconds)
                 : updateOrbitControls(orbit!);
         },
         dispose() {
