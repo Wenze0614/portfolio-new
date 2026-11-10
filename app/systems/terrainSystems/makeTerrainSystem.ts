@@ -32,7 +32,9 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
         heightMap: { value: heightMap },
         heightScale: { value: ctx.state.terrainState.heightScale },            // world units of relief
         heightOffset: { value: ctx.state.terrainState.heightOffset },             // base Y
-        texel: { value: new THREE.Vector2(1 / 4096, 1 / 4096) }, // texture texel, used for derivative and normal calc
+        // one heightmap texel in UV, for the slope/normal calculation; read from the image so it
+        // stays right if the heightmap is resized (it's 2048² now, was 4096²)
+        texel: { value: new THREE.Vector2(1 / (heightMap.image?.width || 2048), 1 / (heightMap.image?.height || 2048)) },
         terrainColorMap: { value: terrainTexture },
         uWindSpeed: { value: ctx.state.windState.windSpeed },
         uWindDirection: { value: ctx.state.windState.windDirection },
