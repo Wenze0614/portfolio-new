@@ -131,6 +131,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
     let linkedInLogoMesh: THREE.Mesh | null = null;
     let cdPlayerMesh: THREE.Mesh | null = null;
     let cdInPlayMesh: THREE.Mesh | null = null;
+    let lastElapsed: number | null = null; // for the CD spin in update()
     const collisionGroup = new THREE.Group();
     ctx.scene.add(collisionGroup);
 
@@ -689,6 +690,11 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                 ctx.scene.add(cdPlayerPlaceholder);
                 cdPlayerPlaceholder.visible = false;
                 audioSystem.bindPiano('lune', cdPlayerPlaceholder);
+                // the CD spins only while the music plays; the prompt offers the opposite action
+                audioSystem.onMusicChange((playing) => {
+                    cdPlayer.userData.rotation = playing;
+                    cdPlayer.userData.interactLabel = playing ? "pause music" : "play music";
+                });
             }
 
             const youtubeLogo = model.getObjectByName('logoYoutube');
@@ -999,9 +1005,13 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
             //     console.log("pokeball model loaded:", model);
             // });
         },
-        update(dt: number) {
+        update(elapsed: number) {
+            // advance by this frame's time (not total time), so a paused CD resumes from where it
+            // stopped instead of jumping
+            const frameSeconds = lastElapsed === null ? 0 : Math.min(Math.max(elapsed - lastElapsed, 0), 0.1);
+            lastElapsed = elapsed;
             if (cdPlayerMesh && cdInPlayMesh && cdPlayerMesh.userData.rotation) {
-                cdInPlayMesh.rotation.y = dt * 2;
+                cdInPlayMesh.rotation.y += frameSeconds * 2;
             }
         },
         getinteractables() {

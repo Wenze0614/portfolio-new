@@ -147,13 +147,15 @@ export default function Page() {
             }
 
             if(currentTarget.userData.playMusic) {
-                currentTarget.userData.rotation = true;
-                audioSysRef.current?.playPiano();
+                // play / pause / resume; the CD player's spin and label follow via onMusicChange
+                audioSysRef.current?.toggleMusic();
             }
         };
-        window.addEventListener("keydown", (e) => {
-            if (e.key.toLowerCase() === "e") interact();
-        });
+        // ignore key auto-repeat: holding E would otherwise flip the music on and off
+        const onInteractKey = (e: KeyboardEvent) => {
+            if (!e.repeat && e.key.toLowerCase() === "e") interact();
+        };
+        window.addEventListener("keydown", onInteractKey);
         if (isTouch && promptEl) {
             // the prompt sits above the canvas, so this tap doesn't also start a look-drag
             promptEl.addEventListener("click", interact);
@@ -358,6 +360,14 @@ export default function Page() {
             // stats.end();
         };
         animate();
+
+        // Remove the interaction listeners when the effect re-runs (Fast Refresh in dev), so an old
+        // copy can't toggle the music a second time on one press. The rest of the scene still has no
+        // cleanup: that's TODO P4.3.
+        return () => {
+            window.removeEventListener("keydown", onInteractKey);
+            promptEl?.removeEventListener("click", interact);
+        };
     }, [scene]);
 
     return (

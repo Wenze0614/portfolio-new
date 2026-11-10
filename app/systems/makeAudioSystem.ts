@@ -10,8 +10,11 @@ export interface AudioSystem {
     play(name: string): void;
     stop(): void;
     bindPiano(name: string, mesh: THREE.Mesh):void;
-    playPiano():void;
+    /** E / tap on the CD player: play, pause, or resume the music. */
+    toggleMusic():void;
     preloadMusic():void;
+    /** Called with true when the music starts or resumes, false when it's paused or ends. */
+    onMusicChange(cb: (playing: boolean) => void):void;
     playCatSound(mesh: THREE.Mesh):void;
     // isStepPlaying: () => boolean;
 }
@@ -57,7 +60,9 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
 
     // Music: loaded lazily so the ~9 MB file isn't on the critical loading path.
     let pianoBinding: { name: string, mesh: THREE.Mesh } | null = null;
-    let pianoPlayRequested = false;
+    let musicWanted = false; // what the last E press asked for; the music may still be downloading
+    const musicListeners: ((playing: boolean) => void)[] = [];
+    const notifyMusic = (playing: boolean) => musicListeners.forEach((cb) => cb(playing));
     let musicPromise: Promise<THREE.PositionalAudio> | null = null;
     function loadMusic(): Promise<THREE.PositionalAudio> {
         if (!musicPromise) {
@@ -67,6 +72,13 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
                 sound.setLoop(false);
                 sound.setVolume(1.2);
                 sound.setRefDistance(2);
+                // three's onEnded resets the position to the start; also tell the CD player to stop
+                // spinning. (pause() detaches this handler first, so it only runs when the song finishes.)
+                sound.onEnded = function () {
+                    THREE.Audio.prototype.onEnded.call(this);
+                    musicWanted = false;
+                    notifyMusic(false);
+                };
                 pianoSounds[pianoBinding?.name ?? "lune"] = sound;
                 pianoBinding?.mesh.add(sound);
                 currentPianoSound = sound;
@@ -87,7 +99,7 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
                 envSound.play();
             })
             // small sounds, loaded in parallel. The music (lune.mp3, ~9 MB) is not loaded here:
-            // see preloadMusic / playPiano
+            // see preloadMusic / toggleMusic
             await Promise.all([
                 loadSound("grassStep", '/audio/walk_grass_2_trim.mp3'),
                 loadSound("terrainStep", '/audio/walk_terrain.mp3'),
@@ -121,14 +133,29 @@ export default function makeAudioSystem(ctx: SceneContext): AudioSystem {
             // start the download in the background (called once the scene is ready)
             loadMusic().catch((err) => console.error("music failed to load", err));
         },
-        playPiano() {
-            if (currentPianoSound?.isPlaying || pianoPlayRequested) return;
-            pianoPlayRequested = true;
+        toggleMusic() {
+            if (currentPianoSound?.isPlaying) {
+                currentPianoSound.pause(); // keeps the position, so the next press resumes
+                musicWanted = false;
+                notifyMusic(false);
+                return;
+            }
+            musicWanted = !musicWanted; // a second press while it's still downloading cancels
+            if (!musicWanted) return;
             // usually already downloaded by preloadMusic; otherwise this waits for it
             loadMusic()
-                .then((sound) => sound.play())
-                .catch((err) => console.error("music failed to load", err))
-                .finally(() => { pianoPlayRequested = false; });
+                .then((sound) => {
+                    if (!musicWanted || sound.isPlaying) return;
+                    sound.play();
+                    notifyMusic(true);
+                })
+                .catch((err) => {
+                    musicWanted = false;
+                    console.error("music failed to load", err);
+                });
+        },
+        onMusicChange(cb: (playing: boolean) => void) {
+            musicListeners.push(cb);
         },
         playCatSound(mesh: THREE.Mesh) {
             currentCatSound = catSounds["cat"];
