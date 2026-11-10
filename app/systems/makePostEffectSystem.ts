@@ -3,6 +3,7 @@ import { FINAL_PASS_LAYER, SceneContext } from "../core/types";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import * as THREE from "three";
+import { isTouchDevice } from "../utils/isTouchDevice";
 import { OutputPass, UnrealBloomPass } from "three/examples/jsm/Addons.js";
 import vertexShader from '../shaders/bloomMixShaders/vertex.vert';
 import fragmentShader from '../shaders/bloomMixShaders/fragment.frag';
@@ -291,7 +292,7 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
     // (This used to be LoadingManager.onLoad + a fixed 6 s sleep; onLoad fired early, between sequential loads.)
     function setReady() {
         // progressBar.value = 100;
-        progressLabel.textContent = 'Click to Explore';
+        progressLabel.textContent = isTouchDevice() ? 'Tap to Explore' : 'Click to Explore';
         loaded = true;
         // progressBarContainer.style.display = 'none';
     }

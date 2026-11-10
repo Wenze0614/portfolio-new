@@ -102,6 +102,9 @@ export default function Page() {
         const center = new THREE.Vector2(0, 0); // screen center in NDC
         const promptEl = document.getElementById("interactPrompt");
         const isTouch = isTouchDevice();
+        // the loading overlay (layout.tsx) is server-rendered with the desktop hint; swap it on phones/tablets
+        const moveLabel = document.getElementById("move-label");
+        if (isTouch && moveLabel) moveLabel.textContent = "(use the joystick to move, drag to look)";
         let currentTarget: THREE.Object3D | null = null;
 
         function updateInteraction(cam: THREE.Camera, interactables: THREE.Mesh[]) {
