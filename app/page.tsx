@@ -20,6 +20,8 @@ import makePostEffectSystem, { ComposerSystem } from "./systems/makePostEffectSy
 import makeTreeCardsSystem, { TreeCardsSystem } from "./systems/makeTreeCardsSystem";
 import makeEnvSystem from "./systems/terrainSystems/makeEnvSystem";
 import makeFogSystem from "./systems/makeFogSystem";
+import makeDayNightSystem, { DayNightSystem, registerNightShaderChunk } from "./systems/makeDayNightSystem";
+import makeForestFireflySystem from "./systems/makeForestFireflySystem";
 import modifyShader from "./utils/modifyShader";
 import makeInteractiveSystem, { InteractiveSystem } from "./systems/interactiveSystem/makeInteractiveSystem";
 import makeAudioSystem, { AudioSystem } from "./systems/makeAudioSystem";
@@ -43,6 +45,8 @@ export default function Page() {
     const controlSysRef = useRef<ControlSystem>(null);
     const composerSysRef = useRef<ComposerSystem>(null);
     const lightSysRef = useRef<LightSystem>(null);
+    const dayNightSysRef = useRef<DayNightSystem>(null);
+    const forestFireflySysRef = useRef<System>(null);
     const treeSysRef = useRef<TreeSystem>(null);
     const interactiveSysRef = useRef<InteractiveSystem>(null);
     const terrainSysRef = useRef<System>(null);
@@ -82,6 +86,7 @@ export default function Page() {
 
     useEffect(() => {
         if (!canvasRef.current) return;
+        let effectActive = true; // false once cleaned up, so a boot still loading doesn't add listeners afterwards
 
         //initialize core ThreeJS components
         const ctx = setupThreeCore(canvasRef.current, { background: "#62aef0" });
@@ -185,6 +190,7 @@ export default function Page() {
 
             await makeTextureLoaderSys(ctx);
             makeFogSystem(ctx);
+            registerNightShaderChunk(); // like the fog chunk: must exist before the custom shaders compile
             scene.fog = new THREE.FogExp2(0xDFE9F3, 0.00341);
 
             const composerSys = makePostEffectSystem(ctx);
@@ -211,6 +217,17 @@ export default function Page() {
                 w.__forest = { ...w.__forest, controls: controlSystem }; // dev-only, for stepping movement in tests
             }
 
+
+            // N (or the moon button on touch devices) switches day / night; updated before the
+            // light and sky systems each frame, which read ctx.state.dayNight.uNight
+            if (!effectActive) return; // cleaned up while loading (Fast Refresh): don't add global listeners
+            const dayNightSystem = makeDayNightSystem(ctx);
+            dayNightSystem.init(ctx);
+            dayNightSysRef.current = dayNightSystem;
+            if (process.env.NODE_ENV !== "production") {
+                const w = window as unknown as { __forest?: Record<string, unknown> };
+                w.__forest = { ...w.__forest, dayNight: dayNightSystem }; // dev-only, for tests
+            }
 
             const lightSystem = makeLightSystem(ctx);
             lightSystem.init(ctx);
@@ -252,7 +269,12 @@ export default function Page() {
 
             // Everything is in the scene: compile shaders now (in parallel where the GPU driver
             // supports it) instead of hitching on the first frames, then let the user in.
+            // night-only fireflies (they compile their shader in their first frames; see the system)
+            const forestFireflySystem = makeForestFireflySystem(ctx);
+            forestFireflySystem.init(ctx);
+
             await renderer.compileAsync(scene, camera);
+            forestFireflySysRef.current = forestFireflySystem;
             lightSystem.refreshStaticShadows(); // the house is in place now: draw the lamp's (static) shadow once
             composerSys.setReady();
             audioSys.preloadMusic(); // background download, so it's usually ready by the time E is pressed on the CD player
@@ -327,10 +349,16 @@ export default function Page() {
         }
         const animate = () => {
             requestAnimationFrame(animate);
+            frame();
+        };
+        // one frame of updates + render; also callable from the dev console (__forest.frame) to
+        // step the scene when the tab is in the background and requestAnimationFrame is paused
+        const frame = () => {
             //console.log("interactables",interactables)
             // stats.begin();
             timer.update();
             updateSys(controlSysRef);
+            updateSys(dayNightSysRef);
             updateSys(lightSysRef);
             updateSys(terrainSysRef);
             updateSys(skySysRef);
@@ -338,6 +366,7 @@ export default function Page() {
             updateSys(treeSysRef);
             // updateSys(treeCardSysRef);
             updateSys(interactiveSysRef);
+            updateSys(forestFireflySysRef);
             updateSys(composerSysRef);
             updateSys(signSysRef);
             updateInteraction(camera, interactables);
@@ -362,14 +391,21 @@ export default function Page() {
             //composerSysRef.current.update(ctx, timer.getElapsed());
             // stats.end();
         };
+        if (process.env.NODE_ENV !== "production") {
+            const w = window as unknown as { __forest?: Record<string, unknown> };
+            w.__forest = { ...w.__forest, frame }; // dev-only
+        }
         animate();
 
-        // Remove the interaction listeners when the effect re-runs (Fast Refresh in dev), so an old
-        // copy can't toggle the music a second time on one press. The rest of the scene still has no
+        // Remove the interaction and day/night listeners when the effect re-runs (Fast Refresh in dev),
+        // so an old copy can't toggle the music or day/night a second time on one press. The rest of the scene still has no
         // cleanup: that's TODO P4.3.
         return () => {
+            effectActive = false;
             window.removeEventListener("keydown", onInteractKey);
             promptEl?.removeEventListener("click", interact);
+            dayNightSysRef.current?.dispose(); // N listener and the touch button
+            dayNightSysRef.current = null;
         };
     }, [scene]);
 

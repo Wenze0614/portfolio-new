@@ -3,6 +3,7 @@
 #include <lights_pars_begin>
 #include <shadowmap_pars_fragment>
 #include <fog_pars_fragment>
+#include <night_pars_fragment>
 
 uniform sampler2D terrainColorMap;
 uniform float uWindSpeed;
@@ -101,6 +102,7 @@ void main() {
 // (assumes 'color' currently holds your sampled albedo)
     color = color+irradiance*1.2;  // or: color = color * (ambient + irradiance);
 
+    color = nightGrade(color); // day & night (uNight)
     gl_FragColor = vec4(color, 1.0);
 
     #include <colorspace_fragment>

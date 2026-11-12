@@ -105,6 +105,7 @@ export default function makeTreeSystem(ctx: SceneContext): TreeSystem {
         uTrunkTexture: { value: trunkTexture },
     }
     const treeTrunkUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
+    treeTrunkUniforms.uNight = ctx.state.dayNight.uNight; // shared, not cloned: the day & night system updates it
 
 
     const treeTrunkMat = new THREE.ShaderMaterial({

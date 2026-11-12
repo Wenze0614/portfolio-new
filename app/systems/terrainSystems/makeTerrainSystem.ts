@@ -46,6 +46,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
         textureTileSize: { value: 25 }
     };
     const terrainUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
+    terrainUniforms.uNight = ctx.state.dayNight.uNight; // shared, not cloned: the day & night system updates it
 
     //console.log('terrain uniforms:', terrainUniforms);
 

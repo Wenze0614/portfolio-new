@@ -1,6 +1,6 @@
 // app/scene/core/state.ts
 import * as THREE from 'three';
-import { AppState, CONTROL_TYPE, PLockState, OrbitState, TerrainState, TextureDict, TEXTURE_NAME, VideoTextureDict, VIDEOTEXTURE_NAME } from './types';
+import { AppState, DayNightState, CONTROL_TYPE, PLockState, OrbitState, TerrainState, TextureDict, TEXTURE_NAME, VideoTextureDict, VIDEOTEXTURE_NAME } from './types';
 
 export function makeState(): AppState {
     const isFullScreen = false; // placeholder, implement fullscreen logic as needed
@@ -46,6 +46,10 @@ export function makeState(): AppState {
             threshold: 0.01,
         }
     }
+
+    const _dayNight: DayNightState = {
+        uNight: { value: 0 }, // start in daytime
+    };
 
     const _walkStateDefaults: PLockState = {
         controlType: CONTROL_TYPE.Walk,
@@ -133,5 +137,5 @@ export function makeState(): AppState {
     }
 
 
-    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() { return _windState }, get fogState() { return _fogState }, get postEffectState() { return _postEffectState }, isFullScreen, get walkStateDefaults() { return _walkStateDefaults; }, setTexture, getTexture, setVideoTexture, getVideoTexture, cameraHeight };
+    return { get controlState() { return _controlState; }, setControlType, get terrainState() { return _terrainState }, get windState() { return _windState }, get fogState() { return _fogState }, get postEffectState() { return _postEffectState }, get dayNight() { return _dayNight }, isFullScreen, get walkStateDefaults() { return _walkStateDefaults; }, setTexture, getTexture, setVideoTexture, getVideoTexture, cameraHeight };
 };

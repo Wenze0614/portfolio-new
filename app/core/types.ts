@@ -90,6 +90,12 @@ export interface PostEffectState {
     bloom: BloomState,
 }
 
+export interface DayNightState {
+    /** 0 = day, 1 = night, eased while switching. One shared uniform object: shaders that take it
+     *  by reference (material.uniforms.uNight = state.dayNight.uNight) update with no extra work. */
+    uNight: { value: number };
+}
+
 
 export interface AppState {
     controlState: OrbitState | PLockState;
@@ -98,6 +104,7 @@ export interface AppState {
     windState: WindState;
     fogState: FogState;
     postEffectState:PostEffectState;
+    dayNight: DayNightState;
     isFullScreen: boolean;
     walkStateDefaults: PLockState;
     setTexture(name: string, texture: THREE.Texture): void;

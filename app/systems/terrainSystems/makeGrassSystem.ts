@@ -79,6 +79,7 @@ export default function makeGrassSystem(ctx: SceneContext, heightMap: THREE.Text
         heightOffset: { value: ctx.state.terrainState.heightOffset },
     }
     const grassUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
+    grassUniforms.uNight = ctx.state.dayNight.uNight; // shared, not cloned: the day & night system updates it
     // Helper to make one LOD material with its own cloned uniforms/defines
     function makeLODMaterial(segments: number) {
         const mat = new THREE.ShaderMaterial({

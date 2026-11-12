@@ -47,6 +47,10 @@ export function makeSkySystem(ctx: SceneContext): System {
     //     new THREE.MeshBasicMaterial({ map: cubeImages[4], side: THREE.BackSide }),
     // ]
 
+    const DAY_TINT = new THREE.Color(0xffffff);
+    const NIGHT_TINT = new THREE.Color("#4a5f8f");
+    let lastNight = -1;
+
     const skySphere = new THREE.Mesh(geometry, material);
     skySphere.rotateY(Math.PI * 1.5);
     skySphere.position.set(0, 0, 0);
@@ -86,6 +90,12 @@ export function makeSkySystem(ctx: SceneContext): System {
             return skyReady;
         },
         update( dt: number) {
+            // night: MeshBasicMaterial multiplies its map by .color, so this tints the sky texture
+            const night = ctx.state.dayNight.uNight.value;
+            if (night !== lastNight) {
+                lastNight = night;
+                material.color.lerpColors(DAY_TINT, NIGHT_TINT, night);
+            }
             //skySphere.rotation.y = 0.0001 * (dt || 0); // Slow rotation for dynamic effect
         },
         dispose() {

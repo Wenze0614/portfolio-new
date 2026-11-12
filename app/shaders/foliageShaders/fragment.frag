@@ -3,6 +3,7 @@
 #include <lights_pars_begin>
 #include <shadowmap_pars_fragment>
 #include <fog_pars_fragment>
+#include <night_pars_fragment>
 
 uniform sampler2D uFoliageTexture;
 uniform vec3 uColorMap[4];
@@ -65,6 +66,7 @@ void main() {
 
     // vec3 ambient = 0.25*color;
     //color = mix(ambient, color, shadowFactor);
+    color = nightGrade(color); // day & night (uNight)
     gl_FragColor = vec4(color, 1.0);
 
     #include <colorspace_fragment>

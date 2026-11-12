@@ -3,6 +3,7 @@
 #include <lights_pars_begin>
 #include <shadowmap_pars_fragment>
 #include <fog_pars_fragment>
+#include <night_pars_fragment>
 
 uniform vec2 u_resolution;
 uniform sampler2D diffusel;
@@ -142,6 +143,7 @@ void main() {
     color = color + irradiance * 1.2;  // or: color = color * (ambient + irradiance);
 
 
+    color = nightGrade(color); // day & night (uNight)
     gl_FragColor = vec4(vec3(color), 1.0);
 
     // #include <colorspace_fragment>

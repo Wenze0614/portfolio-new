@@ -127,6 +127,19 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
     rotomPointLight.layers.enable(ctx.state.postEffectState.bloom.layer);
 
 
+    // Day & night: each light's day setting, and its night setting. update() blends between them
+    // with ctx.state.dayNight.uNight (0 = day, 1 = night). sun1 becomes cool moonlight; the cabin
+    // lights (sun2/sun3) fade most of the way out; the lamp and Rotom glow a little brighter.
+    const MOON_COLOR = new THREE.Color("#8fa8ff");
+    const blends = [
+        { light: sun1, dayColor: sun1.color.clone(), nightColor: MOON_COLOR, day: sun1.intensity, night: 1.0 },
+        { light: sun2, dayColor: sun2.color.clone(), nightColor: MOON_COLOR, day: sun2.intensity, night: 0.6 },
+        { light: sun3, dayColor: sun3.color.clone(), nightColor: MOON_COLOR, day: sun3.intensity, night: 0.6 },
+        { light: pointLight, dayColor: pointLight.color.clone(), nightColor: pointLight.color.clone(), day: pointLight.intensity, night: 8 },
+        { light: rotomPointLight, dayColor: rotomPointLight.color.clone(), nightColor: rotomPointLight.color.clone(), day: rotomPointLight.intensity, night: 6 },
+    ];
+    let lastNight = -1; // so the first update() applies the current value
+
     return {
         init(ctx: SceneContext) {
 
@@ -140,6 +153,14 @@ export default function makeLightSystem(ctx: SceneContext): LightSystem {
             // ctx.scene.add(sun2Helper)
         },
         update(dt: number) {
+            const night = ctx.state.dayNight.uNight.value;
+            if (night !== lastNight) { // only while switching
+                lastNight = night;
+                for (const b of blends) {
+                    b.light.color.lerpColors(b.dayColor, b.nightColor, night);
+                    b.light.intensity = THREE.MathUtils.lerp(b.day, b.night, night);
+                }
+            }
             // if(ctx.state.controlState.controlType === CONTROL_TYPE.Walk) fitDirLightToCamera(sun1, ctx.camera);
             // sun1Helper.update();
             // shadowCameraHelper.update();

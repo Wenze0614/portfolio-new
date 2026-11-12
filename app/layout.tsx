@@ -61,7 +61,7 @@ export default function RootLayout({
               fontSize: "1rem",
 
             }}
-          > (use WASD to move)</p>
+          > (use WASD to move, N for day / night)</p>
           {/* <progress
             id="progress-bar"
             max="100"
