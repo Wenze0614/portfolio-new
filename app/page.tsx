@@ -30,6 +30,7 @@ import makeSignSystem from "./systems/makeSignSystem";
 import makeTextureLoaderSys from "./systems/makeTextureLoaderSys";
 import { ASSET_URLS } from "./core/loaders";
 import { isTouchDevice } from "./utils/isTouchDevice";
+import { makeFrameLimiter } from "./utils/frameLimiter";
 import { makeLoadingSystem } from "./systems/makeLoadingSystem";
 
 
@@ -347,9 +348,14 @@ export default function Page() {
                 ref.current.update(timer.getElapsed());
             }
         }
-        const animate = () => {
+        // Render about 60 times a second, not at the display's rate: requestAnimationFrame follows the
+        // display, so a 120 Hz (ProMotion) laptop asked for twice the GPU work and ran the GPU flat
+        // out. The limiter renders every Nth refresh so frames stay evenly spaced (see frameLimiter.ts).
+        // Movement, the day/night fade etc. use frame time, so they look the same at any rate.
+        const shouldRender = makeFrameLimiter(60);
+        const animate = (now: number = performance.now()) => {
             requestAnimationFrame(animate);
-            frame();
+            if (shouldRender(now)) frame();
         };
         // one frame of updates + render; also callable from the dev console (__forest.frame) to
         // step the scene when the tab is in the background and requestAnimationFrame is paused
