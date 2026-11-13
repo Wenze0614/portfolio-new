@@ -2,7 +2,6 @@ import { ControlSystem, SceneContext, System } from "../../core/types";
 import * as THREE from "three";
 import makePianoSystem from "./makeMusicBar";
 import makePokeBallSystem from "./makePokeBallSystem";
-import makeFireflySystem from "./makeFireflySystem";
 import { AudioSystem } from "../makeAudioSystem";
 import makeMusicBar from "./makeMusicBar";
 
@@ -18,10 +17,8 @@ export default function makeInteractiveSystem(ctx: SceneContext, audioSys: Audio
     // const pianoPosition = new THREE.Vector3(10, 0.2, 50);
     // const barSys = makeMusicBar(ctx, audioSys)
     const pokeBallSystem = makePokeBallSystem(ctx)
-    const fireflySys1 = makeFireflySystem(ctx)
-    // fireflySys1.init(pianoPosition, 5);
-    const fireflySys2 = makeFireflySystem(ctx)
-    fireflySys2.init(pokeballPosition, 5);
+    // (the old always-on firefly cloud by the cabin was removed: night fireflies now fill the
+    // whole forest, see makeForestFireflySystem)
     return {
         async init(meshs: THREE.Mesh[], guiSystem: any) {
             //barSys.init(ctx, meshs, guiSystem, {position: pianoPosition});
@@ -29,8 +26,6 @@ export default function makeInteractiveSystem(ctx: SceneContext, audioSys: Audio
 
         },
         update(dt: number) {
-            fireflySys1.update(dt);
-            fireflySys2.update(dt);
             pokeBallSystem.update(dt);
             //barSys.update(dt);
         },
