@@ -57,7 +57,43 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
             }
         }
     }
-    return { nonBloom, restoreMaterial, mixMat };
+    // Is anything that glows in view? Only a handful of things do (the spawn arrow, the cabin's
+    // neon/logos/shine/"Z" sprites, the fireflies at night), and in most forest views none of them are on
+    // screen, yet the bloom blur costs ~5 ms per frame at a laptop's resolution. Bounds are tested
+    // with a generous margin, so glow that bleeds in from just off-screen doesn't pop.
+    const frustum = new THREE.Frustum();
+    const viewProjection = new THREE.Matrix4();
+    const sphere = new THREE.Sphere();
+    const GLOW_MARGIN = 1.5; // bounding radius × this, plus 1 world unit
+    const bloomPassLayers = new THREE.Layers();
+    const anyGlowInView = (scene: THREE.Scene, camera: THREE.Camera) => {
+        camera.updateMatrixWorld();
+        viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+        frustum.setFromProjectionMatrix(viewProjection);
+        // what the bloom pass camera sees: its layers minus the final-pass-only one
+        bloomPassLayers.mask = camera.layers.mask & ~(1 << FINAL_PASS_LAYER);
+        let found = false;
+        scene.traverseVisible((obj) => {
+            if (found) return;
+            // Sprites aren't swapped to black in the bloom pass (nonBloom only swaps meshes and points),
+            // so any the bloom pass draws glow too: the sleeping "Z"s in the cabin.
+            if (obj instanceof THREE.Sprite) {
+                if (obj.layers.test(bloomPassLayers) && frustum.intersectsSprite(obj)) found = true;
+                return;
+            }
+            if (!bloomLayer.test(obj.layers)) return;
+            if (!(obj instanceof THREE.Mesh || obj instanceof THREE.Points)) return;
+            if (!obj.frustumCulled) { found = true; return; } // shader-placed (fireflies): no usable bounds
+            const geometry = obj.geometry as THREE.BufferGeometry;
+            if (!geometry.boundingSphere) geometry.computeBoundingSphere();
+            obj.updateWorldMatrix(true, false); // current position, not last frame's (a handful of objects)
+            sphere.copy(geometry.boundingSphere!).applyMatrix4(obj.matrixWorld);
+            sphere.radius = sphere.radius * GLOW_MARGIN + 1;
+            if (frustum.intersectsSphere(sphere)) found = true;
+        });
+        return found;
+    };
+    return { nonBloom, restoreMaterial, mixMat, anyGlowInView };
 }
 
 const addGrayScale = (ctx: SceneContext, finalComposer: EffectComposer) => {
@@ -107,7 +143,8 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
     const finalComposer = ctx.composers.finalComposer;
     const bloomComposer = ctx.composers.bloomComposer;
 
-    const { nonBloom, restoreMaterial, mixMat } = addBloom(ctx, finalComposer, bloomComposer);
+    const { nonBloom, restoreMaterial, mixMat, anyGlowInView } = addBloom(ctx, finalComposer, bloomComposer);
+    const BLOOM_MIX_STRENGTH = mixMat.uniforms.uStrength.value;
 
     const testComposer = new EffectComposer(ctx.renderer);
     testComposer.addPass(new RenderPass(ctx.scene, ctx.camera));
@@ -319,27 +356,32 @@ export default function makePostEffectSystem(ctx: SceneContext): ComposerSystem 
             OverlayPass.uniforms.uResolution.value.set(size.width * dpr, size.height * dpr);
             OverlayPass.uniforms.uTime.value = dt;
             const deltaTime = ctx.clock.getDelta();
-            // disable fog and set background to black for bloom pass.
-            // Keep the same fog object and put it back afterwards: three.js re-checks a material's
-            // shader program whenever scene.fog is a different object, so a new FogExp2 every frame
-            // made every fogged material go through that check every frame.
-            const fog = ctx.scene.fog;
-            ctx.scene.fog = null;
-            ctx.scene.background = BLACK;
-            ctx.camera.layers.disable(FINAL_PASS_LAYER); // final-pass-only lights and procedural meshes are skipped in the bloom pass
-            ctx.scene.traverse(nonBloom);
-            // // ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer); //this method does not work with occluders
-            // three.js re-renders every shadow map on each render() call. The bloom pass draws
-            // everything black or unlit, so it doesn't need fresh shadows: let the final pass update them.
-            ctx.renderer.shadowMap.autoUpdate = false;
-            bloomComposer.render();
-            ctx.renderer.shadowMap.autoUpdate = true;
-            ctx.scene.traverse(restoreMaterial);
-            ctx.scene.fog = fog;
+            // Nothing that glows on screen: skip the whole bloom pass and mix in no bloom.
+            const bloomNeeded = anyGlowInView(ctx.scene, ctx.camera);
+            mixMat.uniforms.uStrength.value = bloomNeeded ? BLOOM_MIX_STRENGTH : 0;
+            if (bloomNeeded) {
+                // disable fog and set background to black for bloom pass.
+                // Keep the same fog object and put it back afterwards: three.js re-checks a material's
+                // shader program whenever scene.fog is a different object, so a new FogExp2 every frame
+                // made every fogged material go through that check every frame.
+                const fog = ctx.scene.fog;
+                ctx.scene.fog = null;
+                ctx.scene.background = BLACK;
+                ctx.camera.layers.disable(FINAL_PASS_LAYER); // final-pass-only lights and procedural meshes are skipped in the bloom pass
+                ctx.scene.traverse(nonBloom);
+                // // ctx.camera.layers.set(ctx.state.postEffectState.bloom.layer); //this method does not work with occluders
+                // three.js re-renders every shadow map on each render() call. The bloom pass draws
+                // everything black or unlit, so it doesn't need fresh shadows: let the final pass update them.
+                ctx.renderer.shadowMap.autoUpdate = false;
+                bloomComposer.render();
+                ctx.renderer.shadowMap.autoUpdate = true;
+                ctx.scene.traverse(restoreMaterial);
+                ctx.scene.fog = fog;
 
-            mixMat.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
-            mixMat.uniforms.hasBloom.value = true;
-            ctx.camera.layers.enable(FINAL_PASS_LAYER);
+                mixMat.uniforms.bloomTexture.value = bloomComposer.readBuffer.texture;
+                mixMat.uniforms.hasBloom.value = true;
+                ctx.camera.layers.enable(FINAL_PASS_LAYER);
+            }
             if (loaded && OverlayPass.material.uniforms.uAlpha.value > 0.0) {
                 OverlayPass.material.uniforms.uAlpha.value -= deltaTime * 0.1;
                 if (OverlayPass.material.uniforms.uAlpha.value < 0.0) OverlayPass.material.uniforms.uAlpha.value = 0.0;
