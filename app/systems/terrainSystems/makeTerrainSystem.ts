@@ -47,6 +47,7 @@ export default function makeTerrainSystem(ctx: SceneContext): System {
     };
     const terrainUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
     terrainUniforms.uNight = ctx.state.dayNight.uNight; // shared, not cloned: the day & night system updates it
+    terrainUniforms.uLampLevels = ctx.state.dayNight.uLampLevels; // shared too: the street lamp system updates it
 
     //console.log('terrain uniforms:', terrainUniforms);
 

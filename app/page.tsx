@@ -22,6 +22,7 @@ import makeEnvSystem from "./systems/terrainSystems/makeEnvSystem";
 import makeFogSystem from "./systems/makeFogSystem";
 import makeDayNightSystem, { DayNightSystem, registerNightShaderChunk } from "./systems/makeDayNightSystem";
 import makeForestFireflySystem from "./systems/makeForestFireflySystem";
+import makeStreetLampSystem from "./systems/makeStreetLampSystem";
 import modifyShader from "./utils/modifyShader";
 import makeInteractiveSystem, { InteractiveSystem } from "./systems/interactiveSystem/makeInteractiveSystem";
 import makeAudioSystem, { AudioSystem } from "./systems/makeAudioSystem";
@@ -48,6 +49,7 @@ export default function Page() {
     const lightSysRef = useRef<LightSystem>(null);
     const dayNightSysRef = useRef<DayNightSystem>(null);
     const forestFireflySysRef = useRef<System>(null);
+    const streetLampSysRef = useRef<System>(null);
     const treeSysRef = useRef<TreeSystem>(null);
     const interactiveSysRef = useRef<InteractiveSystem>(null);
     const terrainSysRef = useRef<System>(null);
@@ -273,9 +275,13 @@ export default function Page() {
             // night-only fireflies (they compile their shader in their first frames; see the system)
             const forestFireflySystem = makeForestFireflySystem(ctx);
             forestFireflySystem.init(ctx);
+            // lamps along the path that switch on at night
+            const streetLampSystem = makeStreetLampSystem(ctx);
+            streetLampSystem.init(ctx);
 
             await renderer.compileAsync(scene, camera);
             forestFireflySysRef.current = forestFireflySystem;
+            streetLampSysRef.current = streetLampSystem; // like the fireflies: start updating once compiled
             lightSystem.refreshStaticShadows(); // the house is in place now: draw the lamp's (static) shadow once
             composerSys.setReady();
             audioSys.preloadMusic(); // background download, so it's usually ready by the time E is pressed on the CD player
@@ -365,6 +371,7 @@ export default function Page() {
             timer.update();
             updateSys(controlSysRef);
             updateSys(dayNightSysRef);
+            updateSys(streetLampSysRef); // right after day & night: sets the lamp levels the shaders read this frame
             updateSys(lightSysRef);
             updateSys(terrainSysRef);
             updateSys(skySysRef);

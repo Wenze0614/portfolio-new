@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { SceneContext, System } from "../core/types";
 import { isTouchDevice } from "../utils/isTouchDevice";
+import { LAMP_LIGHT_HEIGHT, STREET_LAMPS } from "../data/streetLamps";
 
 // Day & night. This system owns the switch (N key, or a button on touch devices) and the eased
 // transition. Everything else reads one number, ctx.state.dayNight.uNight.value (0 = day, 1 = night):
@@ -14,18 +15,49 @@ const NIGHT_FOG_DENSITY = 0.0022;
 
 /**
  * Adds `#include <night_pars_fragment>` for the custom shaders (grass, terrain, trunk, foliage):
- * a uNight uniform and nightGrade(color), which darkens and cools a lit colour toward moonlight.
+ * the uNight and uLampLevels uniforms and nightGrade(color, worldPos), which darkens and cools a
+ * lit colour toward moonlight and adds the warm light of the street lamps that are on.
  * Applied after shadows and before fog, so moon shadows stay visible and the night fog colour
  * still blends on top. Call before any of those materials compile (page.tsx does it at boot).
+ *
+ * The lamps' light isn't three.js lights: these shaders do their own lighting, and adding point
+ * lights would recompile every lit material (three bakes the light count into the shaders).
+ * Their positions are constants here; their brightness comes from uLampLevels.
  */
 export function registerNightShaderChunk() {
+    const n = STREET_LAMPS.length;
+    const lamps = STREET_LAMPS
+        .map((l) => `vec3(${l.x.toFixed(3)}, ${(l.y + LAMP_LIGHT_HEIGHT).toFixed(3)}, ${l.z.toFixed(3)})`)
+        .join(", ");
     // ShaderChunk's type lists only three's own chunks; adding one at runtime is supported
     (THREE.ShaderChunk as Record<string, string>)["night_pars_fragment"] = /* glsl */ `
 uniform float uNight;
-vec3 nightGrade(vec3 color) {
+uniform float uLampLevels[${n}];
+const vec3 STREET_LAMP_POS[${n}] = vec3[${n}](${lamps});
+
+// warm light from the street lamps at worldPos, as a multiplier for the surface colour as the
+// shader lit it (its daytime lighting, before this grade)
+vec3 streetLampLight(vec3 worldPos) {
+    float sum = 0.0;
+    for (int i = 0; i < ${n}; i++) {
+        float level = uLampLevels[i];
+        if (level <= 0.0) continue;
+        vec3 d = STREET_LAMP_POS[i] - worldPos;
+        float dist2 = dot(d, d);
+        // soft inverse-square falloff, faded to exactly 0 by 8 units (dist2 = 64)
+        sum += level / (1.0 + dist2 * 0.12) * (1.0 - smoothstep(25.0, 64.0, dist2));
+    }
+    return vec3(1.0, 0.72, 0.4) * (sum * 2.2);
+}
+
+vec3 nightGrade(vec3 color, vec3 worldPos) {
+    if (uNight <= 0.0) return color; // daytime: the lamps are off too
     float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
     vec3 moonlit = mix(color, vec3(luma), 0.35) * vec3(0.62, 0.8, 1.05) * 0.85;
-    return mix(color, moonlit, uNight);
+    // The pools grow with the dark: a lamp that comes on at dusk (uNight 0.3, ground still mostly
+    // daylit) would otherwise add its full light on top of near-daylight and look overexposed.
+    float lampVisibility = smoothstep(0.2, 0.85, uNight);
+    return mix(color, moonlit, uNight) + color * streetLampLight(worldPos) * lampVisibility;
 }
 `;
 }

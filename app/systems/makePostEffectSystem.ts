@@ -42,11 +42,14 @@ const addBloom = (ctx: SceneContext, finalComposer: EffectComposer, bloomCompose
     const darkMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const materials: { [key: string]: THREE.Material } = {};
     const nonBloom = (obj: THREE.Object3D) => {
+        if (!(obj instanceof THREE.Mesh || obj instanceof THREE.Points)) return;
         if (bloomLayer.test(obj.layers) === false) {
-            if (obj instanceof THREE.Mesh || obj instanceof THREE.Points) {
-                materials[obj.uuid] = obj.material;
-                obj.material = darkMaterial;
-            }
+            materials[obj.uuid] = obj.material;
+            obj.material = darkMaterial;
+        } else if (obj.userData.bloomMaterial instanceof THREE.Material) {
+            // glows differently from how it looks (the street lamps: only the lit lanterns glow)
+            materials[obj.uuid] = obj.material;
+            obj.material = obj.userData.bloomMaterial;
         }
     };
     const restoreMaterial = (obj: THREE.Object3D) => {

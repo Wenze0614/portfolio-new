@@ -143,7 +143,7 @@ void main() {
     color = color + irradiance * 1.2;  // or: color = color * (ambient + irradiance);
 
 
-    color = nightGrade(color); // day & night (uNight)
+    color = nightGrade(color, vPosWS); // day & night (uNight, street lamps)
     gl_FragColor = vec4(vec3(color), 1.0);
 
     // #include <colorspace_fragment>

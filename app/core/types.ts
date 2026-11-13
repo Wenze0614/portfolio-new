@@ -94,6 +94,9 @@ export interface DayNightState {
     /** 0 = day, 1 = night, eased while switching. One shared uniform object: shaders that take it
      *  by reference (material.uniforms.uNight = state.dayNight.uNight) update with no extra work. */
     uNight: { value: number };
+    /** Brightness of each street lamp (0 = off, 1 = on), in STREET_LAMPS order. Shared the same way as
+     *  uNight; written by the street lamp system, read by the ground, tree and lamp-glass shaders. */
+    uLampLevels: { value: Float32Array };
 }
 
 

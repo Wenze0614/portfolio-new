@@ -200,6 +200,7 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
     // }
     const treeUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
     treeUniforms.uNight = ctx.state.dayNight.uNight; // shared, not cloned: the day & night system updates it
+    treeUniforms.uLampLevels = ctx.state.dayNight.uLampLevels; // shared too: the street lamp system updates it
     const foliageMat = new THREE.ShaderMaterial({
         uniforms: treeUniforms,
         vertexShader: vertexShader,

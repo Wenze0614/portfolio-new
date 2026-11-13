@@ -106,6 +106,7 @@ export default function makeTreeSystem(ctx: SceneContext): TreeSystem {
     }
     const treeTrunkUniforms = THREE.UniformsUtils.merge([baseUniforms, customUniforms]);
     treeTrunkUniforms.uNight = ctx.state.dayNight.uNight; // shared, not cloned: the day & night system updates it
+    treeTrunkUniforms.uLampLevels = ctx.state.dayNight.uLampLevels; // shared too: the street lamp system updates it
 
 
     const treeTrunkMat = new THREE.ShaderMaterial({

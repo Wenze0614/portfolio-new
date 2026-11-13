@@ -1,5 +1,6 @@
 // app/scene/core/state.ts
 import * as THREE from 'three';
+import { STREET_LAMPS } from '../data/streetLamps';
 import { AppState, DayNightState, CONTROL_TYPE, PLockState, OrbitState, TerrainState, TextureDict, TEXTURE_NAME, VideoTextureDict, VIDEOTEXTURE_NAME } from './types';
 
 export function makeState(): AppState {
@@ -49,6 +50,7 @@ export function makeState(): AppState {
 
     const _dayNight: DayNightState = {
         uNight: { value: 0 }, // start in daytime
+        uLampLevels: { value: new Float32Array(STREET_LAMPS.length) }, // all off
     };
 
     const _walkStateDefaults: PLockState = {
