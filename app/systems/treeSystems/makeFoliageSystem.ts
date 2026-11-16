@@ -235,12 +235,40 @@ export default function makeFoliageSystem(ctx: SceneContext, foliageGuides: Foli
         #include <packing>
         uniform sampler2D uFoliageTexture;
         uniform vec3 uColorMap[4];
+        uniform float uNight; // shared with the foliage material (treeUniforms)
 
         varying vec2 vUv;
         varying vec3 vNormalWS;
+
+        // Sun gaps: the canopy's leaf cards overlap so much that their shadow covered nearly all the
+        // ground. Noise holes in the shadow let patches of sunlight through. The noise is read in
+        // shadow-map pixels (gl_FragCoord here), i.e. along the sun's direction, so a hole goes through
+        // every stacked layer of leaves at once; noise in world space only thinned each layer, and the
+        // layers filled each other's holes back in. The sun's shadow camera never moves, so the
+        // patches stay put on the ground while the leaves sway.
+        const float GAP_SIZE = 28.0;     // shadow-map pixels per noise cell: ~2.5 world units (2048 px over 180)
+        const float GAP_OPENNESS = 0.42; // noise below this becomes a hole: about a third of the shade opens
+        // At night the gaps shrink to a few small moonlit spots (about 9% open): big bright patches of moonlight on
+        // the path outshone the street lamps (the night look was tuned with the canopy's full shade).
+        const float GAP_OPENNESS_NIGHT = 0.28;
+        float gapHash(vec2 p) {
+            p = fract(p * vec2(0.3183099, 0.3678794) + 0.1);
+            p *= 17.0;
+            return fract(p.x * p.y * (p.x + p.y));
+        }
+        float gapNoise(vec2 x) {
+            vec2 i = floor(x);
+            vec2 f = fract(x);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(mix(gapHash(i), gapHash(i + vec2(1.0, 0.0)), f.x),
+                       mix(gapHash(i + vec2(0.0, 1.0)), gapHash(i + vec2(1.0, 1.0)), f.x), f.y);
+        }
           void main() {
             float m = texture2D(uFoliageTexture, vUv).a;
             if (m < 0.5) discard;
+            vec2 p = gl_FragCoord.xy / GAP_SIZE;
+            float gaps = gapNoise(p) * 0.65 + gapNoise(p * 2.7 + 7.3) * 0.35; // big patches with ragged edges
+            if (gaps < mix(GAP_OPENNESS, GAP_OPENNESS_NIGHT, uNight)) discard;
             gl_FragColor = packDepthToRGBA( gl_FragCoord.z );
           }
         `,
