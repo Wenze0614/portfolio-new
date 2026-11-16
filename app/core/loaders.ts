@@ -2,13 +2,11 @@
 import * as THREE from 'three';
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 
 // Large assets that are requested up front (in parallel) and later picked up by their systems.
 export const ASSET_URLS = {
   house: '/models/house.glb',
   trees: '/models/trees.glb',
-  skyHDR: '/textures/animeSky-day-2-2k.hdr',
   music: '/audio/lune.mp3',
 } as const;
 
@@ -21,7 +19,6 @@ export function makeLoaders() {
   gltf.setDRACOLoader(dracoLoader);
 
   const audio = new THREE.AudioLoader(loaderManager);
-  const rgbe = new RGBELoader(loaderManager);
 
   // Each URL is requested once; every caller gets the same promise.
   // This lets page.tsx start all downloads at once while each system still asks for its own file.
@@ -37,8 +34,7 @@ export function makeLoaders() {
   }
 
   const loadGLTF = (url: string): Promise<GLTF> => once(url, () => gltf.loadAsync(url));
-  const loadHDR = (url: string): Promise<THREE.DataTexture> => once(url, () => rgbe.loadAsync(url));
   const loadAudio = (url: string): Promise<AudioBuffer> => once(url, () => audio.loadAsync(url));
 
-  return { loaderManager, texture, gltf, audio, loadGLTF, loadHDR, loadAudio };
+  return { loaderManager, texture, gltf, audio, loadGLTF, loadAudio };
 }

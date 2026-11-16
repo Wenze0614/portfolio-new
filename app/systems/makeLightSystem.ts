@@ -4,13 +4,14 @@ import * as THREE from "three";
 import { normalize } from "three/src/math/MathUtils.js";
 import { drawIndex } from "three/tsl";
 
-const SUN_DIRECTION = new THREE.Vector3(50, 80, 0)
+/** Where sun1 sits relative to its target (the origin): the direction the sunlight (and moonlight) comes from. The sky draws its sun there. Don't mutate. */
+export const SUN_DIRECTION = new THREE.Vector3(50, 80, 0)
 
 function fitDirLightToCamera(light: THREE.DirectionalLight, camera: THREE.Camera, margin = 20) {
     const pos = camera.position;
 
     // 1. Position the sun relative to the camera
-    light.position.copy(pos).add(SUN_DIRECTION.normalize());
+    light.position.copy(pos).add(SUN_DIRECTION.clone().normalize());
     light.target.position.copy(pos);
     light.target.updateMatrixWorld();
 

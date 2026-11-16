@@ -1,104 +1,67 @@
 import * as THREE from 'three';
-import { ASSET_URLS } from '../core/loaders';
-import { SceneContext, System } from '../core/types';
-import modifyShader from '../utils/modifyShader';
+import { FINAL_PASS_LAYER, SceneContext, System } from '../core/types';
+import { SUN_DIRECTION } from './makeLightSystem';
+import vertexShader from '../shaders/skyShaders/vertex.vert';
+import fragmentShader from '../shaders/skyShaders/fragment.frag';
 
-// makeSkySystem.ts
-// This system is responsible for creating and managing the sky in the scene.
+// Procedural sky dome (replaced a 5.4 MB HDR photo sky, which looked pasted-on once the fog could be
+// turned off). Gradient from the fog colour at the horizon to a blue zenith, a sun disc and glow,
+// drifting clouds; at night a dark zenith, stars and the moon. All in the shader (skyShaders), driven
+// by the shared day & night value; nothing to download.
 
+const RADIUS = 1000; // inside the camera's far plane (1500), outside the distant hills (makeSurroundingsSystem)
 
 export function makeSkySystem(ctx: SceneContext): System {
-    //use an HDRI for the sky for now
-    const geometry = new THREE.SphereGeometry(1000, 50, 30);
-    geometry.scale(-1, 1, 1); // invert normals
+    const geometry = new THREE.SphereGeometry(RADIUS, 48, 24);
 
-    //todo: remove hdr later and use procedural sky
-    // The HDR is requested at boot (page.tsx); wait on that same request and attach it when it arrives.
-    const material = new THREE.MeshBasicMaterial();
-    material.onBeforeCompile = (shader) => {
-        modifyShader(shader);
-    }
-    const skyReady = ctx.loaders.loadHDR(ASSET_URLS.skyHDR).then((skyTexture) => {
-        skyTexture.mapping = THREE.EquirectangularReflectionMapping;
-        skyTexture.magFilter = THREE.NearestFilter;
-        skyTexture.minFilter = THREE.NearestFilter;
-        skyTexture.colorSpace = THREE.SRGBColorSpace;
-        material.map = skyTexture;
-        material.needsUpdate = true; // adding a map changes the shader
+    const material = new THREE.ShaderMaterial({
+        uniforms: THREE.UniformsUtils.merge([
+            THREE.UniformsLib.fog,
+            {
+                uTime: { value: 0 },
+                uSunDir: { value: SUN_DIRECTION.clone().normalize() },
+                uHorizon: { value: new THREE.Color() },     // follows scene.fog.color, set in update()
+                uZenithDay: { value: new THREE.Color('#4f86c6') },
+                uZenithNight: { value: new THREE.Color('#060a18') },
+                uSunColor: { value: new THREE.Color(1.5, 1.35, 1.0) },
+                uMoonColor: { value: new THREE.Color('#cfd8ff') },
+            },
+        ]),
+        vertexShader,
+        fragmentShader,
+        side: THREE.BackSide,  // seen from inside
+        depthWrite: false,     // always behind everything
+        // With the fog on, the chunk fogs the sky completely below ~30° and about half overhead, as it
+        // did the HDR sky, so the default look is unchanged; the sky shows properly with the fog off.
+        fog: true,
+        // the fog chunk leaves the sky out of the fog-off distance haze: it has its own horizon colour
+        defines: { SKY_DOME: 1 },
     });
-    // const cubeImages = [
-    //     ctx.loaders.texture.load('/textures/sky/px.png'),
-    //     ctx.loaders.texture.load('/textures/sky/nx.png'),
-    //     ctx.loaders.texture.load('/textures/sky/py.png'),
-    //     ctx.loaders.texture.load('/textures/sky/pz.png'),
-    //     ctx.loaders.texture.load('/textures/sky/nz.png'),
-    // ]
-    // cubeImages.forEach(tex => {
-    //     tex.magFilter = THREE.NearestFilter;
-    //     tex.minFilter = THREE.NearestFilter;
-    //     tex.colorSpace = THREE.SRGBColorSpace;
-    // })
-    // const skyMat = [
-    //     new THREE.MeshBasicMaterial({ map: cubeImages[0], side: THREE.BackSide }),
-    //     new THREE.MeshBasicMaterial({ map: cubeImages[1], side: THREE.BackSide }),
-    //     new THREE.MeshBasicMaterial({ map: cubeImages[2], side: THREE.BackSide }),
-    //     new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide }), // blank bottom
-    //     new THREE.MeshBasicMaterial({ map: cubeImages[3], side: THREE.BackSide }),
-    //     new THREE.MeshBasicMaterial({ map: cubeImages[4], side: THREE.BackSide }),
-    // ]
+    material.uniforms.uNight = ctx.state.dayNight.uNight; // shared, not cloned
 
-    const DAY_TINT = new THREE.Color(0xffffff);
-    const NIGHT_TINT = new THREE.Color("#4a5f8f");
-    let lastNight = -1;
-
-    const skySphere = new THREE.Mesh(geometry, material);
-    skySphere.rotateY(Math.PI * 1.5);
-    skySphere.position.set(0, 0, 0);
-    // ctx.scene.environment = skyTexture;
-
-    // const skyGeo = new THREE.BoxGeometry(1000, 1000, 1000);
-    // const skyBox = new THREE.Mesh(skyGeo, skyMat);
-    // skyBox.position.set(0.0, 0.0, 0.0);
-    // ctx.scene.add(skyBox);
-    // ctx.scene.fog = new THREE.FogExp2(0xefd1b5, 0.00025);
-
-    ctx.scene.add(skySphere);
-    // ctx.scene.background = skyTexture;
-    // ctx.scene.environment = skyTexture;
-
-    // 1) Sky mesh (infinite-looking)
-    // const sky = new Sky();
-    // sky.scale.setScalar(10000);
-    // ctx.scene.add(sky);
-
-    // const sun = new THREE.Vector3();
-    // const phi = THREE.MathUtils.degToRad(90 - 15); // elevation
-    // const theta = THREE.MathUtils.degToRad(90);      // azimuth
-    // sun.setFromSphericalCoords(1, phi, theta);
-
-    // // 3) Sky params (tweak for style)
-    // const skyMat = sky.material;
-    // skyMat.uniforms['turbidity'].value = 2.0;
-    // skyMat.uniforms['rayleigh'].value = 1.2;
-    // skyMat.uniforms['mieCoefficient'].value = 0.005;
-    // skyMat.uniforms['mieDirectionalG'].value = 0.8;
-    // skyMat.uniforms['sunPosition'].value.copy(sun);
+    const sky = new THREE.Mesh(geometry, material);
+    sky.name = 'sky';
+    // Last of the opaque objects: the depth test then skips the (noise-heavy) sky shader wherever the
+    // forest already covers the screen. Transparent objects (fireflies) still draw after it.
+    sky.renderOrder = 1000;
+    sky.frustumCulled = false;     // the camera is always inside it
+    sky.layers.set(FINAL_PASS_LAYER); // nothing in it glows: skip the bloom pass
 
     return {
         init() {
-            // resolves once the sky texture is attached
-            return skyReady;
+            ctx.scene.add(sky);
         },
-        update( dt: number) {
-            // night: MeshBasicMaterial multiplies its map by .color, so this tints the sky texture
-            const night = ctx.state.dayNight.uNight.value;
-            if (night !== lastNight) {
-                lastNight = night;
-                material.color.lerpColors(DAY_TINT, NIGHT_TINT, night);
-            }
-            //skySphere.rotation.y = 0.0001 * (dt || 0); // Slow rotation for dynamic effect
+        update(elapsed: number) {
+            material.uniforms.uTime.value = elapsed;
+            const fog = ctx.scene.fog;
+            if (fog) material.uniforms.uHorizon.value.copy(fog.color);
+            // the dome is centred on the camera so its horizon stays level wherever you walk
+            sky.position.copy(ctx.camera.position);
         },
         dispose() {
-        }
-    }
+            ctx.scene.remove(sky);
+            geometry.dispose();
+            material.dispose();
+        },
+    };
 }

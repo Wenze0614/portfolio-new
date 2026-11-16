@@ -133,7 +133,6 @@ export interface SceneContext {
         texture: THREE.TextureLoader;
         audio: THREE.AudioLoader;
         loadGLTF: (url: string) => Promise<GLTF>;
-        loadHDR: (url: string) => Promise<THREE.DataTexture>;
         loadAudio: (url: string) => Promise<AudioBuffer>;
     };
     state: AppState; // your store/event bus

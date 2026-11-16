@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { SceneContext, System } from "../core/types";
-import { isTouchDevice } from "../utils/isTouchDevice";
+import { makeTouchButton, wantsTouchButtons } from "../utils/touchButton";
 import { LAMP_LIGHT_HEIGHT, STREET_LAMPS } from "../data/streetLamps";
 
 // Day & night. This system owns the switch (N key, or a button on touch devices) and the eased
@@ -75,14 +75,11 @@ export default function makeDayNightSystem(ctx: SceneContext): DayNightSystem {
     let lastElapsed: number | null = null;
     let dayFogDensity: number | null = null; // read from scene.fog on the first update
 
-    // Touch devices have no N key: a small moon/sun button in the top-right corner
-    // (the joystick lives bottom-left). "︎" asks for the text glyph, not an emoji.
-    let button: HTMLButtonElement | null = null;
+    // Touch devices have no N key: a moon/sun button in the top-right corner instead
+    let button: ReturnType<typeof makeTouchButton> | null = null;
     const updateButton = () => {
-        if (!button) return;
         const goingToNight = target === 0;
-        button.textContent = goingToNight ? "☾︎" : "☀︎";
-        button.setAttribute("aria-label", goingToNight ? "Switch to night" : "Switch to day");
+        button?.set(goingToNight ? "\u263E\uFE0E" : "\u2600\uFE0E", goingToNight ? "Switch to night" : "Switch to day");
     };
 
     const toggle = () => {
@@ -91,36 +88,17 @@ export default function makeDayNightSystem(ctx: SceneContext): DayNightSystem {
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-        if (e.repeat || e.key.toLowerCase() !== "n") return;
+        // not with modifiers: Cmd/Ctrl+N is the browser's new window
+        if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || e.key.toLowerCase() !== "n") return;
         toggle();
     };
 
     return {
         init() {
             window.addEventListener("keydown", onKeyDown);
-            // phones/tablets, plus touch-only devices the user-agent check misses (e.g. a Surface
-            // without its keyboard). A touchscreen laptop also gets it, which is harmless.
-            if (isTouchDevice() || navigator.maxTouchPoints > 0) {
-                button = document.createElement("button");
-                button.id = "day-night-toggle";
-                Object.assign(button.style, {
-                    position: "fixed",
-                    top: "16px",
-                    right: "16px",
-                    width: "44px",
-                    height: "44px",
-                    borderRadius: "22px",
-                    border: "1px solid rgba(255,255,255,.35)",
-                    background: "rgba(0,0,0,.45)",
-                    color: "white",
-                    fontSize: "22px",
-                    lineHeight: "1",
-                    zIndex: "1000", // under the loading overlay (2000), above the canvas
-                    touchAction: "manipulation",
-                } satisfies Partial<CSSStyleDeclaration>);
-                button.addEventListener("click", toggle);
+            if (wantsTouchButtons()) {
+                button = makeTouchButton("day-night-toggle", 0, toggle);
                 updateButton();
-                document.body.appendChild(button);
             }
         },
         update(elapsed: number) {
@@ -144,7 +122,6 @@ export default function makeDayNightSystem(ctx: SceneContext): DayNightSystem {
         },
         dispose() {
             window.removeEventListener("keydown", onKeyDown);
-            button?.removeEventListener("click", toggle);
             button?.remove();
             button = null;
         },

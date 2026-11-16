@@ -7,6 +7,7 @@ import { GLTF } from "three/examples/jsm/Addons.js";
 import gsap from "gsap";
 import { AudioSystem } from "../makeAudioSystem";
 import { ASSET_URLS } from "../../core/loaders";
+import { addFogUniforms } from "../makeFogSystem";
 
 function animateZ(sprite: THREE.Sprite, headPos: THREE.Vector3, delay = 0) {
     const finalPos: THREE.Vector3 = sprite.userData.finalPos;
@@ -247,6 +248,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
 
                 })
                 archie.material.onBeforeCompile = (shader: any) => {
+                    addFogUniforms(shader); // replaces the default onBeforeCompile that adds these
 
                     shader.fragmentShader = shader.fragmentShader.replace(
                         'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',
@@ -528,6 +530,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                     map: certificateTexture,
                 })
                 certificate.material.onBeforeCompile = (shader: any) => {
+                    addFogUniforms(shader); // replaces the default onBeforeCompile that adds these
 
                     shader.fragmentShader = shader.fragmentShader.replace(
                         'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',
@@ -564,6 +567,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                     map: bookCover
                 })
                 doraemon.material.onBeforeCompile = (shader: any) => {
+                    addFogUniforms(shader); // replaces the default onBeforeCompile that adds these
 
                     shader.fragmentShader = shader.fragmentShader.replace(
                         'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',
@@ -581,6 +585,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                     map: pikachuStatueTexture
                 })
                 pikachu.material.onBeforeCompile = (shader: any) => {
+                    addFogUniforms(shader); // replaces the default onBeforeCompile that adds these
 
                     shader.fragmentShader = shader.fragmentShader.replace(
                         'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',
@@ -598,6 +603,7 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
                     map: pokeballTexture,
                 });
                 pokeball.material.onBeforeCompile = (shader: any) => {
+                    addFogUniforms(shader); // replaces the default onBeforeCompile that adds these
 
                     shader.fragmentShader = shader.fragmentShader.replace(
                         'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;',
@@ -920,9 +926,6 @@ export default function makePokeBallSystem(ctx: SceneContext): System & { getint
             //         const pokeballMat = new THREE.MeshBasicMaterial({
             //             map: pokeballTexture,
             //         });
-            //         // pokeballMat.onBeforeCompile = (shader) => {
-            //         //     modifyShader(shader);
-            //         // }
             //         pokeball.material = pokeballMat;
             //         pokeball.name = "pokeball";
             //         // pokeball.layers.enable(ctx.state.postEffectState.bloom.layer);

@@ -13,7 +13,6 @@ import makeLightSystem from "./systems/makeLightSystem";
 import { makeStats } from "./utils/makeStats";
 import makeTerrainSystem from "./systems/terrainSystems/makeTerrainSystem";
 import { makeSkySystem } from "./systems/makeSkySystem";
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import makeTreeSystem, { TreeSystem } from "./systems/treeSystems/makeTreeSystem";
 import makeFoliageSystem from "./systems/treeSystems/makeFoliageSystem";
 import makePostEffectSystem, { ComposerSystem } from "./systems/makePostEffectSystem";
@@ -23,7 +22,9 @@ import makeFogSystem from "./systems/makeFogSystem";
 import makeDayNightSystem, { DayNightSystem, registerNightShaderChunk } from "./systems/makeDayNightSystem";
 import makeForestFireflySystem from "./systems/makeForestFireflySystem";
 import makeStreetLampSystem from "./systems/makeStreetLampSystem";
-import modifyShader from "./utils/modifyShader";
+import makeFogToggleSystem, { FogToggleSystem } from "./systems/makeFogToggleSystem";
+import makeKeyHintsSystem from "./systems/makeKeyHintsSystem";
+import makeSurroundingsSystem from "./systems/makeSurroundingsSystem";
 import makeInteractiveSystem, { InteractiveSystem } from "./systems/interactiveSystem/makeInteractiveSystem";
 import makeAudioSystem, { AudioSystem } from "./systems/makeAudioSystem";
 import { ControlSystem, GUISystem, LightSystem, System, TEXTURE_NAME } from "./core/types";
@@ -50,6 +51,9 @@ export default function Page() {
     const dayNightSysRef = useRef<DayNightSystem>(null);
     const forestFireflySysRef = useRef<System>(null);
     const streetLampSysRef = useRef<System>(null);
+    const fogToggleSysRef = useRef<FogToggleSystem>(null);
+    const keyHintsSysRef = useRef<System>(null);
+    const surroundingsSysRef = useRef<System>(null);
     const treeSysRef = useRef<TreeSystem>(null);
     const interactiveSysRef = useRef<InteractiveSystem>(null);
     const terrainSysRef = useRef<System>(null);
@@ -187,7 +191,6 @@ export default function Page() {
             // these in-flight requests instead of starting new ones (see loaders.ts).
             loaders.loadGLTF(ASSET_URLS.house);
             loaders.loadGLTF(ASSET_URLS.trees);
-            loaders.loadHDR(ASSET_URLS.skyHDR);
             const audioSys = makeAudioSystem(ctx);
             const audioReady = audioSys.init(); // small sounds only; the music loads after the scene is ready
 
@@ -231,6 +234,18 @@ export default function Page() {
                 const w = window as unknown as { __forest?: Record<string, unknown> };
                 w.__forest = { ...w.__forest, dayNight: dayNightSystem }; // dev-only, for tests
             }
+            // G (or the fog button on touch devices) turns the fog off / on
+            const fogToggleSystem = makeFogToggleSystem();
+            fogToggleSystem.init(ctx);
+            fogToggleSysRef.current = fogToggleSystem;
+            // the keys panel (desktop); its N and G rows follow those two systems
+            const keyHintsSystem = makeKeyHintsSystem({ isNight: dayNightSystem.isNight, isFogOn: fogToggleSystem.isFogOn });
+            keyHintsSystem.init(ctx);
+            keyHintsSysRef.current = keyHintsSystem;
+            if (process.env.NODE_ENV !== "production") {
+                const w = window as unknown as { __forest?: Record<string, unknown> };
+                w.__forest = { ...w.__forest, fogToggle: fogToggleSystem }; // dev-only, for tests
+            }
 
             const lightSystem = makeLightSystem(ctx);
             lightSystem.init(ctx);
@@ -249,6 +264,10 @@ export default function Page() {
             const terrainSystem = makeTerrainSystem(ctx);
             terrainSystem.init(ctx);
             terrainSysRef.current = terrainSystem;
+            // open ground, tree lines, hills and mountains beyond the map (seen with the fog off); no per-frame work
+            const surroundingsSystem = makeSurroundingsSystem(ctx);
+            surroundingsSystem.init(ctx);
+            surroundingsSysRef.current = surroundingsSystem;
 
 
 
@@ -287,9 +306,6 @@ export default function Page() {
             audioSys.preloadMusic(); // background download, so it's usually ready by the time E is pressed on the CD player
 
             // const testCubeMat = new THREE.MeshToonMaterial({ color: 'white' });
-            // // testCubeMat.onBeforeCompile = (shader) => {
-            // //     modifyShader(shader);
-            // // }
             // const testCube = new THREE.Mesh(
             //     new THREE.BoxGeometry(1, 1, 1),
             //     testCubeMat
@@ -333,18 +349,17 @@ export default function Page() {
         })()
 
 
+        // F: fullscreen. The whole page, not just the canvas, so the interact prompt, the keys panel
+        // and the touch buttons stay visible. Not with modifiers (Cmd/Ctrl+F is the browser's find).
         const handleFullScreen = () => {
-            if (document.fullscreenElement === renderer.domElement) {
-                document.exitFullscreen();
-            } else {
-                renderer.domElement.requestFullscreen();
-            }
+            if (document.fullscreenElement) document.exitFullscreen();
+            else document.documentElement.requestFullscreen().catch(() => { /* refused (e.g. iframe) */ });
         };
-        window.addEventListener('keydown', (key) => {
-            if (key.key === 'f') {
-                handleFullScreen()
-            }
-        })
+        const onFullScreenKey = (e: KeyboardEvent) => {
+            if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || e.key.toLowerCase() !== "f") return;
+            handleFullScreen();
+        };
+        window.addEventListener("keydown", onFullScreenKey);
 
 
         const timer = new Timer();
@@ -372,6 +387,8 @@ export default function Page() {
             updateSys(controlSysRef);
             updateSys(dayNightSysRef);
             updateSys(streetLampSysRef); // right after day & night: sets the lamp levels the shaders read this frame
+            updateSys(fogToggleSysRef);
+            updateSys(keyHintsSysRef);
             updateSys(lightSysRef);
             updateSys(terrainSysRef);
             updateSys(skySysRef);
@@ -410,15 +427,22 @@ export default function Page() {
         }
         animate();
 
-        // Remove the interaction and day/night listeners when the effect re-runs (Fast Refresh in dev),
+        // Remove the interaction, day/night and fog listeners (and the keys panel) when the effect re-runs (Fast Refresh in dev),
         // so an old copy can't toggle the music or day/night a second time on one press. The rest of the scene still has no
         // cleanup: that's TODO P4.3.
         return () => {
             effectActive = false;
             window.removeEventListener("keydown", onInteractKey);
+            window.removeEventListener("keydown", onFullScreenKey);
             promptEl?.removeEventListener("click", interact);
             dayNightSysRef.current?.dispose(); // N listener and the touch button
             dayNightSysRef.current = null;
+            fogToggleSysRef.current?.dispose(); // F listener and the touch button
+            fogToggleSysRef.current = null;
+            keyHintsSysRef.current?.dispose(); // the keys panel and its H listener
+            keyHintsSysRef.current = null;
+            surroundingsSysRef.current?.dispose(); // its geometries, materials and grass texture copy
+            surroundingsSysRef.current = null;
         };
     }, [scene]);
 

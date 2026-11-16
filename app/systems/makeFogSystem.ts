@@ -42,7 +42,34 @@ float FBM(vec3 p) {
 }
 `;
 
+/**
+ * How far the fog is switched off (G key; see makeFogToggleSystem): 0 = normal fog, 1 = fog off.
+ * One shared uniform object that every material gets (addFogUniforms), so toggling is a value
+ * change: no shader recompiles.
+ */
+export const fogClear = { value: 0 };
+
+/** Adds the uniforms the custom fog chunk reads. Materials with their own onBeforeCompile must call it. */
+export function addFogUniforms(shader: THREE.WebGLProgramParametersWithUniforms) {
+    shader.uniforms.uFogClear = fogClear;
+}
+
+// With fog off: how much of the normal fog stays, and the distance over which the air hazes
+// distant things toward the fog colour (1 - e^(-d / HAZE_DISTANCE): ~11% at 30 units, ~44% at the
+// first tree line (150), ~80% at the hills (420), ~93% at the mountains (700)). What lies past the
+// map's edge is real scenery now (makeSurroundingsSystem), so there's no edge left to hide.
+const CLEAR_HAZE = 0.25;
+const HAZE_DISTANCE = 260;
+
 export default async function makeFogSystem(ctx: SceneContext) {
+
+    // Every material gets uFogClear: three calls onBeforeCompile on each material before compiling it,
+    // and this is the default for any material that doesn't set its own (a few cabin materials do, and
+    // call addFogUniforms themselves). Materials that skip it would just keep the
+    // normal fog with G, since a uniform no one uploads reads as 0.
+    THREE.Material.prototype.onBeforeCompile = function (shader) {
+        addFogUniforms(shader);
+    };
 
     //overwrite fog shaders
     THREE.ShaderChunk.fog_fragment = `
@@ -50,6 +77,7 @@ export default async function makeFogSystem(ctx: SceneContext) {
       vec3 fogOrigin = cameraPosition;
       vec3 fogDirection = normalize(vWorldPosition - fogOrigin);
       float fogDepth = distance(vWorldPosition, fogOrigin);
+      float fogDistance = fogDepth;
 
       vec3 noiseSampleCoord = vWorldPosition * 0.0025;
       float noise = FBM(noiseSampleCoord + FBM(noiseSampleCoord)) * 0.5 + 0.5;
@@ -67,6 +95,19 @@ export default async function makeFogSystem(ctx: SceneContext) {
           1.0 - exp(-fogDepth * fogDirection.y * fogDensity)) / fogDirection.y;
       fogFactor = saturate(fogFactor);
 
+      // Fog off (G): a little of the normal fog, plus distance haze (aerial perspective) so the
+      // tree lines, hills and mountains around the map fade into the horizon colour layer by layer.
+      // The sky dome has its own horizon colour (the fog colour), so it skips the haze.
+      if (uFogClear > 0.0) {
+        #ifdef SKY_DOME
+          float haze = 0.0;
+        #else
+          float haze = 1.0 - exp(-fogDistance / ${HAZE_DISTANCE.toFixed(1)});
+        #endif
+        float clearFog = max(fogFactor * ${CLEAR_HAZE.toFixed(2)}, haze);
+        fogFactor = mix(fogFactor, clearFog, uFogClear);
+      }
+
       gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
         // gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, 0.0 ); // disable fog
     #endif`;
@@ -74,6 +115,7 @@ export default async function makeFogSystem(ctx: SceneContext) {
     THREE.ShaderChunk.fog_pars_fragment = `
     #ifdef USE_FOG
       uniform vec3 fogColor;
+      uniform float uFogClear; // 0 = normal fog, 1 = fog off (see fogClear)
       varying vec3 vWorldPosition;
       #ifdef FOG_EXP2
         uniform float fogDensity;
